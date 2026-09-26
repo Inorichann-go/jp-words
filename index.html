@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 유튜브 임베드는 Referer(어느 사이트에서 재생하는지)가 없으면 오류 153으로 막힘 -->
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>일본어 단어장</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fff4f7;
+    --surface: #ffffff;
+    --surface2: #fffafc;
+    --border: #fad6e2;
+    --accent: #e8739a;
+    --accent-dark: #d4577f;
+    --accent-light: #ffe6ee;
+    --pink-mid: #f9bfd1;
+    --success: #4caf8a;
+    --success-light: #eefaf4;
+    --star: #e8a33d;
+    --danger: #e35d6a;
+    --text: #4a3a40;
+    --text2: #7a6570;
+    --text3: #b8a5ad;
+    --font: 'Noto Sans KR', 'Noto Sans JP', sans-serif;
+    --jp: 'Noto Sans JP', 'Noto Sans KR', sans-serif;
+    --shadow: 0 2px 10px rgba(232,115,154,.08);
+    --player-h: 52px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 12px;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding-bottom: calc(var(--player-h) + 16px);
+  }
+  button, input, textarea, select { font-family: inherit; font-size: 12px; color: inherit; }
+  button { cursor: pointer; }
+  .jp { font-family: var(--jp); }
+
+  /* ── 상단 탭 ── */
+  header {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .head-inner { max-width: 880px; margin: 0 auto; padding: 0 16px; }
+  .logo { font-size: 13px; font-weight: 700; padding: 10px 0 4px; color: var(--text2); }
+  .logo b { color: var(--accent); }
+  header { background: linear-gradient(180deg, #fff 0%, #fff7fa 100%); border-bottom-color: var(--border); }
+  .card, .stat { border-radius: 14px; }
+  .witem { border-radius: 10px; }
+  .btn, .seg { border-radius: 99px; }
+  .seg button.on { color: #fff; }
+  .tabs { display: flex; gap: 4px; }
+  .tab {
+    flex: 1; background: none; border: none;
+    padding: 10px 0 11px; font-size: 14px; font-weight: 700; color: var(--text3);
+    border-bottom: 3px solid transparent;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 14px 16px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── 카드 ── */
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 12px; box-shadow: var(--shadow);
+  }
+  .card-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .card-h { flex-wrap: wrap; }
+  .card-h h2 { font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .card-h .sub { color: var(--text3); font-size: 11px; font-weight: 400; margin-left: 4px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid2 > .card { margin-bottom: 0; }
+  .grid2 + .card, .grid2 { margin-bottom: 12px; }
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+
+  .btn {
+    border: 1px solid var(--border); background: var(--surface); border-radius: 6px;
+    padding: 4px 9px; font-size: 11px; white-space: nowrap;
+  }
+  .btn:hover { background: var(--surface2); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+  .btn.danger { color: var(--danger); }
+  .btn.sm { padding: 2px 7px; font-size: 11px; }
+  .btn:disabled { opacity: .4; cursor: default; }
+  .muted { color: var(--text3); }
+  .empty { color: var(--text3); text-align: center; padding: 14px 0; font-size: 11px; }
+
+  /* ── 통계 ── */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 9px 10px; box-shadow: var(--shadow); }
+  .stat .v { font-size: 18px; font-weight: 700; }
+  .stat .l { font-size: 11px; color: var(--text3); }
+  @media (max-width: 480px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+  /* ── 단어 아이템 ── */
+  .wlist { display: flex; flex-direction: column; gap: 6px; }
+  /* 한 줄 레이아웃: [단어] [뜻·예문·태그] [버튼] */
+  .witem {
+    display: grid; grid-template-columns: minmax(80px, 24%) 1fr auto; align-items: center; gap: 10px;
+    padding: 5px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface2);
+  }
+  .witem.done { background: var(--success-light); border-color: #c5ecd9; }
+  .w-col { min-width: 0; overflow-wrap: anywhere; }
+  .m-col { min-width: 0; border-left: 1px dashed var(--border); padding-left: 10px; }
+  .word { font-family: var(--jp); font-size: 15px; font-weight: 500; line-height: 1.35; }
+  .word rt { font-size: 9px; color: var(--text2); }
+  ruby { ruby-align: center; }
+  .m-line { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .meaning { color: var(--text); font-size: 12px; font-weight: 500; flex: 1 1 auto; min-width: 3em; overflow-wrap: anywhere; }
+  .meaning.hidden { color: transparent; background: var(--border); border-radius: 4px; cursor: pointer; user-select: none; min-width: 60px; }
+  .example {
+    color: var(--text3); font-size: 11px; font-family: var(--jp); line-height: 1.45;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+  }
+  .example.open { white-space: normal; }
+  .tags { display: inline-flex; flex-wrap: nowrap; gap: 3px; flex-shrink: 0; margin-left: auto; }
+  .acts { display: flex; gap: 3px; flex-shrink: 0; align-items: center; }
+  /* 목록 너비 기준으로 좁으면 태그 숨기고 버튼 2줄 (홈의 반쪽 카드 포함) */
+  .wlist { container-type: inline-size; }
+  @container (max-width: 540px) {
+    .witem { grid-template-columns: minmax(64px, 28%) 1fr auto; gap: 8px; }
+    .m-col { padding-left: 8px; }
+    .tags { display: none; }
+    .acts.many { display: grid; grid-template-columns: repeat(3, 24px); }
+  }
+  /* ── 페이지 ── */
+  .pager { display: flex; justify-content: center; align-items: center; gap: 3px; margin-top: 10px; flex-wrap: wrap; }
+  .pager button {
+    min-width: 26px; height: 26px; padding: 0 6px; border-radius: 99px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text2); font-size: 11px;
+  }
+  .pager button.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .pager button:disabled { opacity: .35; cursor: default; }
+  .pager .info { color: var(--text3); font-size: 10px; margin-left: 6px; }
+  .ic {
+    width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface); display: inline-flex; align-items: center; justify-content: center;
+    font-size: 13px; line-height: 1; color: var(--text3);
+  }
+  .ic.on-mem { background: var(--success); border-color: var(--success); color: #fff; }
+  .ic.on-star { background: #fff6e6; border-color: #f7d9a8; color: var(--star); }
+
+  /* ── 진도율 ── */
+  .goal-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text2); }
+  .goal-row input { width: 46px; padding: 2px 5px; border: 1px solid var(--border); border-radius: 5px; text-align: center; }
+  .progress { height: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 99px; overflow: hidden; margin: 6px 0 4px; }
+  .progress > div { height: 100%; background: var(--accent); border-radius: 99px; transition: width .3s; }
+  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 10px; align-items: end; }
+  .day { text-align: center; font-size: 10px; color: var(--text3); }
+  .day .barwrap { height: 60px; display: flex; align-items: flex-end; justify-content: center; background: var(--surface2); border-radius: 5px; margin-bottom: 3px; position: relative; }
+  .day .bar { width: 100%; background: var(--pink-mid); border-radius: 5px; }
+  .day .bar.full { background: var(--accent); }
+  .day .cnt { position: absolute; top: 3px; left: 0; right: 0; font-size: 10px; color: var(--text2); font-weight: 500; }
+  .day.today { color: var(--accent); font-weight: 700; }
+
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .seg button { border: none; background: var(--surface); padding: 3px 8px; font-size: 11px; color: var(--text2); }
+  .seg button + button { border-left: 1px solid var(--border); }
+  .seg button.on { background: var(--accent); color: #fff; }
+
+  /* ── 단어 목록 ── */
+  .form { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .form label { font-size: 11px; color: var(--text2); display: flex; flex-direction: column; gap: 2px; }
+  .form .full { grid-column: 1 / -1; }
+  .form input, .form textarea, .toolbar input, .toolbar select {
+    border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; background: var(--surface); width: 100%;
+  }
+  .form textarea { resize: vertical; min-height: 40px; font-family: var(--jp); }
+  .form input:focus, .form textarea:focus, .toolbar input:focus { outline: 2px solid var(--pink-mid); border-color: transparent; }
+  .ruby-preview {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: var(--accent-light); border-radius: 8px; padding: 6px 10px; font-size: 11px;
+  }
+  .ruby-preview .word { font-size: 20px; min-height: 30px; display: inline-flex; align-items: flex-end; }
+  .ruby-preview .word rt { font-size: 10px; }
+  .ruby-preview .hint { font-size: 10px; flex-basis: 100%; }
+  .form-actions { grid-column: 1 / -1; display: flex; gap: 6px; justify-content: flex-end; }
+  .toolbar { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+  .toolbar input { flex: 1; min-width: 140px; }
+  .toolbar select { width: auto; }
+
+  /* ── 태그 ── */
+  .tag { font-size: 10px; background: var(--accent-light); color: var(--accent-dark); padding: 0 7px; border-radius: 99px; line-height: 17px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; align-items: center; }
+  .chip {
+    border: 1px solid var(--border); background: var(--surface); color: var(--text2);
+    border-radius: 99px; padding: 2px 10px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .chip .n { color: var(--text3); font-size: 10px; }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip.on .n { color: #ffe6ee; }
+  .chip .x { display: none; color: var(--danger); font-weight: 700; padding-left: 2px; }
+  .chip .ren { display: none; color: var(--text3); }
+  .chips.editing .chip[data-tag] .x, .chips.editing .chip[data-tag] .ren { display: inline; }
+  .chip.add { border-style: dashed; color: var(--text3); }
+  .pick-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .pick-tags .chip { padding: 1px 8px; font-size: 10px; }
+  select.tag-sel { border: 1px solid var(--border); border-radius: 99px; padding: 2px 8px; font-size: 11px; background: var(--surface); color: var(--text2); }
+
+  /* ── 퀴즈 ── */
+  .opt-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .opt-row > span { width: 56px; color: var(--text2); font-size: 11px; }
+  .quiz-box { text-align: center; padding: 8px 0 4px; }
+  .quiz-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); margin-bottom: 10px; }
+  .q { font-size: 26px; font-family: var(--jp); font-weight: 500; margin: 12px 0 4px; word-break: keep-all; }
+  .q.ko { font-family: var(--font); font-size: 18px; }
+  .q-hint { font-size: 11px; color: var(--text3); min-height: 16px; margin-bottom: 14px; }
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .choice {
+    border: 1px solid var(--border); background: var(--surface2); border-radius: 8px;
+    padding: 11px 8px; font-size: 13px; text-align: center;
+  }
+  .choice.jp { font-family: var(--jp); font-size: 15px; }
+  .choice:hover:not(:disabled) { border-color: var(--accent); }
+  .choice.correct { background: var(--success-light); border-color: var(--success); color: var(--success); font-weight: 700; }
+  .choice.wrong { background: #fdeef0; border-color: var(--danger); color: var(--danger); }
+  .choice:disabled { cursor: default; }
+  .q-after { margin-top: 12px; min-height: 30px; font-size: 11px; color: var(--text2); }
+  .typing { display: flex; gap: 6px; max-width: 320px; margin: 0 auto; }
+  .typing input { flex: 1; border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-family: var(--jp); font-size: 14px; text-align: center; }
+  .score { font-size: 32px; font-weight: 700; color: var(--accent); margin: 6px 0; }
+
+  /* ── 하단 음악 바 ── */
+  .player {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    background: rgba(255,255,255,.96); color: var(--text);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -2px 14px rgba(232,115,154,.12);
+    backdrop-filter: blur(6px);
+  }
+  .player-inner { max-width: 880px; margin: 0 auto; padding: 8px 16px; display: flex; gap: 8px; align-items: center; height: var(--player-h); }
+  .player .pbtn { background: var(--accent-light); border: none; color: var(--accent-dark); border-radius: 6px; height: 30px; min-width: 30px; padding: 0 8px; font-size: 12px; flex-shrink: 0; }
+  .player .pbtn.on { background: var(--accent); color: #fff; }
+  .player input { flex: 1; min-width: 0; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 5px 8px; font-size: 11px; }
+  .player .ptitle { flex: 1; min-width: 0; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text2); }
+  .player .ptitle.err { white-space: normal; line-height: 1.3; font-size: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .player .yt-open { color: #fff; background: var(--accent); font-weight: 700; margin-right: 4px; text-decoration: none; padding: 0 6px; border-radius: 99px; white-space: nowrap; }
+  .player .vol { flex: 0 0 70px; width: 70px; accent-color: var(--accent); }
+  @media (max-width: 520px) { .player .vol { display: none; } }
+  #ytWrap {
+    position: fixed; right: 16px; bottom: calc(var(--player-h) + 8px); z-index: 61;
+    width: 220px; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden;
+    box-shadow: 0 4px 18px rgba(0,0,0,.3); background: #000;
+  }
+  #ytWrap.mini { width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  #ytWrap iframe { width: 100%; height: 100%; }
+  .edit-mode .ptitle, .edit-mode .play-ctl { display: none; }
+  .player:not(.edit-mode) .edit-ctl { display: none; }
+
+  /* ── 팝업 ── */
+  .modal {
+    position: fixed; inset: 0; z-index: 80;
+    background: rgba(74,58,64,.28); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+    animation: fade .15s;
+  }
+  .modal[hidden] { display: none; }
+  .modal-box {
+    background: var(--surface); border-radius: 16px; width: 100%; max-width: 460px;
+    max-height: calc(100vh - 32px); overflow-y: auto;
+    padding: 14px 16px; box-shadow: 0 10px 40px rgba(232,115,154,.25);
+    animation: pop .18s ease-out;
+  }
+  @keyframes fade { from { opacity: 0; } }
+  @keyframes pop { from { opacity: 0; transform: translateY(10px) scale(.98); } }
+  body.modal-open { overflow: hidden; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(var(--player-h) + 16px); transform: translateX(-50%);
+    background: var(--accent); color: #fff; padding: 6px 12px; border-radius: 99px; font-size: 11px;
+    opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 90;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <div class="logo">🌸 <b>日本語</b> 단어장</div>
+    <nav class="tabs">
+      <button class="tab active" data-tab="home">홈</button>
+      <button class="tab" data-tab="words">단어목록</button>
+      <button class="tab" data-tab="quiz">단어퀴즈</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- ═══════════ 홈 ═══════════ -->
+  <section class="page active" id="page-home">
+    <div class="stats" id="stats"></div>
+
+    <div class="card">
+      <div class="card-h">
+        <h2>📅 주간 진도율 <span class="sub">최근 7일 · 외운 단어 수 기준</span></h2>
+        <div class="goal-row">하루 목표 <input type="number" id="goalInput" min="1" max="100"> 개</div>
+      </div>
+      <div id="weekly"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <h2>✏️ 오늘 외울 단어 <span class="sub" id="todaySub"></span></h2>
+        <div class="acts">
+          <select class="tag-sel" id="homeTag" title="단어장 선택"></select>
+          <button class="btn sm" data-toggle-hide="today">뜻 가리기</button>
+          <button class="btn sm" id="rerollToday">다시 뽑기</button>
+        </div>
+      </div>
+      <div class="wlist" id="todayList"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-h">
+          <h2>⭐ 중요 단어 <span class="sub" id="starSub"></span></h2>
+          <button class="btn sm" id="rerollStar">섞기</button>
+        </div>
+        <div class="wlist" id="starList"></div>
+      </div>
+      <div class="card">
+        <div class="card-h">
+          <h2>🔁 복습</h2>
+          <div class="seg" id="reviewSeg">
+            <button data-d="1" class="on">어제</button><button data-d="3">3일 전</button><button data-d="7">7일 전</button>
+          </div>
+        </div>
+        <div class="wlist" id="reviewList"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <h2>❌ 자주 틀린 단어 <span class="sub">퀴즈 오답 많은 순</span></h2>
+        <button class="btn sm" id="quizWrongBtn">오답만 퀴즈</button>
+      </div>
+      <div class="wlist" id="wrongList"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 단어목록 ═══════════ -->
+  <section class="page" id="page-words">
+
+    <div class="card">
+      <div class="card-h">
+        <h2>📚 내 단어 <span class="sub" id="wordCount"></span></h2>
+        <div class="acts">
+          <button class="btn sm primary" id="openAdd">➕ 단어 추가</button>
+          <button class="btn sm" data-toggle-hide="list">뜻 가리기</button>
+          <button class="btn sm" id="exportBtn">백업</button>
+          <button class="btn sm" id="importBtn">불러오기</button>
+          <input type="file" id="importFile" accept=".json" hidden>
+        </div>
+      </div>
+      <div class="chips" id="tagChips"></div>
+      <div class="toolbar">
+        <input id="search" placeholder="검색 (단어·요미가나·뜻)">
+        <select id="filter">
+          <option value="all">전체</option>
+          <option value="todo">못 외운 단어</option>
+          <option value="mem">외운 단어</option>
+          <option value="star">중요 단어</option>
+        </select>
+        <select id="sort">
+          <option value="new">최신순</option>
+          <option value="old">등록순</option>
+          <option value="kana">가나다(요미)순</option>
+          <option value="wrong">오답순</option>
+        </select>
+        <select id="pageSize" title="한 페이지에 보일 개수">
+          <option value="10">10개씩</option>
+          <option value="30">30개씩</option>
+          <option value="50">50개씩</option>
+        </select>
+      </div>
+      <div class="wlist" id="allList"></div>
+      <div class="pager" id="pager"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 퀴즈 ═══════════ -->
+  <section class="page" id="page-quiz">
+    <div class="card" id="quizSetup">
+      <div class="card-h"><h2>🎯 퀴즈 설정</h2></div>
+      <div class="opt-row"><span>범위</span>
+        <div class="seg" data-opt="range">
+          <button data-v="all" class="on">전체</button><button data-v="todo">못 외운</button><button data-v="star">중요</button><button data-v="wrong">오답</button>
+        </div>
+      </div>
+      <div class="opt-row"><span>단어장</span>
+        <select class="tag-sel" id="quizTag"></select>
+      </div>
+      <div class="opt-row"><span>유형</span>
+        <div class="seg" data-opt="mode">
+          <button data-v="w2m" class="on">단어→뜻</button><button data-v="m2w">뜻→단어</button><button data-v="w2y">단어→읽기</button><button data-v="mix">섞기</button>
+        </div>
+      </div>
+      <div class="opt-row"><span>답 방식</span>
+        <div class="seg" data-opt="answer">
+          <button data-v="choice" class="on">4지선다</button><button data-v="type">직접 입력</button>
+        </div>
+      </div>
+      <div class="opt-row"><span>문제 수</span>
+        <div class="seg" data-opt="count">
+          <button data-v="5">5</button><button data-v="10" class="on">10</button><button data-v="20">20</button><button data-v="0">전부</button>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px">
+        <span class="muted" id="quizPool"></span>
+        <button class="btn primary" id="startQuiz">퀴즈 시작</button>
+      </div>
+    </div>
+
+    <div class="card" id="quizPlay" style="display:none">
+      <div class="quiz-meta"><span id="qProgress"></span><span id="qScore"></span></div>
+      <div class="progress"><div id="qBar"></div></div>
+      <div class="quiz-box">
+        <div class="q" id="qText"></div>
+        <div class="q-hint" id="qHint"></div>
+        <div id="qAnswer"></div>
+        <div class="q-after" id="qAfter"></div>
+      </div>
+      <div style="display:flex; justify-content:space-between">
+        <button class="btn" id="quitQuiz">그만하기</button>
+        <button class="btn primary" id="nextQ" style="display:none">다음 →</button>
+      </div>
+    </div>
+
+    <div class="card" id="quizResult" style="display:none">
+      <div class="quiz-box">
+        <div class="muted">결과</div>
+        <div class="score" id="rScore"></div>
+        <div class="muted" id="rMsg"></div>
+      </div>
+      <div class="card-h" style="margin-top:12px"><h2>틀린 단어</h2></div>
+      <div class="wlist" id="rWrong"></div>
+      <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:10px">
+        <button class="btn" id="retryWrong">틀린 것만 다시</button>
+        <button class="btn primary" id="backSetup">새 퀴즈</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ═══════════ 단어 추가/수정 팝업 ═══════════ -->
+<div class="modal" id="wordModal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="formTitle">
+    <div class="card-h">
+      <h2 id="formTitle">➕ 단어 추가</h2>
+      <button class="ic" id="closeModal" title="닫기">✕</button>
+    </div>
+    <form class="form" id="wordForm" autocomplete="off">
+        <label>요미가나 <input id="fYomi" class="jp" placeholder="たべる / べん.きょう"></label>
+        <label>단어 * <input id="fWord" class="jp" placeholder="食べる" required></label>
+        <div class="full ruby-preview">
+          <span class="muted">미리보기</span>
+          <span class="word" id="fPreview">—</span>
+          <span class="muted hint">한자 2글자 이상은 요미가나를 <b>점(.)</b>으로 나누면 글자마다 따로 올라가요 · 예) 勉強 → べん.きょう</span>
+        </div>
+        <label class="full">뜻 * <input id="fMeaning" placeholder="먹다" required></label>
+        <label class="full">예문 <textarea id="fExample" placeholder="ご飯を食べる。"></textarea></label>
+        <label class="full">단어장 / 태그 <span class="muted" style="font-size:10px">쉼표로 여러 개 입력 · 아래 태그를 눌러 추가/빼기</span>
+          <input id="fTags" placeholder="예) JLPT N3, 드라마 표현">
+          <div class="pick-tags" id="pickTags"></div>
+        </label>
+        <div class="form-actions">
+          <button type="button" class="btn" id="cancelEdit">취소</button>
+          <button type="submit" class="btn" id="submitMore" data-more="1">추가 후 계속</button>
+          <button type="submit" class="btn primary" id="submitBtn">추가</button>
+        </div>
+      </form>
+  </div>
+</div>
+
+<!-- ═══════════ 하단 음악 바 ═══════════ -->
+<div id="ytWrap" class="mini"><div id="ytPlayer"></div></div>
+<div class="player" id="player">
+  <div class="player-inner">
+    <button class="pbtn play-ctl" id="pPlay" title="재생/일시정지">▶</button>
+    <div class="ptitle play-ctl" id="pTitle">🎵 유튜브 링크를 등록하면 공부하면서 음악을 들을 수 있어요</div>
+    <input class="edit-ctl" id="pUrl" placeholder="유튜브 영상 또는 재생목록 링크 붙여넣기">
+    <button class="pbtn edit-ctl on" id="pSave">등록</button>
+    <input type="range" class="vol play-ctl" id="pVol" min="0" max="100" value="50" title="볼륨">
+    <button class="pbtn play-ctl" id="pLoop" title="반복">🔁</button>
+    <button class="pbtn play-ctl" id="pShow" title="영상 보기">📺</button>
+    <button class="pbtn" id="pEdit" title="링크 변경">🔗</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ─────────────── 저장소 ─────────────── */
+const KEY = 'jpWords.v1';
+const store = {
+  load() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
+  },
+  save() {
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { toast('저장 실패 (저장공간 확인)'); }
+  }
+};
+const S = Object.assign({
+  words: [],          // {id, yomi, word, meaning, example, memorized, important, memorizedAt, created, wrong, right}
+  goal: 5,
+  today: null,        // {date, ids}
+  starPick: null,     // {date, ids}
+  quizLog: {},
+  homeTag: '',
+  pageSize: 10,       // 단어목록 페이지당 개수        // 홈 '오늘 외울 단어' 단어장 범위 ('' = 전체)        // {date: n}  퀴즈 푼 날짜 기록 (연속 학습일 계산용)
+  music: { url: '', loop: true, vol: 50 }
+}, store.load());
+
+/* ─────────────── 유틸 ─────────────── */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const dkey = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const daysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return d; };
+const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const byId = id => S.words.find(w => w.id === id);
+S.words.forEach(w => { if (!Array.isArray(w.tags)) w.tags = []; });
+const parseTags = str => [...new Set(str.split(/[,，、]/).map(t => t.trim()).filter(Boolean))];
+function allTags() {
+  const m = new Map();
+  S.words.forEach(w => w.tags.forEach(t => m.set(t, (m.get(t) || 0) + 1)));
+  return [...m].sort((a, b) => a[0].localeCompare(b[0], 'ko'));
+}
+const inTag = (w, tag) => !tag || w.tags.includes(tag);
+function tagOptions(sel, cur, allLabel = '📚 전체 단어') {
+  const tags = allTags();
+  if (cur && !tags.some(([t]) => t === cur)) cur = '';
+  sel.innerHTML = `<option value="">${allLabel}</option>` +
+    tags.map(([t, n]) => `<option value="${esc(t)}" ${t === cur ? 'selected' : ''}>🏷 ${esc(t)} (${n})</option>`).join('');
+  sel.value = cur;
+  return cur;
+}
+let toastT;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1600);
+}
+function speak(text) {
+  if (!('speechSynthesis' in window)) return toast('이 브라우저는 발음 듣기를 지원하지 않아요');
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text); u.lang = 'ja-JP'; u.rate = .9;
+  speechSynthesis.speak(u);
+}
+/* ─────────────── 후리가나 자동 정렬 ───────────────
+   1) 오쿠리가나 자동 맞춤: 食べる + たべる → 食(た)べる
+   2) 한자 여러 글자: 요미가나를 점(.)으로 나누면 한 글자씩
+      勉強 + べん.きょう → 勉(べん)強(きょう) / 나누지 않으면 두 글자 위에 통째로 */
+const SEP = /[.．。|｜ 　]/g;
+const plainYomi = y => (y || '').replace(SEP, '');
+const isKanji = c => /[\u3400-\u9fff\uf900-\ufaff々〆ヶ]/.test(c);
+const toHira = s => s.replace(/[\u30a1-\u30f6]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function splitRuns(word) {
+  const runs = [];
+  for (const ch of word) {
+    const k = isKanji(ch), last = runs[runs.length - 1];
+    if (last && last.kanji === k) last.text += ch; else runs.push({ kanji: k, text: ch });
+  }
+  return runs;
+}
+// 결과: [{text, rt}] (rt 없으면 가나 그대로)
+function alignFurigana(word, yomi) {
+  if (!yomi || !word) return null;
+  const runs = splitRuns(word);
+  if (!runs.some(r => r.kanji)) return null;               // 한자 없음 → 후리가나 불필요
+  const y = toHira(yomi.trim());
+  const sep = '[.．。|｜ 　]*';
+  const pattern = '^' + sep + runs.map(r => r.kanji
+    ? '(.+?)'
+    : [...toHira(r.text)].map(reEsc).join(sep)).join(sep) + sep + '$';
+  const m = y.match(new RegExp(pattern));
+  if (!m) return [{ text: word, rt: plainYomi(yomi) }];     // 못 맞추면 통째로
+  const out = [];
+  let g = 1;
+  for (const r of runs) {
+    if (!r.kanji) { out.push({ text: r.text }); continue; }
+    const reading = m[g++];
+    const parts = reading.split(SEP).filter(Boolean);
+    const chars = [...r.text];
+    if (parts.length === chars.length && chars.length > 1) chars.forEach((c, i) => out.push({ text: c, rt: parts[i] }));
+    else out.push({ text: r.text, rt: parts.join('') });
+  }
+  return out;
+}
+function furigana(word, yomi) {
+  const segs = alignFurigana(word, yomi);
+  if (!segs) return esc(word);
+  return segs.map(sg => sg.rt ? `<ruby>${esc(sg.text)}<rt>${esc(sg.rt)}</rt></ruby>` : esc(sg.text)).join('');
+}
+function wordHtml(w) {
+  return furigana(w.word, w.yomi);
+}
+
+/* ─────────────── 단어 행 렌더 ─────────────── */
+const hideMeaning = { today: false, list: false };
+function rowHtml(w, { hide = false, edit = false } = {}) {
+  return `<div class="witem ${w.memorized ? 'done' : ''}" data-id="${w.id}">
+    <div class="w-col"><div class="word">${wordHtml(w)}</div></div>
+    <div class="m-col">
+      <div class="m-line">
+        <div class="meaning ${hide ? 'hidden' : ''}" data-reveal>${esc(w.meaning)}</div>
+        ${w.tags.length ? `<div class="tags">${w.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
+      </div>
+      ${w.example ? `<div class="example" data-expand title="눌러서 전체 보기">${esc(w.example)}</div>` : ''}
+    </div>
+    <div class="acts ${edit ? 'many' : ''}">
+      <button class="ic" data-act="speak" title="발음 듣기">🔊</button>
+      <button class="ic ${w.important ? 'on-star' : ''}" data-act="star" title="중요 단어">★</button>
+      <button class="ic ${w.memorized ? 'on-mem' : ''}" data-act="mem" title="외움 표시">✓</button>
+      ${edit ? `<button class="ic" data-act="edit" title="수정">✎</button><button class="ic" data-act="del" title="삭제" style="color:var(--danger)">🗑</button>` : ''}
+    </div>
+  </div>`;
+}
+function listHtml(words, opts, emptyMsg) {
+  return words.length ? words.map(w => rowHtml(w, opts)).join('') : `<div class="empty">${emptyMsg}</div>`;
+}
+
+// 모든 리스트 공통 클릭 처리
+document.addEventListener('click', e => {
+  const ex = e.target.closest('[data-expand]');
+  if (ex) { ex.classList.toggle('open'); return; }
+  const rev = e.target.closest('[data-reveal].hidden');
+  if (rev) { rev.classList.remove('hidden'); return; }
+  const btn = e.target.closest('[data-act]');
+  if (!btn) return;
+  const w = byId(btn.closest('[data-id]')?.dataset.id);
+  if (!w) return;
+  const act = btn.dataset.act;
+  if (act === 'speak') return speak(plainYomi(w.yomi) || w.word);
+  if (act === 'star') { w.important = !w.important; toast(w.important ? '⭐ 중요 단어로 표시' : '중요 표시 해제'); }
+  if (act === 'mem') {
+    w.memorized = !w.memorized;
+    w.memorizedAt = w.memorized ? dkey() : null;
+    toast(w.memorized ? '✓ 외운 단어로 표시' : '못 외운 단어로 되돌림');
+  }
+  if (act === 'edit') return startEdit(w);
+  if (act === 'del') {
+    if (!confirm(`'${w.word}' 단어를 삭제할까요?`)) return;
+    S.words = S.words.filter(x => x.id !== w.id);
+    toast('삭제했어요');
+  }
+  store.save(); renderAll();
+});
+
+/* ─────────────── 탭 ─────────────── */
+$$('.tab').forEach(t => t.addEventListener('click', () => showTab(t.dataset.tab)));
+function showTab(name) {
+  $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  $$('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
+  try { sessionStorage.setItem('jpTab', name); } catch {}
+  renderAll();
+  window.scrollTo(0, 0);
+}
+
+/* ─────────────── 홈 ─────────────── */
+function pickToday(force) {
+  const today = dkey();
+  const alive = S.today && S.today.date === today && S.today.tag === S.homeTag && !force
+    ? S.today.ids.filter(byId) : null;
+  if (alive && alive.length) return alive;
+  const todo = S.words.filter(w => !w.memorized && inTag(w, S.homeTag));
+  // 오래 전에 등록된 + 자주 틀린 단어 우선으로 섞기
+  const ids = shuffle(todo).sort((a, b) => (b.wrong || 0) - (a.wrong || 0)).slice(0, 5).map(w => w.id);
+  S.today = { date: today, tag: S.homeTag, ids };
+  store.save();
+  return ids;
+}
+function pickStars(force) {
+  const stars = S.words.filter(w => w.important);
+  if (stars.length <= 5) return stars;
+  const today = dkey();
+  let ids = S.starPick && S.starPick.date === today && !force ? S.starPick.ids.filter(id => byId(id)?.important) : [];
+  if (ids.length < Math.min(5, stars.length)) {
+    ids = shuffle(stars).slice(0, 5).map(w => w.id);
+    S.starPick = { date: today, ids };
+    store.save();
+  }
+  return ids.map(byId);
+}
+function learnedOn(date) { return S.words.filter(w => w.memorized && w.memorizedAt === date).length; }
+function streak() {
+  let n = 0;
+  for (let i = 0; i < 365; i++) {
+    const k = dkey(daysAgo(i));
+    const active = learnedOn(k) > 0 || S.quizLog[k];
+    if (active) n++;
+    else if (i > 0) break;   // 오늘은 아직 안 했어도 연속 유지
+  }
+  return n;
+}
+let reviewDay = 1;
+function renderHome() {
+  const total = S.words.length, mem = S.words.filter(w => w.memorized).length;
+  const star = S.words.filter(w => w.important).length;
+  $('#stats').innerHTML = `
+    <div class="stat"><div class="v">${total}</div><div class="l">전체 단어</div></div>
+    <div class="stat"><div class="v" style="color:var(--success)">${mem}</div><div class="l">외운 단어 ${total ? Math.round(mem / total * 100) : 0}%</div></div>
+    <div class="stat"><div class="v" style="color:var(--star)">${star}</div><div class="l">중요 단어</div></div>
+    <div class="stat"><div class="v" style="color:var(--accent)">${streak()}일</div><div class="l">🔥 연속 학습</div></div>`;
+
+  // 주간 진도율
+  const goal = S.goal;
+  $('#goalInput').value = goal;
+  const days = [...Array(7)].map((_, i) => daysAgo(6 - i));
+  const counts = days.map(d => learnedOn(dkey(d)));
+  const sum = counts.reduce((a, b) => a + b, 0);
+  const pct = Math.min(100, Math.round(sum / (goal * 7) * 100));
+  const todayCnt = counts[6];
+  const wd = ['일','월','화','수','목','금','토'];
+  $('#weekly').innerHTML = `
+    <div style="display:flex; justify-content:space-between; font-size:11px">
+      <span>이번 주 <b>${sum}</b> / ${goal * 7}개</span>
+      <span>오늘 <b style="color:var(--accent)">${todayCnt}</b> / ${goal}개 ${todayCnt >= goal ? '🎉 목표 달성!' : `· ${goal - todayCnt}개 남음`}</span>
+    </div>
+    <div class="progress"><div style="width:${pct}%"></div></div>
+    <div class="muted" style="font-size:11px">주간 진도율 <b style="color:var(--text)">${pct}%</b></div>
+    <div class="week">${days.map((d, i) => {
+      const h = Math.min(100, counts[i] / goal * 100);
+      return `<div class="day ${i === 6 ? 'today' : ''}">
+        <div class="barwrap">${counts[i] ? `<span class="cnt">${counts[i]}</span>` : ''}<div class="bar ${counts[i] >= goal ? 'full' : ''}" style="height:${h}%"></div></div>
+        ${i === 6 ? '오늘' : wd[d.getDay()]}</div>`;
+    }).join('')}</div>`;
+
+  // 오늘 외울 단어
+  S.homeTag = tagOptions($('#homeTag'), S.homeTag);
+  const todayIds = pickToday();
+  const todayWords = todayIds.map(byId).filter(Boolean);
+  const doneN = todayWords.filter(w => w.memorized).length;
+  $('#todaySub').textContent = todayWords.length ? `${doneN} / ${todayWords.length} 완료` : '';
+  $('#todayList').innerHTML = listHtml(todayWords, { hide: hideMeaning.today },
+    total ? '못 외운 단어가 없어요! 🎉 새 단어를 추가해 보세요' : '단어목록 탭에서 단어를 먼저 등록해 주세요');
+
+  // 중요 단어
+  const stars = pickStars();
+  $('#starSub').textContent = star > 5 ? `${star}개 중 랜덤 5개` : '';
+  $('#starList').innerHTML = listHtml(stars, {}, '★ 버튼으로 중요 단어를 표시해 보세요');
+
+  // 복습
+  $$('#reviewSeg button').forEach(b => b.classList.toggle('on', +b.dataset.d === reviewDay));
+  const rk = dkey(daysAgo(reviewDay));
+  const reviews = S.words.filter(w => w.memorized && w.memorizedAt === rk);
+  $('#reviewList').innerHTML = listHtml(reviews, { hide: true },
+    `${reviewDay === 1 ? '어제' : reviewDay + '일 전'} 외운 단어가 없어요`) +
+    (reviews.length ? `<div class="muted" style="font-size:10px; margin-top:4px">회색 칸을 누르면 뜻이 보여요 · 잊었다면 ✓를 눌러 다시 외울 단어로</div>` : '');
+
+  // 자주 틀린 단어
+  const wrongs = S.words.filter(w => (w.wrong || 0) > 0)
+    .sort((a, b) => (b.wrong - (b.right || 0) * .5) - (a.wrong - (a.right || 0) * .5)).slice(0, 5);
+  $('#wrongList').innerHTML = listHtml(wrongs, {}, '퀴즈에서 틀린 단어가 여기 모여요');
+  $('#quizWrongBtn').disabled = !wrongs.length;
+}
+$('#goalInput').addEventListener('change', e => {
+  S.goal = Math.max(1, Math.min(100, parseInt(e.target.value) || 5));
+  store.save(); renderHome();
+});
+$('#homeTag').addEventListener('change', e => { S.homeTag = e.target.value; pickToday(true); renderHome(); });
+$('#rerollToday').addEventListener('click', () => { pickToday(true); renderHome(); });
+$('#rerollStar').addEventListener('click', () => { pickStars(true); renderHome(); });
+$('#reviewSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  reviewDay = +b.dataset.d; renderHome();
+});
+$$('[data-toggle-hide]').forEach(b => b.addEventListener('click', () => {
+  const k = b.dataset.toggleHide;
+  hideMeaning[k] = !hideMeaning[k];
+  b.textContent = hideMeaning[k] ? '뜻 보이기' : '뜻 가리기';
+  renderAll();
+}));
+$('#quizWrongBtn').addEventListener('click', () => {
+  setOpt('range', 'wrong'); showTab('quiz'); startQuiz();
+});
+
+/* ─────────────── 단어목록 ─────────────── */
+let editingId = null;
+$('#wordForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const data = {
+    yomi: $('#fYomi').value.trim(),
+    word: $('#fWord').value.trim(),
+    meaning: $('#fMeaning').value.trim(),
+    example: $('#fExample').value.trim(),
+    tags: parseTags($('#fTags').value)
+  };
+  if (!data.word || !data.meaning) return toast('단어와 뜻은 꼭 입력해 주세요');
+  if (editingId) {
+    Object.assign(byId(editingId), data);
+    toast('수정했어요');
+  } else {
+    if (S.words.some(w => w.word === data.word && plainYomi(w.yomi) === plainYomi(data.yomi))) {
+      if (!confirm('이미 등록된 단어예요. 그래도 추가할까요?')) return;
+    }
+    S.words.push({ id: uid(), ...data, memorized: false, important: false, memorizedAt: null, created: Date.now(), wrong: 0, right: 0 });
+    listPage = 1;
+    toast('추가했어요');
+  }
+  store.save(); renderAll();
+  // '추가 후 계속'이면 팝업 유지하고 입력칸만 비우기
+  if (!editingId && e.submitter?.dataset.more) { resetForm(); $('#fYomi').focus(); }
+  else closeModal();
+});
+function startEdit(w) {
+  editingId = w.id;
+  $('#fYomi').value = w.yomi; $('#fWord').value = w.word;
+  $('#fMeaning').value = w.meaning; $('#fExample').value = w.example || '';
+  $('#fTags').value = w.tags.join(', ');
+  renderPickTags(); renderPreview();
+  $('#formTitle').textContent = '✎ 단어 수정';
+  $('#submitBtn').textContent = '저장';
+  $('#submitMore').style.display = 'none';
+  showModal();
+  $('#fWord').focus();
+}
+function showModal() {
+  $('#wordModal').hidden = false;
+  document.body.classList.add('modal-open');
+}
+function closeModal() {
+  $('#wordModal').hidden = true;
+  document.body.classList.remove('modal-open');
+  resetForm();
+}
+$('#openAdd').addEventListener('click', () => { resetForm(); showModal(); $('#fYomi').focus(); });
+$('#closeModal').addEventListener('click', closeModal);
+$('#wordModal').addEventListener('mousedown', e => { if (e.target.id === 'wordModal') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#wordModal').hidden) closeModal(); });
+function resetForm() {
+  editingId = null;
+  $('#wordForm').reset();
+  // 방금 보던 단어장은 계속 입력되게 유지
+  if (listTag) $('#fTags').value = listTag;
+  renderPickTags(); renderPreview();
+  $('#formTitle').textContent = '➕ 단어 추가';
+  $('#submitBtn').textContent = '추가';
+  $('#submitMore').style.display = '';
+}
+$('#cancelEdit').addEventListener('click', closeModal);
+function renderPreview() {
+  const w = $('#fWord').value.trim();
+  $('#fPreview').innerHTML = w ? furigana(w, $('#fYomi').value) : '—';
+}
+['#fYomi', '#fWord'].forEach(s => $(s).addEventListener('input', renderPreview));
+let listPage = 1;
+['#search', '#filter', '#sort'].forEach(s => $(s).addEventListener('input', () => { listPage = 1; renderWords(); }));
+$('#pageSize').value = S.pageSize;
+$('#pageSize').addEventListener('change', e => { S.pageSize = +e.target.value; listPage = 1; store.save(); renderWords(); });
+$('#pager').addEventListener('click', e => {
+  const b = e.target.closest('[data-page]'); if (!b || b.disabled) return;
+  listPage = +b.dataset.page; renderWords();
+  $('#search').scrollIntoView({ block: 'center' });
+});
+function pagerHtml(total, page, pages, size) {
+  if (pages <= 1) return total ? `<span class="info">${total}개</span>` : '';
+  let from = Math.max(1, page - 2), to = Math.min(pages, from + 4);
+  from = Math.max(1, to - 4);
+  const nums = [];
+  for (let i = from; i <= to; i++) nums.push(`<button data-page="${i}" class="${i === page ? 'on' : ''}">${i}</button>`);
+  const start = (page - 1) * size + 1, end = Math.min(total, page * size);
+  return `<button data-page="1" ${page === 1 ? 'disabled' : ''} title="처음">«</button>
+    <button data-page="${page - 1}" ${page === 1 ? 'disabled' : ''} title="이전">‹</button>
+    ${nums.join('')}
+    <button data-page="${page + 1}" ${page === pages ? 'disabled' : ''} title="다음">›</button>
+    <button data-page="${pages}" ${page === pages ? 'disabled' : ''} title="마지막">»</button>
+    <span class="info">${start}–${end} / ${total}개</span>`;
+}
+
+let listTag = '', tagEditing = false;
+function renderTagChips() {
+  const tags = allTags();
+  if (listTag && !tags.some(([t]) => t === listTag)) listTag = '';
+  $('#tagChips').className = 'chips' + (tagEditing ? ' editing' : '');
+  $('#tagChips').innerHTML = !tags.length ? '' :
+    `<button class="chip ${listTag ? '' : 'on'}" data-chip="">전체 <span class="n">${S.words.length}</span></button>` +
+    tags.map(([t, n]) => `<button class="chip ${t === listTag ? 'on' : ''}" data-chip="${esc(t)}" data-tag="${esc(t)}">
+      <span class="ren" data-ren title="이름 바꾸기">✎</span>${esc(t)} <span class="n">${n}</span><span class="x" data-rm title="태그 삭제">×</span></button>`).join('') +
+    `<button class="chip add" id="tagEditBtn">${tagEditing ? '완료' : '⚙ 태그 편집'}</button>`;
+}
+$('#tagChips').addEventListener('click', e => {
+  if (e.target.closest('#tagEditBtn')) { tagEditing = !tagEditing; return renderTagChips(); }
+  const chip = e.target.closest('[data-chip]'); if (!chip) return;
+  const t = chip.dataset.chip;
+  if (tagEditing && t && e.target.closest('[data-rm]')) {
+    if (!confirm(`'${t}' 태그를 삭제할까요?\n(단어는 지워지지 않고 태그만 빠져요)`)) return;
+    S.words.forEach(w => { w.tags = w.tags.filter(x => x !== t); });
+    if (listTag === t) listTag = '';
+    store.save(); return renderAll();
+  }
+  if (tagEditing && t && e.target.closest('[data-ren]')) {
+    const nt = (prompt('새 태그 이름', t) || '').trim();
+    if (!nt || nt === t) return;
+    S.words.forEach(w => { if (w.tags.includes(t)) w.tags = [...new Set(w.tags.map(x => x === t ? nt : x))]; });
+    if (listTag === t) listTag = nt;
+    if (S.homeTag === t) S.homeTag = nt;
+    store.save(); return renderAll();
+  }
+  listTag = t; listPage = 1;
+  if (!editingId) $('#fTags').value = t;
+  renderPickTags(); renderWords();
+});
+function renderPickTags() {
+  const cur = parseTags($('#fTags').value);
+  $('#pickTags').innerHTML = allTags().map(([t]) =>
+    `<button type="button" class="chip ${cur.includes(t) ? 'on' : ''}" data-pick="${esc(t)}">${esc(t)}</button>`).join('');
+}
+$('#pickTags').addEventListener('click', e => {
+  const b = e.target.closest('[data-pick]'); if (!b) return;
+  let cur = parseTags($('#fTags').value);
+  const t = b.dataset.pick;
+  cur = cur.includes(t) ? cur.filter(x => x !== t) : [...cur, t];
+  $('#fTags').value = cur.join(', ');
+  renderPickTags();
+});
+$('#fTags').addEventListener('input', renderPickTags);
+
+function renderWords() {
+  renderTagChips();
+  if (document.activeElement?.id !== 'fTags') renderPickTags();
+  const q = $('#search').value.trim().toLowerCase();
+  const f = $('#filter').value, sort = $('#sort').value;
+  let list = S.words.filter(w => inTag(w, listTag) &&
+    (f === 'all' || (f === 'todo' && !w.memorized) || (f === 'mem' && w.memorized) || (f === 'star' && w.important)) &&
+    (!q || [w.word, plainYomi(w.yomi), w.meaning, w.example, ...w.tags].some(v => (v || '').toLowerCase().includes(q))));
+  const cmp = {
+    new: (a, b) => b.created - a.created,
+    old: (a, b) => a.created - b.created,
+    kana: (a, b) => (plainYomi(a.yomi) || a.word).localeCompare(plainYomi(b.yomi) || b.word, 'ja'),
+    wrong: (a, b) => (b.wrong || 0) - (a.wrong || 0)
+  }[sort];
+  list.sort(cmp);
+  const mem = S.words.filter(w => w.memorized).length;
+  $('#wordCount').textContent = `총 ${S.words.length}개 · 외움 ${mem} · 표시 ${list.length}`;
+  const size = S.pageSize, pages = Math.max(1, Math.ceil(list.length / size));
+  listPage = Math.min(Math.max(1, listPage), pages);
+  const pageList = list.slice((listPage - 1) * size, listPage * size);
+  $('#pager').innerHTML = S.words.length ? pagerHtml(list.length, listPage, pages, size) : '';
+  $('#allList').innerHTML = S.words.length
+    ? listHtml(pageList, { hide: hideMeaning.list, edit: true }, '조건에 맞는 단어가 없어요')
+    : `<div class="empty">아직 등록된 단어가 없어요.<br><br><button class="btn primary" id="emptyAdd">➕ 첫 단어 추가하기</button> <button class="btn" id="sampleBtn">예시 단어 10개 넣어보기</button></div>`;
+  $('#sampleBtn')?.addEventListener('click', addSamples);
+  $('#emptyAdd')?.addEventListener('click', () => $('#openAdd').click());
+}
+function addSamples() {
+  const samples = [
+    ['たべる','食べる','먹다','毎朝パンを食べる。'],
+    ['のむ','飲む','마시다','コーヒーを飲みます。'],
+    ['べん.きょう','勉強','공부','日本語を勉強しています。'],
+    ['とも.だち','友達','친구','友達と映画を見た。'],
+    ['やく.そく','約束','약속','約束を守ってください。'],
+    ['いそがしい','忙しい','바쁘다','今週はとても忙しい。'],
+    ['てん.き','天気','날씨','今日はいい天気ですね。'],
+    ['わすれる','忘れる','잊다','傘を忘れました。'],
+    ['おぼえる','覚える','외우다, 기억하다','単語を覚えるのは大変だ。'],
+    ['たのしい','楽しい','즐겁다','旅行はとても楽しかった。']
+  ];
+  const now = Date.now();
+  samples.forEach(([yomi, word, meaning, example], i) =>
+    S.words.push({ id: uid(), yomi, word, meaning, example, memorized: false, important: i % 4 === 0, memorizedAt: null, created: now + i, wrong: 0, right: 0, tags: ['예시 단어', i < 5 ? '동사·명사' : '형용사·기타'] }));
+  S.today = null;
+  store.save(); renderAll(); toast('예시 단어를 추가했어요');
+}
+$('#exportBtn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify({ words: S.words, goal: S.goal }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `일본어단어장_${dkey()}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+$('#importBtn').addEventListener('click', () => $('#importFile').click());
+$('#importFile').addEventListener('change', async e => {
+  const file = e.target.files[0]; if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    const words = Array.isArray(data) ? data : data.words;
+    if (!Array.isArray(words)) throw 0;
+    const replace = S.words.length && confirm('기존 단어를 지우고 덮어쓸까요?\n(취소 = 기존 단어에 합치기)');
+    const clean = words.filter(w => w && w.word).map(w => ({
+      id: w.id || uid(), yomi: w.yomi || '', word: w.word, meaning: w.meaning || '', example: w.example || '',
+      memorized: !!w.memorized, important: !!w.important, memorizedAt: w.memorizedAt || null,
+      created: w.created || Date.now(), wrong: w.wrong || 0, right: w.right || 0,
+      tags: Array.isArray(w.tags) ? w.tags : []
+    }));
+    if (replace) S.words = clean;
+    else { const ids = new Set(S.words.map(w => w.id)); S.words.push(...clean.filter(w => !ids.has(w.id))); }
+    if (data.goal) S.goal = data.goal;
+    S.today = null; S.starPick = null;
+    store.save(); renderAll(); toast(`${clean.length}개 단어를 불러왔어요`);
+  } catch { toast('파일 형식이 올바르지 않아요'); }
+  e.target.value = '';
+});
+
+/* ─────────────── 퀴즈 ─────────────── */
+const opts = { range: 'all', mode: 'w2m', answer: 'choice', count: '10' };
+function setOpt(k, v) {
+  opts[k] = v;
+  $$(`[data-opt="${k}"] button`).forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  renderQuizSetup();
+}
+$$('[data-opt]').forEach(seg => seg.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (b) setOpt(seg.dataset.opt, b.dataset.v);
+}));
+let quizTag = '';
+$('#quizTag').addEventListener('change', e => { quizTag = e.target.value; renderQuizSetup(); });
+function quizPool() {
+  return S.words.filter(w => inTag(w, quizTag) && ({
+    all: true, todo: !w.memorized, star: w.important, wrong: (w.wrong || 0) > 0
+  })[opts.range]);
+}
+function renderQuizSetup() {
+  quizTag = tagOptions($('#quizTag'), quizTag);
+  const n = quizPool().length;
+  $('#quizPool').textContent = S.words.length ? `출제 가능한 단어 ${n}개` : '단어를 먼저 등록해 주세요';
+  $('#startQuiz').disabled = !n;
+}
+
+let Q = null;
+function startQuiz(list) {
+  let pool = list || shuffle(quizPool());
+  if (!pool.length) return toast('출제할 단어가 없어요');
+  const c = +opts.count;
+  if (c && !list) pool = pool.slice(0, c);
+  Q = { items: pool.map(w => ({ id: w.id, mode: opts.mode === 'mix' ? pickMode(w) : fixMode(opts.mode, w) })), i: 0, right: 0, wrongIds: [] };
+  $('#quizSetup').style.display = 'none';
+  $('#quizResult').style.display = 'none';
+  $('#quizPlay').style.display = '';
+  S.quizLog[dkey()] = (S.quizLog[dkey()] || 0) + 1; store.save();
+  renderQ();
+}
+// 요미가나가 없거나 단어와 같으면 읽기 문제는 불가 → 단어→뜻으로
+function fixMode(m, w) { return m === 'w2y' && (!w.yomi || plainYomi(w.yomi) === w.word) ? 'w2m' : m; }
+function pickMode(w) { return fixMode(['w2m', 'm2w', 'w2y'][Math.floor(Math.random() * 3)], w); }
+
+const field = { w2m: 'meaning', m2w: 'word', w2y: 'yomi' };
+const val = (w, key) => key === 'yomi' ? plainYomi(w.yomi) : w[key];
+function renderQ() {
+  const it = Q.items[Q.i], w = byId(it.id);
+  if (!w) { Q.i++; return Q.i < Q.items.length ? renderQ() : endQuiz(); }
+  $('#qProgress').textContent = `${Q.i + 1} / ${Q.items.length}`;
+  $('#qScore').textContent = `정답 ${Q.right}`;
+  $('#qBar').style.width = `${Q.i / Q.items.length * 100}%`;
+  const qt = $('#qText');
+  qt.className = 'q' + (it.mode === 'm2w' ? ' ko' : '');
+  qt.innerHTML = it.mode === 'm2w' ? esc(w.meaning) : esc(w.word);
+  $('#qHint').textContent = { w2m: '뜻은?', m2w: '일본어 단어는?', w2y: '읽는 법(요미가나)은?' }[it.mode];
+  $('#qAfter').innerHTML = '';
+  $('#nextQ').style.display = 'none';
+
+  const key = field[it.mode];
+  if (opts.answer === 'type') {
+    $('#qAnswer').innerHTML = `<form class="typing" id="typeForm"><input id="typeIn" autocomplete="off" placeholder="정답 입력"><button class="btn primary">확인</button></form>`;
+    $('#typeIn').focus();
+    $('#typeForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const v = $('#typeIn').value.trim();
+      const norm = s => s.replace(/\s/g, '').toLowerCase();
+      // 뜻은 쉼표로 여러 개일 수 있음
+      const answers = key === 'meaning' ? w.meaning.split(/[,，、/]/).map(norm) : [norm(val(w, key))];
+      judge(answers.includes(norm(v)) && v !== '', w, it);
+      $('#typeIn').disabled = true; e.target.querySelector('button').disabled = true;
+    }, { once: true });
+  } else {
+    const others = shuffle(S.words.filter(x => x.id !== w.id && val(x, key) && val(x, key) !== val(w, key)));
+    const seen = new Set([val(w, key)]);
+    const wrongs = [];
+    for (const o of others) { const v = val(o, key); if (!seen.has(v)) { seen.add(v); wrongs.push(o); } if (wrongs.length === 3) break; }
+    const choices = shuffle([w, ...wrongs]);
+    const jp = it.mode !== 'w2m';
+    $('#qAnswer').innerHTML = `<div class="choices">${choices.map(c =>
+      `<button class="choice ${jp ? 'jp' : ''}" data-cid="${c.id}">${esc(val(c, key))}</button>`).join('')}</div>`;
+    $$('.choice').forEach(b => b.addEventListener('click', () => {
+      $$('.choice').forEach(x => {
+        x.disabled = true;
+        if (x.dataset.cid === w.id) x.classList.add('correct');
+      });
+      const ok = b.dataset.cid === w.id;
+      if (!ok) b.classList.add('wrong');
+      judge(ok, w, it);
+    }));
+  }
+}
+function judge(ok, w, it) {
+  if (ok) { Q.right++; w.right = (w.right || 0) + 1; }
+  else { Q.wrongIds.push(w.id); w.wrong = (w.wrong || 0) + 1; }
+  store.save();
+  $('#qScore').textContent = `정답 ${Q.right}`;
+  $('#qAfter').innerHTML = `${ok ? '<b style="color:var(--success)">⭕ 정답!</b>' : '<b style="color:var(--danger)">❌ 오답</b>'}
+    &nbsp;<span class="jp" style="font-size:13px">${wordHtml(w)}</span> — ${esc(w.meaning)}
+    <span data-id="${w.id}"><button class="ic" data-act="speak" style="width:22px;height:22px;font-size:11px;vertical-align:middle">🔊</button></span>
+    ${w.example ? `<div class="example">${esc(w.example)}</div>` : ''}`;
+  $('#nextQ').style.display = '';
+  $('#nextQ').textContent = Q.i + 1 < Q.items.length ? '다음 →' : '결과 보기';
+  $('#nextQ').focus();
+}
+$('#nextQ').addEventListener('click', () => { Q.i++; Q.i < Q.items.length ? renderQ() : endQuiz(); });
+function endQuiz() {
+  $('#quizPlay').style.display = 'none';
+  $('#quizResult').style.display = '';
+  const n = Q.items.length, pct = Math.round(Q.right / n * 100);
+  $('#rScore').textContent = `${Q.right} / ${n}`;
+  $('#rMsg').textContent = pct === 100 ? '완벽해요! 🎉' : pct >= 80 ? '아주 잘했어요 👏' : pct >= 50 ? '조금만 더 힘내요 💪' : '틀린 단어를 복습해 봐요 📖';
+  renderResultWrong();
+}
+function renderResultWrong() {
+  const ws = [...new Set(Q.wrongIds)].map(byId).filter(Boolean);
+  $('#rWrong').innerHTML = listHtml(ws, {}, '틀린 단어가 없어요!');
+  $('#retryWrong').disabled = !ws.length;
+}
+$('#retryWrong').addEventListener('click', () => startQuiz(shuffle([...new Set(Q.wrongIds)].map(byId).filter(Boolean))));
+$('#startQuiz').addEventListener('click', () => startQuiz());
+$('#backSetup').addEventListener('click', backToSetup);
+$('#quitQuiz').addEventListener('click', () => { if (confirm('퀴즈를 그만할까요?')) backToSetup(); });
+function backToSetup() {
+  Q = null;
+  $('#quizPlay').style.display = 'none'; $('#quizResult').style.display = 'none';
+  $('#quizSetup').style.display = '';
+  renderQuizSetup();
+}
+document.addEventListener('keydown', e => {
+  if (!$('#page-quiz').classList.contains('active') || $('#quizPlay').style.display === 'none') return;
+  if (e.key === 'Enter' && $('#nextQ').style.display !== 'none' && document.activeElement?.id !== 'typeIn') { e.preventDefault(); $('#nextQ').click(); }
+  if (opts.answer === 'choice' && /^[1-4]$/.test(e.key)) $$('.choice')[+e.key - 1]?.click();
+});
+
+/* ─────────────── 유튜브 음악 바 ─────────────── */
+let yt = null, ytReady = false, playing = false;
+function parseYT(url) {
+  url = url.trim();
+  let m;
+  const list = (m = url.match(/[?&]list=([\w-]+)/)) ? m[1] : null;
+  const vid = (m = url.match(/(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/|\/live\/)([\w-]{11})/)) ? m[1]
+    : /^[\w-]{11}$/.test(url) ? url : null;
+  return vid || list ? { vid, list } : null;
+}
+function loadYTApi() {
+  if (window.YT || document.getElementById('ytApi')) return;
+  const s = document.createElement('script');
+  s.id = 'ytApi'; s.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(s);
+}
+window.onYouTubeIframeAPIReady = () => { ytReady = true; if (pendingPlay) createPlayer(pendingPlay); };
+let pendingPlay = null;
+function createPlayer(autoplay) {
+  const info = parseYT(S.music.url); if (!info) return;
+  if (!ytReady) { pendingPlay = autoplay || true; loadYTApi(); return; }
+  pendingPlay = null;
+  if (yt) { yt.destroy(); yt = null; }
+  const vars = { autoplay: autoplay ? 1 : 0, playsinline: 1, rel: 0 };
+  if (info.list) { vars.listType = 'playlist'; vars.list = info.list; }
+  if (location.origin.startsWith('http')) vars.origin = location.origin;
+  vars.enablejsapi = 1;
+  // iframe을 직접 만들어 referrerpolicy를 명시 (유튜브가 Referer를 요구함)
+  $('#ytPlayer')?.remove();
+  const f = document.createElement('iframe');
+  f.id = 'ytPlayer';
+  f.allow = 'autoplay; encrypted-media; picture-in-picture';
+  f.referrerPolicy = 'strict-origin-when-cross-origin';
+  f.src = `https://www.youtube.com/embed/${info.vid || 'videoseries'}?${new URLSearchParams(vars)}`;
+  $('#ytWrap').appendChild(f);
+  yt = new YT.Player('ytPlayer', {
+    events: {
+      onReady: e => {
+        e.target.setVolume(S.music.vol);
+        if (info.list) e.target.setLoop(S.music.loop);
+        if (autoplay) e.target.playVideo();
+        updateTitle();
+      },
+      onStateChange: e => {
+        playing = e.data === YT.PlayerState.PLAYING;
+        $('#pPlay').textContent = playing ? '❚❚' : '▶';
+        // 단일 영상 반복 재생
+        if (e.data === YT.PlayerState.ENDED && S.music.loop && !info.list) { e.target.seekTo(0); e.target.playVideo(); }
+        updateTitle();
+      },
+      onError: e => showYTError(e.data)
+    }
+  });
+}
+function showYTError(code) {
+  const msg = {
+    2: '링크 형식이 잘못됐어요',
+    5: '이 브라우저에서 재생할 수 없는 영상이에요',
+    100: '삭제됐거나 비공개인 영상이에요',
+    101: '업로더가 외부 재생을 막은 영상이에요 (공식 뮤비에 많아요)',
+    150: '업로더가 외부 재생을 막은 영상이에요 (공식 뮤비에 많아요)',
+    152: '파일·미리보기로 열면 재생이 막혀요. https:// 주소로 열어 주세요',
+    153: '파일·미리보기로 열면 재생이 막혀요. https:// 주소로 열어 주세요'
+  }[code] || '재생할 수 없는 영상이에요';
+  $('#pTitle').innerHTML = `<a href="${esc(ytWatchUrl())}" target="_blank" rel="noopener" class="yt-open">유튜브에서 열기 ↗</a>
+    ⚠️ ${esc(msg)} <span class="muted">(오류 ${code})</span>`;
+  $('#pTitle').title = msg;
+  $('#pTitle').classList.add('err');
+  playing = false; $('#pPlay').textContent = '▶';
+}
+function ytWatchUrl() {
+  const info = parseYT(S.music.url) || {};
+  return info.vid ? `https://www.youtube.com/watch?v=${info.vid}${info.list ? '&list=' + info.list : ''}`
+    : info.list ? `https://www.youtube.com/playlist?list=${info.list}` : 'https://www.youtube.com';
+}
+// 파일로 직접 열면(file://) Referer가 없어서 모든 영상이 오류 153으로 막힘 → 미리 안내
+const ytBlockedHere = !location.protocol.startsWith('http');
+function updateTitle() {
+  const t = yt?.getVideoData?.()?.title;
+  if (t) $('#pTitle').classList.remove('err');
+  if (t) $('#pTitle').textContent = (playing ? '🎵 ' : '⏸ ') + t;
+}
+function setEditMode(on) {
+  $('#player').classList.toggle('edit-mode', on);
+  if (on) { $('#pUrl').value = S.music.url; $('#pUrl').focus(); }
+}
+$('#pEdit').addEventListener('click', () => setEditMode(!$('#player').classList.contains('edit-mode')));
+$('#pSave').addEventListener('click', saveUrl);
+$('#pUrl').addEventListener('keydown', e => { if (e.key === 'Enter') saveUrl(); if (e.key === 'Escape') setEditMode(false); });
+function saveUrl() {
+  const url = $('#pUrl').value.trim();
+  if (!url) { S.music.url = ''; store.save(); setEditMode(false); yt?.destroy(); yt = null; $('#pTitle').textContent = '🎵 유튜브 링크를 등록해 주세요'; return; }
+  if (!parseYT(url)) return toast('유튜브 링크 형식이 아니에요');
+  S.music.url = url; store.save();
+  setEditMode(false);
+  if (ytBlockedHere) return showYTError(153);
+  $('#pTitle').classList.remove('err');
+  $('#pTitle').textContent = '불러오는 중…';
+  createPlayer(true);
+}
+$('#pPlay').addEventListener('click', () => {
+  if (!S.music.url) return setEditMode(true);
+  if (ytBlockedHere) return showYTError(153);
+  if (!yt || !yt.playVideo) return createPlayer(true);
+  playing ? yt.pauseVideo() : yt.playVideo();
+});
+$('#pVol').addEventListener('input', e => { S.music.vol = +e.target.value; yt?.setVolume?.(S.music.vol); store.save(); });
+$('#pLoop').addEventListener('click', () => {
+  S.music.loop = !S.music.loop; store.save();
+  $('#pLoop').classList.toggle('on', S.music.loop);
+  yt?.setLoop?.(S.music.loop);
+  toast(S.music.loop ? '반복 재생 켜짐' : '반복 재생 꺼짐');
+});
+$('#pShow').addEventListener('click', () => {
+  const mini = $('#ytWrap').classList.toggle('mini');
+  $('#pShow').classList.toggle('on', !mini);
+});
+function initPlayer() {
+  $('#pVol').value = S.music.vol;
+  $('#pLoop').classList.toggle('on', S.music.loop);
+  if (ytBlockedHere) {
+    $('#pTitle').classList.add('err');
+    $('#pTitle').innerHTML = '⚠️ 파일로 열면 유튜브가 재생을 막아요. 인터넷 주소(https://…)로 열어 주세요';
+    return;
+  }
+  if (S.music.url) { $('#pTitle').textContent = '▶ 버튼을 누르면 재생돼요'; loadYTApi(); }
+  else setEditMode(false);
+}
+
+/* ─────────────── 시작 ─────────────── */
+function renderAll() {
+  renderHome(); renderWords(); renderQuizSetup();
+  if (Q && $('#quizResult').style.display !== 'none') renderResultWrong();
+}
+initPlayer();
+let startTab = 'home';
+try { startTab = sessionStorage.getItem('jpTab') || 'home'; } catch {}
+showTab(startTab);
+</script>
+</body>
+</html>
