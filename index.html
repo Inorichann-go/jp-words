@@ -58,6 +58,13 @@
   .witem { border-radius: 10px; }
   .btn, .seg { border-radius: 99px; }
   .seg button.on { color: #fff; }
+  .logo-row { display: flex; align-items: center; justify-content: space-between; }
+  .gear {
+    width: 30px; height: 30px; margin-top: 6px; border-radius: 99px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text2); font-size: 16px; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center; transition: transform .3s;
+  }
+  .gear:hover { color: var(--accent); border-color: var(--accent); transform: rotate(60deg); }
   .tabs { display: flex; gap: 4px; }
   .tab {
     flex: 1; background: none; border: none;
@@ -201,9 +208,57 @@
   .toolbar input { flex: 1; min-width: 140px; }
   .toolbar select { width: auto; }
 
+  /* ── 단어목록 왼쪽 태그 메뉴 ── */
+  main:has(#page-words.active), body:has(#page-words.active) .head-inner { max-width: 1040px; }
+  .words-layout { display: grid; grid-template-columns: 150px 1fr; gap: 12px; align-items: start; }
+  .words-main { margin-bottom: 0; min-width: 0; }
+  .tag-side {
+    position: sticky; top: 92px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 8px 6px; box-shadow: var(--shadow); max-height: calc(100vh - 92px - var(--player-h) - 20px); overflow-y: auto;
+  }
+  .side-title { font-size: 10px; color: var(--text3); padding: 4px 8px 2px; font-weight: 700; letter-spacing: .5px; }
+  .side-item {
+    display: flex; align-items: center; gap: 4px; width: 100%; text-align: left;
+    border: none; background: none; padding: 6px 8px; border-radius: 8px; font-size: 12px; color: var(--text2);
+  }
+  .side-item .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .side-item .n { font-size: 10px; color: var(--text3); }
+  .side-item:hover { background: var(--accent-light); }
+  .side-item.on { background: var(--accent); color: #fff; font-weight: 700; }
+  .side-item.on .n { color: #ffe6ee; }
+  .side-item.manage { color: var(--text3); font-size: 11px; margin-top: 4px; border-top: 1px dashed var(--border); border-radius: 0 0 8px 8px; }
+  .side-sep { height: 1px; background: var(--border); margin: 4px 6px; }
+  @media (max-width: 720px) {
+    /* 좁은 화면: 가로로 스크롤되는 한 줄 탭 */
+    .words-layout { grid-template-columns: 1fr; }
+    .tag-side {
+      position: static; max-height: none; display: flex; gap: 4px; overflow-x: auto; padding: 6px;
+      scrollbar-width: thin; -webkit-overflow-scrolling: touch;
+    }
+    .side-title, .side-sep { display: none; }
+    .side-item { width: auto; flex-shrink: 0; white-space: nowrap; padding: 5px 10px; border-radius: 99px; }
+    .side-item .nm { overflow: visible; }
+    .side-item.manage { margin-top: 0; border-top: none; border: 1px dashed var(--border); border-radius: 99px; }
+  }
+
+  /* ── 설정 ── */
+  .modal-box.wide { max-width: 520px; }
+  .stabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+  .stab { border: none; background: none; padding: 6px 10px; font-size: 12px; font-weight: 700; color: var(--text3); border-bottom: 2px solid transparent; }
+  .stab.on { color: var(--accent); border-bottom-color: var(--accent); }
+  .tag-add { display: flex; gap: 6px; margin-bottom: 8px; }
+  .tag-add input { flex: 1; border: 1px solid var(--border); border-radius: 99px; padding: 5px 12px; }
+  .tag-rows { display: flex; flex-direction: column; gap: 4px; max-height: 50vh; overflow-y: auto; }
+  .tag-row { display: flex; align-items: center; gap: 4px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface2); }
+  .tag-row input { flex: 1; min-width: 0; border: 1px solid transparent; background: transparent; border-radius: 6px; padding: 3px 6px; font-size: 12px; }
+  .tag-row input:hover { border-color: var(--border); background: var(--surface); }
+  .tag-row input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+  .tag-row .n { font-size: 10px; color: var(--text3); width: 38px; text-align: right; flex-shrink: 0; }
+  .tag-row .ic { width: 22px; height: 22px; font-size: 11px; }
+  .tag-row .ic:disabled { opacity: .3; cursor: default; }
+
   /* ── 태그 ── */
   .tag { font-size: 10px; background: var(--accent-light); color: var(--accent-dark); padding: 0 7px; border-radius: 99px; line-height: 17px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; align-items: center; }
   .chip {
     border: 1px solid var(--border); background: var(--surface); color: var(--text2);
     border-radius: 99px; padding: 2px 10px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;
@@ -211,11 +266,7 @@
   .chip .n { color: var(--text3); font-size: 10px; }
   .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
   .chip.on .n { color: #ffe6ee; }
-  .chip .x { display: none; color: var(--danger); font-weight: 700; padding-left: 2px; }
-  .chip .ren { display: none; color: var(--text3); }
-  .chips.editing .chip[data-tag] .x, .chips.editing .chip[data-tag] .ren { display: inline; }
-  .chip.add { border-style: dashed; color: var(--text3); }
-  .pick-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .pick-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; max-height: 64px; overflow-y: auto; }
   .pick-tags .chip { padding: 1px 8px; font-size: 10px; }
   select.tag-sel { border: 1px solid var(--border); border-radius: 99px; padding: 2px 8px; font-size: 11px; background: var(--surface); color: var(--text2); }
 
@@ -299,7 +350,12 @@
 
 <header>
   <div class="head-inner">
-    <div class="logo">🌸 <b>日本語</b> 단어장</div>
+    <div class="logo-row">
+      <div class="logo">🌸 <b>日本語</b> 단어장</div>
+      <button class="gear" id="openSettings" title="설정" aria-label="설정">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
     <nav class="tabs">
       <button class="tab active" data-tab="home">홈</button>
       <button class="tab" data-tab="words">단어목록</button>
@@ -363,8 +419,9 @@
 
   <!-- ═══════════ 단어목록 ═══════════ -->
   <section class="page" id="page-words">
-
-    <div class="card">
+  <div class="words-layout">
+    <aside class="tag-side" id="tagSide"></aside>
+    <div class="card words-main">
       <div class="card-h">
         <h2>📚 내 단어 <span class="sub" id="wordCount"></span></h2>
         <div class="acts">
@@ -375,7 +432,6 @@
           <input type="file" id="importFile" accept=".json" hidden>
         </div>
       </div>
-      <div class="chips" id="tagChips"></div>
       <div class="toolbar">
         <input id="search" placeholder="검색 (단어·요미가나·뜻)">
         <select id="filter">
@@ -399,6 +455,7 @@
       <div class="wlist" id="allList"></div>
       <div class="pager" id="pager"></div>
     </div>
+  </div>
   </section>
 
   <!-- ═══════════ 퀴즈 ═══════════ -->
@@ -495,6 +552,31 @@
   </div>
 </div>
 
+<!-- ═══════════ 설정 ═══════════ -->
+<div class="modal" id="settingsModal" hidden>
+  <div class="modal-box wide" role="dialog" aria-modal="true" aria-label="설정">
+    <div class="card-h">
+      <h2>⚙ 설정</h2>
+      <button class="ic" data-close-settings title="닫기">✕</button>
+    </div>
+    <div class="stabs">
+      <button class="stab on" data-stab="tags">🏷 태그 관리</button>
+    </div>
+    <div class="spane" data-spane="tags">
+      <form class="tag-add" id="tagAddForm" autocomplete="off">
+        <input id="tagAddInput" placeholder="새 태그 이름 (예: JLPT N2)" maxlength="30">
+        <button class="btn primary">추가</button>
+      </form>
+      <div class="tag-rows" id="tagRows"></div>
+      <div class="muted" style="font-size:10px; margin-top:8px; line-height:1.6">
+        · 이름을 눌러 바로 고칠 수 있어요 (Enter로 저장). 같은 이름으로 바꾸면 두 태그가 합쳐져요.<br>
+        · ↑↓ 로 순서를 바꾸면 단어목록 왼쪽 메뉴에도 그 순서로 보여요.<br>
+        · 태그를 삭제해도 단어는 지워지지 않아요.
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════ 하단 음악 바 ═══════════ -->
 <div id="ytWrap" class="mini"><div id="ytPlayer"></div></div>
 <div class="player" id="player">
@@ -545,12 +627,20 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 const byId = id => S.words.find(w => w.id === id);
 S.words.forEach(w => { if (!Array.isArray(w.tags)) w.tags = []; });
 const parseTags = str => [...new Set(str.split(/[,，、]/).map(t => t.trim()).filter(Boolean))];
-function allTags() {
-  const m = new Map();
-  S.words.forEach(w => w.tags.forEach(t => m.set(t, (m.get(t) || 0) + 1)));
-  return [...m].sort((a, b) => a[0].localeCompare(b[0], 'ko'));
+// S.tags: 태그 순서 목록 (설정 > 태그 관리에서 추가·정렬). 단어에만 있는 태그는 자동으로 뒤에 붙음
+if (!Array.isArray(S.tags)) {
+  S.tags = [...new Set(S.words.flatMap(w => w.tags))].sort((a, b) => a.localeCompare(b, 'ko'));
 }
-const inTag = (w, tag) => !tag || w.tags.includes(tag);
+function allTags() {
+  const m = new Map(S.tags.map(t => [t, 0]));
+  S.words.forEach(w => w.tags.forEach(t => {
+    if (!m.has(t)) S.tags.push(t);
+    m.set(t, (m.get(t) || 0) + 1);
+  }));
+  return S.tags.map(t => [t, m.get(t) || 0]);
+}
+const NO_TAG = '__none__';
+const inTag = (w, tag) => !tag || (tag === NO_TAG ? !w.tags.length : w.tags.includes(tag));
 function tagOptions(sel, cur, allLabel = '📚 전체 단어') {
   const tags = allTags();
   if (cur && !tags.some(([t]) => t === cur)) cur = '';
@@ -563,6 +653,17 @@ let toastT;
 function toast(msg) {
   const t = $('#toast'); t.textContent = msg; t.classList.add('show');
   clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1600);
+}
+// 예문에 섞인 한국어(번역·메모)는 빼고 일본어만 읽기
+function jpOnly(text) {
+  const HANGUL = '\u1100-\u11ff\u3130-\u318f\uac00-\ud7af';
+  return String(text || '')
+    // 한글이 들어간 괄호 통째로 제거: (밥을 먹다) 【뜻】 [해석]
+    .replace(new RegExp(`[(（\\[【「『<〈][^)）\\]】」』>〉]*[${HANGUL}][^)）\\]】」』>〉]*[)）\\]】」』>〉]`, 'g'), ' ')
+    // 남은 한글 덩어리(+붙은 문장부호·숫자·공백) 제거
+    .replace(new RegExp(`[${HANGUL}][${HANGUL}\\s\\d.,!?~·:;'"\\-]*`, 'g'), ' ')
+    .replace(/[-–—→=:|/]+\s*$/g, '')
+    .replace(/\s+/g, ' ').trim();
 }
 function speak(text) {
   if (!('speechSynthesis' in window)) return toast('이 브라우저는 발음 듣기를 지원하지 않아요');
@@ -656,7 +757,10 @@ document.addEventListener('click', e => {
   if (!w) return;
   const act = btn.dataset.act;
   if (act === 'speak') return speak(plainYomi(w.yomi) || w.word);
-  if (act === 'speak-ex') return speak(w.example);
+  if (act === 'speak-ex') {
+    const jp = jpOnly(w.example);
+    return jp ? speak(jp) : toast('예문에 읽을 일본어가 없어요');
+  }
   if (act === 'star') { w.important = !w.important; toast(w.important ? '⭐ 중요 단어로 표시' : '중요 표시 해제'); }
   if (act === 'mem') {
     w.memorized = !w.memorized;
@@ -823,7 +927,7 @@ $('#wordForm').addEventListener('submit', e => {
     listPage = 1;
     toast('추가했어요');
   }
-  store.save(); renderAll();
+  allTags(); store.save(); renderAll();
   // '추가 후 계속'이면 팝업 유지하고 입력칸만 비우기
   if (!editingId && e.submitter?.dataset.more) { resetForm(); $('#fYomi').focus(); }
   else closeModal();
@@ -857,7 +961,7 @@ function resetForm() {
   editingId = null;
   $('#wordForm').reset();
   // 방금 보던 단어장은 계속 입력되게 유지
-  if (listTag) $('#fTags').value = listTag;
+  if (listTag && listTag !== NO_TAG) $('#fTags').value = listTag;
   renderPickTags(); renderPreview();
   $('#formTitle').textContent = '➕ 단어 추가';
   $('#submitBtn').textContent = '추가';
@@ -893,38 +997,26 @@ function pagerHtml(total, page, pages, size) {
     <span class="info">${start}–${end} / ${total}개</span>`;
 }
 
-let listTag = '', tagEditing = false;
-function renderTagChips() {
+let listTag = '';
+function renderTagSide() {
   const tags = allTags();
-  if (listTag && !tags.some(([t]) => t === listTag)) listTag = '';
-  $('#tagChips').className = 'chips' + (tagEditing ? ' editing' : '');
-  $('#tagChips').innerHTML = !tags.length ? '' :
-    `<button class="chip ${listTag ? '' : 'on'}" data-chip="">전체 <span class="n">${S.words.length}</span></button>` +
-    tags.map(([t, n]) => `<button class="chip ${t === listTag ? 'on' : ''}" data-chip="${esc(t)}" data-tag="${esc(t)}">
-      <span class="ren" data-ren title="이름 바꾸기">✎</span>${esc(t)} <span class="n">${n}</span><span class="x" data-rm title="태그 삭제">×</span></button>`).join('') +
-    `<button class="chip add" id="tagEditBtn">${tagEditing ? '완료' : '⚙ 태그 편집'}</button>`;
+  if (listTag && listTag !== NO_TAG && !tags.some(([t]) => t === listTag)) listTag = '';
+  const noTag = S.words.filter(w => !w.tags.length).length;
+  const item = (val, icon, name, n, extra = '') =>
+    `<button class="side-item ${listTag === val ? 'on' : ''} ${extra}" data-side="${esc(val)}" title="${esc(name)}">
+      <span>${icon}</span><span class="nm">${esc(name)}</span><span class="n">${n}</span></button>`;
+  $('#tagSide').innerHTML =
+    item('', '📚', '전체', S.words.length) +
+    (tags.length ? '<div class="side-sep"></div><div class="side-title">태그</div>' : '') +
+    tags.map(([t, n]) => item(t, '🏷', t, n)).join('') +
+    (tags.length && noTag ? item(NO_TAG, '▫️', '태그 없음', noTag) : '') +
+    `<button class="side-item manage" id="sideManage"><span>⚙</span><span class="nm">태그 관리</span></button>`;
 }
-$('#tagChips').addEventListener('click', e => {
-  if (e.target.closest('#tagEditBtn')) { tagEditing = !tagEditing; return renderTagChips(); }
-  const chip = e.target.closest('[data-chip]'); if (!chip) return;
-  const t = chip.dataset.chip;
-  if (tagEditing && t && e.target.closest('[data-rm]')) {
-    if (!confirm(`'${t}' 태그를 삭제할까요?\n(단어는 지워지지 않고 태그만 빠져요)`)) return;
-    S.words.forEach(w => { w.tags = w.tags.filter(x => x !== t); });
-    if (listTag === t) listTag = '';
-    store.save(); return renderAll();
-  }
-  if (tagEditing && t && e.target.closest('[data-ren]')) {
-    const nt = (prompt('새 태그 이름', t) || '').trim();
-    if (!nt || nt === t) return;
-    S.words.forEach(w => { if (w.tags.includes(t)) w.tags = [...new Set(w.tags.map(x => x === t ? nt : x))]; });
-    if (listTag === t) listTag = nt;
-    if (S.homeTag === t) S.homeTag = nt;
-    store.save(); return renderAll();
-  }
-  listTag = t; listPage = 1;
-  if (!editingId) $('#fTags').value = t;
-  renderPickTags(); renderWords();
+$('#tagSide').addEventListener('click', e => {
+  if (e.target.closest('#sideManage')) return openSettings('tags');
+  const b = e.target.closest('[data-side]'); if (!b) return;
+  listTag = b.dataset.side; listPage = 1;
+  renderWords();
 });
 function renderPickTags() {
   const cur = parseTags($('#fTags').value);
@@ -942,7 +1034,7 @@ $('#pickTags').addEventListener('click', e => {
 $('#fTags').addEventListener('input', renderPickTags);
 
 function renderWords() {
-  renderTagChips();
+  renderTagSide();
   if (document.activeElement?.id !== 'fTags') renderPickTags();
   const q = $('#search').value.trim().toLowerCase();
   const f = $('#filter').value, sort = $('#sort').value;
@@ -988,7 +1080,7 @@ function addSamples() {
   store.save(); renderAll(); toast('예시 단어를 추가했어요');
 }
 $('#exportBtn').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify({ words: S.words, goal: S.goal }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ words: S.words, goal: S.goal, tags: S.tags }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `일본어단어장_${dkey()}.json`;
@@ -1012,10 +1104,92 @@ $('#importFile').addEventListener('change', async e => {
     if (replace) S.words = clean;
     else { const ids = new Set(S.words.map(w => w.id)); S.words.push(...clean.filter(w => !ids.has(w.id))); }
     if (data.goal) S.goal = data.goal;
+    if (Array.isArray(data.tags)) S.tags = replace ? [...data.tags] : [...new Set([...S.tags, ...data.tags])];
     S.today = null; S.starPick = null;
     store.save(); renderAll(); toast(`${clean.length}개 단어를 불러왔어요`);
   } catch { toast('파일 형식이 올바르지 않아요'); }
   e.target.value = '';
+});
+
+/* ─────────────── 설정 · 태그 관리 ─────────────── */
+function openSettings(tab = 'tags') {
+  $$('.stab').forEach(b => b.classList.toggle('on', b.dataset.stab === tab));
+  $$('.spane').forEach(p => p.hidden = p.dataset.spane !== tab);
+  renderTagRows();
+  $('#settingsModal').hidden = false;
+  document.body.classList.add('modal-open');
+}
+function closeSettings() {
+  $('#settingsModal').hidden = true;
+  if ($('#wordModal').hidden) document.body.classList.remove('modal-open');
+}
+$('#openSettings').addEventListener('click', () => openSettings());
+$('#settingsModal').addEventListener('mousedown', e => { if (e.target.id === 'settingsModal') closeSettings(); });
+$('[data-close-settings]').addEventListener('click', closeSettings);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#settingsModal').hidden) closeSettings(); });
+$$('.stab').forEach(b => b.addEventListener('click', () => openSettings(b.dataset.stab)));
+
+function renderTagRows() {
+  const tags = allTags();
+  $('#tagRows').innerHTML = tags.length ? tags.map(([t, n], i) => `
+    <div class="tag-row" data-t="${esc(t)}">
+      <span>🏷</span>
+      <input value="${esc(t)}" data-rename maxlength="30">
+      <span class="n">${n}개</span>
+      <button class="ic" data-mv="-1" title="위로" ${i === 0 ? 'disabled' : ''}>↑</button>
+      <button class="ic" data-mv="1" title="아래로" ${i === tags.length - 1 ? 'disabled' : ''}>↓</button>
+      <button class="ic" data-del-tag title="삭제" style="color:var(--danger)">🗑</button>
+    </div>`).join('') : '<div class="empty">아직 태그가 없어요. 위에서 추가해 보세요</div>';
+}
+function afterTagChange() { store.save(); renderTagRows(); renderAll(); }
+$('#tagAddForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const t = $('#tagAddInput').value.replace(/[,，、]/g, ' ').trim();
+  if (!t) return;
+  if (S.tags.includes(t)) return toast('이미 있는 태그예요');
+  S.tags.push(t);
+  $('#tagAddInput').value = '';
+  afterTagChange();
+  toast(`'${t}' 태그를 추가했어요`);
+});
+function renameTag(from, to) {
+  to = to.replace(/[,，、]/g, ' ').trim();
+  if (!to || to === from) return false;
+  if (S.tags.includes(to) && !confirm(`'${to}' 태그가 이미 있어요. 두 태그를 합칠까요?`)) return false;
+  S.words.forEach(w => { if (w.tags.includes(from)) w.tags = [...new Set(w.tags.map(x => x === from ? to : x))]; });
+  S.tags = S.tags.includes(to) ? S.tags.filter(x => x !== from) : S.tags.map(x => x === from ? to : x);
+  if (listTag === from) listTag = to;
+  if (S.homeTag === from) S.homeTag = to;
+  if (quizTag === from) quizTag = to;
+  return true;
+}
+$('#tagRows').addEventListener('keydown', e => {
+  if (e.target.matches('[data-rename]') && e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+  if (e.target.matches('[data-rename]') && e.key === 'Escape') { e.stopPropagation(); e.target.value = e.target.closest('.tag-row').dataset.t; e.target.blur(); }
+});
+$('#tagRows').addEventListener('focusout', e => {
+  if (!e.target.matches('[data-rename]')) return;
+  const from = e.target.closest('.tag-row').dataset.t;
+  if (renameTag(from, e.target.value)) { afterTagChange(); toast('태그 이름을 바꿨어요'); }
+  else e.target.value = from;
+});
+$('#tagRows').addEventListener('click', e => {
+  const row = e.target.closest('.tag-row'); if (!row) return;
+  const t = row.dataset.t, i = S.tags.indexOf(t);
+  const mv = e.target.closest('[data-mv]');
+  if (mv && !mv.disabled) {
+    const j = i + +mv.dataset.mv;
+    [S.tags[i], S.tags[j]] = [S.tags[j], S.tags[i]];
+    return afterTagChange();
+  }
+  if (e.target.closest('[data-del-tag]')) {
+    const n = S.words.filter(w => w.tags.includes(t)).length;
+    if (!confirm(`'${t}' 태그를 삭제할까요?${n ? `\n(단어 ${n}개는 그대로 남고 태그만 빠져요)` : ''}`)) return;
+    S.words.forEach(w => { w.tags = w.tags.filter(x => x !== t); });
+    S.tags = S.tags.filter(x => x !== t);
+    if (listTag === t) listTag = '';
+    afterTagChange();
+  }
 });
 
 /* ─────────────── 퀴즈 ─────────────── */
