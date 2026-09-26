@@ -112,6 +112,13 @@
     padding: 5px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface2);
   }
   .witem.done { background: var(--success-light); border-color: #c5ecd9; }
+  /* 중요 단어: 노란 하이라이트 (외운 단어와 겹치면 초록 배경 + 노란 왼쪽 띠) */
+  .witem.star { background: #fffbe6; border-color: #f7e2a0; }
+  .witem.done.star { background: var(--success-light); border-color: #c5ecd9; box-shadow: inset 4px 0 0 #f7d35c; }
+  .witem.star .wtxt {
+    background: linear-gradient(transparent 55%, #fde68a 55%, #fde68a 95%, transparent 95%);
+    padding: 0 2px; -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  }
   .w-col { min-width: 0; overflow-wrap: anywhere; }
   .m-col { min-width: 0; border-left: 1px dashed var(--border); padding-left: 10px; }
   .word { font-family: var(--jp); font-size: 15px; font-weight: 500; line-height: 1.35; }
@@ -125,6 +132,9 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
   }
   .example.open { white-space: normal; }
+  .ex-line { display: flex; align-items: flex-start; gap: 4px; min-width: 0; }
+  .ex-line .example { flex: 1; min-width: 0; }
+  .ic.xs { width: 18px; height: 18px; font-size: 9px; border-radius: 5px; flex-shrink: 0; margin-top: 1px; }
   .tags { display: inline-flex; flex-wrap: nowrap; gap: 3px; flex-shrink: 0; margin-left: auto; }
   .acts { display: flex; gap: 3px; flex-shrink: 0; align-items: center; }
   /* 목록 너비 기준으로 좁으면 태그 숨기고 버튼 2줄 (홈의 반쪽 카드 포함) */
@@ -613,14 +623,14 @@ function wordHtml(w) {
 /* ─────────────── 단어 행 렌더 ─────────────── */
 const hideMeaning = { today: false, list: false };
 function rowHtml(w, { hide = false, edit = false } = {}) {
-  return `<div class="witem ${w.memorized ? 'done' : ''}" data-id="${w.id}">
-    <div class="w-col"><div class="word">${wordHtml(w)}</div></div>
+  return `<div class="witem ${w.memorized ? 'done' : ''} ${w.important ? 'star' : ''}" data-id="${w.id}">
+    <div class="w-col"><div class="word"><span class="wtxt">${wordHtml(w)}</span></div></div>
     <div class="m-col">
       <div class="m-line">
         <div class="meaning ${hide ? 'hidden' : ''}" data-reveal>${esc(w.meaning)}</div>
         ${w.tags.length ? `<div class="tags">${w.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
       </div>
-      ${w.example ? `<div class="example" data-expand title="눌러서 전체 보기">${esc(w.example)}</div>` : ''}
+      ${w.example ? `<div class="ex-line"><button class="ic xs" data-act="speak-ex" title="예문 듣기">🔊</button><div class="example" data-expand title="눌러서 전체 보기">${esc(w.example)}</div></div>` : ''}
     </div>
     <div class="acts ${edit ? 'many' : ''}">
       <button class="ic" data-act="speak" title="발음 듣기">🔊</button>
@@ -646,6 +656,7 @@ document.addEventListener('click', e => {
   if (!w) return;
   const act = btn.dataset.act;
   if (act === 'speak') return speak(plainYomi(w.yomi) || w.word);
+  if (act === 'speak-ex') return speak(w.example);
   if (act === 'star') { w.important = !w.important; toast(w.important ? '⭐ 중요 단어로 표시' : '중요 표시 해제'); }
   if (act === 'mem') {
     w.memorized = !w.memorized;
@@ -1104,7 +1115,7 @@ function judge(ok, w, it) {
   $('#qAfter').innerHTML = `${ok ? '<b style="color:var(--success)">⭕ 정답!</b>' : '<b style="color:var(--danger)">❌ 오답</b>'}
     &nbsp;<span class="jp" style="font-size:13px">${wordHtml(w)}</span> — ${esc(w.meaning)}
     <span data-id="${w.id}"><button class="ic" data-act="speak" style="width:22px;height:22px;font-size:11px;vertical-align:middle">🔊</button></span>
-    ${w.example ? `<div class="example">${esc(w.example)}</div>` : ''}`;
+    ${w.example ? `<div class="ex-line" data-id="${w.id}" style="justify-content:center"><button class="ic xs" data-act="speak-ex" title="예문 듣기">🔊</button><div class="example open" style="flex:0 1 auto">${esc(w.example)}</div></div>` : ''}`;
   $('#nextQ').style.display = '';
   $('#nextQ').textContent = Q.i + 1 < Q.items.length ? '다음 →' : '결과 보기';
   $('#nextQ').focus();
