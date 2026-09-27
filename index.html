@@ -325,6 +325,23 @@
   .quick button.hot { background: var(--accent); border-color: var(--accent); color: #fff; }
   .quick button.hot small { color: #ffe6ee; }
 
+  /* ── 한꺼번에 등록 ── */
+  .bk-text { width: 100%; min-height: 120px; border: 1px solid var(--border); border-radius: 10px; padding: 8px; font-size: 12px; resize: vertical; white-space: pre; }
+  .bk-text:focus, .bk-tags:focus { outline: 2px solid var(--pink-mid); border-color: transparent; }
+  .bk-tags { flex: 1; min-width: 0; border: 1px solid var(--border); border-radius: 99px; padding: 4px 10px; }
+  .bk-warn { background: #fff6e6; color: #a86a0c; border-radius: 8px; padding: 6px 10px; font-size: 11px; margin-bottom: 6px; }
+  .bk-preview { max-height: 34vh; overflow: auto; border: 1px solid var(--border); border-radius: 10px; }
+  .bk-preview:empty { display: none; }
+  .bk-preview table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .bk-preview th { position: sticky; top: 0; background: var(--accent-light); color: var(--accent-dark); font-weight: 700; text-align: left; padding: 4px 6px; white-space: nowrap; }
+  .bk-preview td { padding: 3px 6px; border-top: 1px solid var(--border); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bk-preview td.jp { font-family: var(--jp); }
+  .bk-preview tr.dup td { color: var(--text3); }
+  .bk-preview tr.bad td { color: var(--danger); }
+  .data-row { display: flex; align-items: center; gap: 10px; padding: 10px 4px; border-bottom: 1px dashed var(--border); font-size: 12px; }
+  .data-row > div { flex: 1; }
+  .data-row .muted { font-size: 10px; }
+
   /* ── 설정 ── */
   .modal-box.wide { max-width: 520px; }
   .stabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
@@ -542,12 +559,10 @@
         <h2>📚 내 단어 <span class="sub" id="wordCount"></span></h2>
         <div class="acts">
           <button class="btn sm primary" id="openAdd">➕ 단어 추가</button>
+          <button class="btn sm" id="openBulk" title="엑셀·구글시트에서 복사해 여러 단어 한 번에">📥 한꺼번에</button>
           <button class="btn sm" id="cardList" title="지금 보이는 목록(필터 적용)으로 카드 학습">🃏 카드</button>
           <button class="btn sm" id="listenList" title="듣기 모드">🎧 듣기</button>
           <button class="btn sm" data-toggle-hide="list">뜻 가리기</button>
-          <button class="btn sm" id="exportBtn">백업</button>
-          <button class="btn sm" id="importBtn">불러오기</button>
-          <input type="file" id="importFile" accept=".json" hidden>
         </div>
       </div>
       <div class="toolbar">
@@ -770,6 +785,41 @@
   </div>
 </div>
 
+<!-- ═══════════ 한꺼번에 등록 ═══════════ -->
+<div class="modal" id="bulkModal" hidden>
+  <div class="modal-box wide" role="dialog" aria-modal="true" aria-label="한꺼번에 등록">
+    <div class="card-h">
+      <h2>📥 한꺼번에 등록</h2>
+      <button class="ic" data-close-bulk title="닫기">✕</button>
+    </div>
+    <div class="muted" style="font-size:11px; line-height:1.6; margin-bottom:6px">
+      엑셀·구글시트에서 칸을 그대로 복사해 붙여넣으세요 (한 줄 = 한 단어).<br>
+      직접 쓸 땐 <b>|</b> 로 나눠요. 예) <span class="jp">たべる | 食べる | 먹다 | ご飯を食べる。</span><br>
+      마지막 칸에 태그를 쓰면 같이 붙어요 (쉼표로 여러 개).
+    </div>
+    <div class="opt-row" style="margin-bottom:6px"><span>칸 순서</span>
+      <select class="tag-sel" id="bkOrder">
+        <option value="ywme">요미가나 | 단어 | 뜻 | 예문 | 태그</option>
+        <option value="wyme">단어 | 요미가나 | 뜻 | 예문 | 태그</option>
+        <option value="wmye">단어 | 뜻 | 요미가나 | 예문 | 태그</option>
+        <option value="wme">단어 | 뜻 | 예문 | 태그</option>
+      </select>
+    </div>
+    <textarea id="bkText" class="bk-text jp" placeholder="たべる	食べる	먹다	ご飯を食べる。
+のむ | 飲む | 마시다 | コーヒーを飲みます。 | JLPT N5"></textarea>
+    <div class="opt-row" style="margin:8px 0 4px"><span>태그 추가</span>
+      <input id="bkTags" class="bk-tags" placeholder="모든 단어에 붙일 태그 (선택)">
+    </div>
+    <label class="chk" style="margin-bottom:6px"><input type="checkbox" id="bkSkipDup" checked> 이미 있는 단어는 건너뛰기</label>
+    <div id="bkWarn" class="bk-warn" hidden></div>
+    <div class="bk-preview" id="bkPreview"></div>
+    <div class="form-actions" style="margin-top:8px">
+      <button type="button" class="btn" data-close-bulk>취소</button>
+      <button type="button" class="btn primary" id="bkSubmit" disabled>등록</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════ 설정 ═══════════ -->
 <div class="modal" id="settingsModal" hidden>
   <div class="modal-box wide" role="dialog" aria-modal="true" aria-label="설정">
@@ -779,6 +829,7 @@
     </div>
     <div class="stabs">
       <button class="stab on" data-stab="tags">🏷 태그 관리</button>
+      <button class="stab" data-stab="data">💾 데이터</button>
     </div>
     <div class="spane" data-spane="tags">
       <form class="tag-add" id="tagAddForm" autocomplete="off">
@@ -790,6 +841,24 @@
         · 이름을 눌러 바로 고칠 수 있어요 (Enter로 저장). 같은 이름으로 바꾸면 두 태그가 합쳐져요.<br>
         · ↑↓ 로 순서를 바꾸면 단어목록 왼쪽 메뉴에도 그 순서로 보여요.<br>
         · 태그를 삭제해도 단어는 지워지지 않아요.
+      </div>
+    </div>
+    <div class="spane" data-spane="data" hidden>
+      <div class="data-row">
+        <div><b>백업 파일 받기</b><div class="muted">단어·태그·학습 기록을 파일(.json)로 저장해요</div></div>
+        <button class="btn primary" id="exportBtn">💾 백업</button>
+      </div>
+      <div class="data-row">
+        <div><b>백업 파일 불러오기</b><div class="muted">다른 기기·브라우저에서 받은 백업을 가져와요</div></div>
+        <button class="btn" id="importBtn">📂 불러오기</button>
+        <input type="file" id="importFile" accept=".json" hidden>
+      </div>
+      <div class="data-row">
+        <div><b>한꺼번에 등록</b><div class="muted">엑셀·구글시트에서 복사한 여러 줄을 붙여넣어 등록해요</div></div>
+        <button class="btn" id="openBulk2">📥 열기</button>
+      </div>
+      <div class="muted" style="font-size:10px; margin-top:8px; line-height:1.6">
+        · 단어는 지금 쓰는 브라우저 안에만 저장돼요. 폰↔PC처럼 기기를 옮길 땐 백업 → 불러오기를 써 주세요.
       </div>
     </div>
   </div>
@@ -1378,7 +1447,7 @@ function addSamples() {
   store.save(); renderAll(); toast('예시 단어를 추가했어요');
 }
 $('#exportBtn').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify({ words: S.words, goal: S.goal, tags: S.tags }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ words: S.words, goal: S.goal, tags: S.tags, reviewLog: S.reviewLog, quizLog: S.quizLog }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `일본어단어장_${dkey()}.json`;
@@ -1403,6 +1472,8 @@ $('#importFile').addEventListener('change', async e => {
     if (replace) S.words = clean;
     else { const ids = new Set(S.words.map(w => w.id)); S.words.push(...clean.filter(w => !ids.has(w.id))); }
     if (data.goal) S.goal = data.goal;
+    if (data.reviewLog) S.reviewLog = replace ? data.reviewLog : { ...data.reviewLog, ...S.reviewLog };
+    if (data.quizLog) S.quizLog = replace ? data.quizLog : { ...data.quizLog, ...S.quizLog };
     if (Array.isArray(data.tags)) S.tags = replace ? [...data.tags] : [...new Set([...S.tags, ...data.tags])];
     S.today = null; S.starPick = null;
     store.save(); renderAll(); toast(`${clean.length}개 단어를 불러왔어요`);
@@ -1688,6 +1759,79 @@ $('#qkListen').addEventListener('click', () => openListen(S.homeTag));
 $('#listenList').addEventListener('click', () => openListen(listTag === NO_TAG ? '' : listTag));
 $('#qkReview').addEventListener('click', () => $('#startReview').disabled ? toast('오늘 복습할 단어가 없어요 🎉') : $('#startReview').click());
 $('#qkQuiz').addEventListener('click', () => showTab('quiz'));
+
+/* ─────────────── 한꺼번에 등록 ─────────────── */
+let bkRows = [];
+function openBulk() {
+  closeSettings();
+  $('#bulkModal').hidden = false; document.body.classList.add('modal-open');
+  if (listTag && listTag !== NO_TAG && !$('#bkTags').value) $('#bkTags').value = listTag;
+  $('#bkOrder').value = S.bulkOrder || 'ywme';
+  parseBulk();
+  $('#bkText').focus();
+}
+function closeBulk() {
+  $('#bulkModal').hidden = true;
+  if ($('#wordModal').hidden) document.body.classList.remove('modal-open');
+}
+function splitLine(line) {
+  if (line.includes('\t')) return line.split('\t');
+  if (/[|｜]/.test(line)) return line.split(/[|｜]/);
+  return null;
+}
+function parseBulk() {
+  const order = $('#bkOrder').value, extra = parseTags($('#bkTags').value);
+  const keys = { ywme: ['yomi', 'word', 'meaning', 'example'], wyme: ['word', 'yomi', 'meaning', 'example'], wmye: ['word', 'meaning', 'yomi', 'example'], wme: ['word', 'meaning', 'example'] }[order];
+  const exist = new Set(S.words.map(w => w.word + '|' + plainYomi(w.yomi)));
+  const seenNow = new Set();
+  let swapHint = 0;
+  bkRows = $('#bkText').value.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(line => {
+    const cols = splitLine(line);
+    if (!cols) return { bad: '칸 구분(탭 또는 |)이 없어요', raw: line };
+    const c = cols.map(x => x.trim());
+    const r = { yomi: '', word: '', meaning: '', example: '' };
+    keys.forEach((k, i) => r[k] = c[i] || '');
+    r.tags = [...new Set([...parseTags(c[keys.length] || ''), ...extra])];
+    if (/^(단어|word)$/i.test(r.word) || /^(뜻|의미)$/.test(r.meaning)) return null;   // 머리글 줄
+    if (!r.word || !r.meaning) return { ...r, bad: '단어와 뜻은 꼭 있어야 해요' };
+    if (r.yomi && [...r.yomi].some(isKanji) && ![...r.word].some(isKanji)) swapHint++;
+    const key = r.word + '|' + plainYomi(r.yomi);
+    r.dup = exist.has(key) || seenNow.has(key);
+    seenNow.add(key);
+    return r;
+  }).filter(Boolean);
+  const ok = bkRows.filter(r => !r.bad && !(r.dup && $('#bkSkipDup').checked));
+  $('#bkWarn').hidden = !swapHint;
+  $('#bkWarn').textContent = swapHint ? `⚠️ 요미가나 칸에 한자가 들어간 줄이 ${swapHint}개 있어요. 칸 순서를 확인해 주세요.` : '';
+  $('#bkSubmit').disabled = !ok.length;
+  $('#bkSubmit').textContent = ok.length ? `${ok.length}개 등록` : '등록';
+  const show = bkRows.slice(0, 100);
+  $('#bkPreview').innerHTML = bkRows.length ? `<table><tr><th></th><th>요미가나</th><th>단어</th><th>뜻</th><th>예문</th><th>태그</th></tr>${show.map(r => r.bad && !r.word && !r.meaning
+    ? `<tr class="bad"><td>⚠️</td><td colspan="5" title="${esc(r.bad)}">${esc(r.bad)} · ${esc(r.raw || '')}</td></tr>`
+    : `<tr class="${r.bad ? 'bad' : r.dup ? 'dup' : ''}" title="${esc(r.bad || (r.dup ? '이미 있는 단어' : ''))}"><td>${r.bad ? '⚠️' : r.dup ? '중복' : '✓'}</td>
+      <td class="jp">${esc(r.yomi)}</td><td class="jp">${esc(r.word)}</td><td>${esc(r.meaning)}</td><td class="jp">${esc(r.example)}</td><td>${esc(r.tags.join(', '))}</td></tr>`).join('')}
+    ${bkRows.length > 100 ? `<tr><td colspan="6" class="muted">… 외 ${bkRows.length - 100}줄</td></tr>` : ''}</table>` : '';
+}
+['#bkText', '#bkTags'].forEach(sel => $(sel).addEventListener('input', parseBulk));
+$('#bkOrder').addEventListener('change', () => { S.bulkOrder = $('#bkOrder').value; store.save(); parseBulk(); });
+$('#bkSkipDup').addEventListener('change', parseBulk);
+$('#bkSubmit').addEventListener('click', () => {
+  const ok = bkRows.filter(r => !r.bad && !(r.dup && $('#bkSkipDup').checked));
+  const now = Date.now();
+  ok.forEach((r, i) => S.words.push({
+    id: uid(), yomi: r.yomi, word: r.word, meaning: r.meaning, example: r.example, tags: r.tags,
+    memorized: false, important: false, memorizedAt: null, created: now + i, wrong: 0, right: 0, srs: { lv: 0, due: null }
+  }));
+  allTags(); store.save();
+  $('#bkText').value = ''; parseBulk(); closeBulk();
+  listPage = 1; renderAll();
+  toast(`${ok.length}개 단어를 등록했어요`);
+});
+$('#openBulk').addEventListener('click', openBulk);
+$('#openBulk2').addEventListener('click', openBulk);
+$$('[data-close-bulk]').forEach(b => b.addEventListener('click', closeBulk));
+$('#bulkModal').addEventListener('mousedown', e => { if (e.target.id === 'bulkModal') closeBulk(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#bulkModal').hidden) closeBulk(); });
 
 /* ─────────────── 설정 · 태그 관리 ─────────────── */
 function openSettings(tab = 'tags') {
