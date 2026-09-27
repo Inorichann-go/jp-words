@@ -301,6 +301,26 @@
   .st-sum b { display: block; font-size: 20px; }
   .st-done-acts { display: flex; gap: 8px; justify-content: center; margin-top: 14px; }
 
+  /* ── 듣기 모드 ── */
+  .chk { font-size: 11px; color: var(--text2); display: inline-flex; align-items: center; gap: 3px; cursor: pointer; }
+  .chk input { accent-color: var(--accent); }
+  .ls-card { cursor: default; min-height: 260px; }
+  .ls-part { opacity: .35; transition: opacity .2s; }
+  .ls-part.on, .ls-part.shown { opacity: 1; }
+  .fc-word.speaking, .ls-part.on { text-shadow: 0 0 18px rgba(232,115,154,.45); }
+  .ls-ctl { display: flex; justify-content: center; gap: 10px; }
+  .ls-ctl .pbtn { background: var(--accent-light); border: none; color: var(--accent-dark); border-radius: 99px; width: 44px; height: 44px; font-size: 16px; }
+  .ls-ctl .pbtn.big { width: 56px; height: 56px; background: var(--accent); color: #fff; font-size: 18px; }
+  .quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .quick button {
+    border: 1px solid var(--border); background: var(--surface); border-radius: 14px; padding: 10px 6px;
+    font-size: 12px; font-weight: 700; color: var(--text); box-shadow: var(--shadow);
+  }
+  .quick button small { display: block; font-size: 10px; font-weight: 400; color: var(--text3); margin-top: 1px; }
+  .quick button:hover { border-color: var(--accent); }
+  .quick button.hot { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .quick button.hot small { color: #ffe6ee; }
+
   /* ── 설정 ── */
   .modal-box.wide { max-width: 520px; }
   .stabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
@@ -455,6 +475,11 @@
   <!-- ═══════════ 홈 ═══════════ -->
   <section class="page active" id="page-home">
     <div class="stats" id="stats"></div>
+    <div class="quick">
+      <button id="qkReview">🃏 카드 복습<small id="qkReviewSub"></small></button>
+      <button id="qkListen">🎧 듣기 모드<small>흘려듣기</small></button>
+      <button id="qkQuiz">🎯 퀴즈<small>실력 확인</small></button>
+    </div>
 
     <div class="card">
       <div class="card-h">
@@ -514,6 +539,7 @@
         <div class="acts">
           <button class="btn sm primary" id="openAdd">➕ 단어 추가</button>
           <button class="btn sm" id="cardList" title="지금 보이는 목록(필터 적용)으로 카드 학습">🃏 카드</button>
+          <button class="btn sm" id="listenList" title="듣기 모드">🎧 듣기</button>
           <button class="btn sm" data-toggle-hide="list">뜻 가리기</button>
           <button class="btn sm" id="exportBtn">백업</button>
           <button class="btn sm" id="importBtn">불러오기</button>
@@ -677,6 +703,59 @@
         <button class="btn" id="stRetry">모름만 다시</button>
         <button class="btn primary" id="stEnd">닫기</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 듣기 모드 ═══════════ -->
+<div class="study" id="listen" hidden>
+  <div class="study-box">
+    <div class="study-top">
+      <b>🎧 듣기 모드</b>
+      <span class="muted" id="lsProg"></span>
+      <button class="ic" id="lsClose" title="닫기 (Esc)">✕</button>
+    </div>
+    <div class="card" id="lsSetup">
+      <div class="opt-row"><span>단어장</span><select class="tag-sel" id="lsTag"></select></div>
+      <div class="opt-row"><span>범위</span>
+        <div class="seg" data-ls="range"><button data-v="all">전체</button><button data-v="todo">못 외운</button><button data-v="star">중요</button><button data-v="due">복습</button></div>
+      </div>
+      <div class="opt-row"><span>읽기</span>
+        <label class="chk"><input type="checkbox" data-part="word" checked> 단어</label>
+        <label class="chk"><input type="checkbox" data-part="meaning" checked> 뜻(한국어)</label>
+        <label class="chk"><input type="checkbox" data-part="example" checked> 예문</label>
+      </div>
+      <div class="opt-row"><span>순서</span>
+        <div class="seg" data-ls="order"><button data-v="seq">순서대로</button><button data-v="shuffle">섞기</button></div>
+        <label class="chk"><input type="checkbox" id="lsRepeat"> 🔁 끝나면 반복</label>
+      </div>
+      <div class="opt-row"><span>속도</span>
+        <div class="seg" data-ls="rate"><button data-v="0.7">느리게</button><button data-v="0.9">보통</button><button data-v="1.1">빠르게</button></div>
+      </div>
+      <div class="opt-row"><span>간격</span>
+        <div class="seg" data-ls="gap"><button data-v="600">짧게</button><button data-v="1300">보통</button><button data-v="2500">길게</button></div>
+      </div>
+      <div class="opt-row"><span>음악</span>
+        <div class="seg" data-ls="music"><button data-v="duck">작게</button><button data-v="pause">멈춤</button><button data-v="keep">그대로</button></div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px">
+        <span class="muted" id="lsPool"></span>
+        <button class="btn primary" id="lsStart">▶ 듣기 시작</button>
+      </div>
+    </div>
+    <div id="lsPlay" hidden>
+      <div class="fcard ls-card">
+        <div class="fc-word" id="lsWord"></div>
+        <div class="fc-meaning ls-part" data-p="meaning" id="lsMeaning"></div>
+        <div class="fc-ex ls-part" data-p="example" id="lsEx"></div>
+      </div>
+      <div class="ls-ctl">
+        <button class="pbtn" id="lsPrev" title="이전">⏮</button>
+        <button class="pbtn big" id="lsToggle" title="일시정지/재생">❚❚</button>
+        <button class="pbtn" id="lsNext" title="다음">⏭</button>
+        <button class="pbtn" id="lsStop" title="설정으로">⏹</button>
+      </div>
+      <div class="st-hint muted">화면을 켜 둔 채로 들어 주세요 · 폰 화면이 꺼지면 브라우저가 읽기를 멈춰요</div>
     </div>
   </div>
 </div>
@@ -1073,6 +1152,8 @@ function renderHome() {
   const tmr = S.words.filter(w => w.memorized && w.srs?.due === tomorrow).length;
   $('#reviewSub').textContent = due.length ? `${due.length}개 남음` : doneToday ? '오늘 복습 끝! 🎉' : '';
   $('#startReview').disabled = !due.length;
+  $('#qkReviewSub').textContent = due.length ? `오늘 ${due.length}개` : '오늘 복습 끝';
+  $('#qkReview').classList.toggle('hot', !!due.length);
   const lvCount = [...Array(MASTER_LV + 1)].map((_, lv) => S.words.filter(w => lv === 0 ? !w.memorized : w.memorized && Math.min(w.srs.lv, MASTER_LV) === lv).length);
   const lvName = ['학습 전', '1일', '3일', '7일', '14일', '30일', '🏆'];
   $('#srsBar').innerHTML = total ? `<div class="srs-bar">${lvCount.map((n, lv) => n ? `<div class="seg-lv lv${lv}" style="flex:${n}" title="${lvName[lv]} 단계 ${n}개"></div>` : '').join('')}</div>
@@ -1450,6 +1531,153 @@ $('#startReview').addEventListener('click', () => {
 });
 $('#cardToday').addEventListener('click', () => openStudy(pickToday().map(byId).filter(Boolean), '✏️ 오늘 외울 단어'));
 $('#cardList').addEventListener('click', () => openStudy(currentList(), '📚 ' + (listTag === NO_TAG ? '태그 없음' : listTag || '내 단어')));
+
+/* ─────────────── 듣기 모드 ─────────────── */
+S.listen = Object.assign({ range: 'all', parts: { word: true, meaning: true, example: true }, order: 'seq', rate: '0.9', gap: '1300', music: 'duck', repeat: false }, S.listen || {});
+let L = null, lsTag = '';   // L: {ids, i, token, paused}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+// 끝날 때까지 기다리는 읽기 (일부 브라우저는 onend가 안 올 때가 있어 시간 제한)
+function speakAsync(text, lang, rate) {
+  return new Promise(res => {
+    if (!('speechSynthesis' in window) || !text) return res();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang; u.rate = rate;
+    let done = false; const fin = () => { if (!done) { done = true; clearTimeout(t); res(); } };
+    const t = setTimeout(fin, 2500 + text.length * 350 / rate);
+    u.onend = fin; u.onerror = fin;
+    speechSynthesis.speak(u);
+  });
+}
+function lsPoolWords() {
+  return S.words.filter(w => inTag(w, lsTag) && ({
+    all: true, todo: !w.memorized, star: w.important, due: isDue(w)
+  })[S.listen.range]);
+}
+function openListen(tag) {
+  lsTag = tag ?? lsTag;
+  $('#listen').hidden = false; document.body.classList.add('modal-open');
+  $('#lsSetup').hidden = false; $('#lsPlay').hidden = true;
+  renderListenSetup();
+}
+function renderListenSetup() {
+  lsTag = tagOptions($('#lsTag'), lsTag);
+  for (const k of ['range', 'order', 'rate', 'gap', 'music'])
+    $$(`[data-ls="${k}"] button`).forEach(b => b.classList.toggle('on', b.dataset.v === String(S.listen[k])));
+  $$('[data-part]').forEach(c => c.checked = !!S.listen.parts[c.dataset.part]);
+  $('#lsRepeat').checked = S.listen.repeat;
+  const n = lsPoolWords().length;
+  $('#lsPool').textContent = `들을 단어 ${n}개`;
+  $('#lsStart').disabled = !n;
+  $('#lsProg').textContent = '';
+}
+$$('[data-ls]').forEach(seg => seg.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  S.listen[seg.dataset.ls] = b.dataset.v; store.save(); renderListenSetup();
+}));
+$$('[data-part]').forEach(c => c.addEventListener('change', () => { S.listen.parts[c.dataset.part] = c.checked; store.save(); }));
+$('#lsRepeat').addEventListener('change', e => { S.listen.repeat = e.target.checked; store.save(); });
+$('#lsTag').addEventListener('change', e => { lsTag = e.target.value; renderListenSetup(); });
+
+// 배경 음악: 듣는 동안 작게/멈춤, 끝나면 원래대로
+let musicWas = null;
+function musicDuck(on) {
+  if (typeof yt === 'undefined' || !yt?.getPlayerState) return;
+  if (on) {
+    if (S.listen.music === 'keep' || !playing) { musicWas = null; return; }
+    musicWas = { vol: M.vol, mode: S.listen.music };
+    S.listen.music === 'pause' ? yt.pauseVideo() : yt.setVolume(Math.round(M.vol * 0.25));
+  } else if (musicWas) {
+    musicWas.mode === 'pause' ? yt.playVideo() : yt.setVolume(musicWas.vol);
+    musicWas = null;
+  }
+}
+function startListen() {
+  if (!Object.values(S.listen.parts).some(Boolean)) return toast('읽을 항목을 하나 이상 골라 주세요');
+  let words = lsPoolWords();
+  if (S.listen.order === 'shuffle') words = shuffle(words);
+  if (!words.length) return;
+  L = { ids: words.map(w => w.id), i: 0, token: 0, paused: false };
+  $('#lsSetup').hidden = true; $('#lsPlay').hidden = false;
+  musicDuck(true);
+  runListen();
+}
+async function runListen() {
+  const token = ++L.token;
+  const alive = () => L && L.token === token && !L.paused;
+  $('#lsToggle').textContent = '❚❚';
+  while (alive()) {
+    const w = byId(L.ids[L.i]);
+    if (w) {
+      $('#lsProg').textContent = `${L.i + 1} / ${L.ids.length}`;
+      $('#lsWord').innerHTML = wordHtml(w);
+      $('#lsMeaning').textContent = w.meaning;
+      $('#lsEx').innerHTML = w.example ? esc(w.example) : '';
+      $$('.ls-part').forEach(el => el.classList.remove('on', 'shown'));
+      const rate = +S.listen.rate, gap = +S.listen.gap;
+      const steps = [
+        ['word', null, plainYomi(w.yomi) || w.word, 'ja-JP'],
+        ['meaning', '#lsMeaning', w.meaning, 'ko-KR'],
+        ['example', '#lsEx', jpOnly(w.example), 'ja-JP']
+      ];
+      for (const [part, el, text, lang] of steps) {
+        if (!alive()) return;
+        if (!S.listen.parts[part] || !text) { if (el) $(el).classList.add('shown'); continue; }
+        if (el) $(el).classList.add('on'); else $('#lsWord').classList.add('speaking');
+        await speakAsync(text, lang, lang === 'ko-KR' ? Math.min(1.2, rate + .15) : rate);
+        if (el) { $(el).classList.remove('on'); $(el).classList.add('shown'); } else $('#lsWord').classList.remove('speaking');
+        if (!alive()) return;
+        await sleep(gap);
+      }
+      await sleep(gap * .6);
+    }
+    if (!alive()) return;
+    if (++L.i >= L.ids.length) {
+      if (!S.listen.repeat) { $('#lsProg').textContent = '끝!'; $('#lsToggle').textContent = '▶'; L.paused = true; L.ended = true; return; }
+      L.i = 0;
+      if (S.listen.order === 'shuffle') L.ids = shuffle(L.ids);
+    }
+  }
+}
+function lsJump(d) {
+  if (!L) return;
+  speechSynthesis.cancel();
+  L.i = (L.i + d + L.ids.length) % L.ids.length;
+  L.paused = false; L.ended = false;
+  runListen();
+}
+function stopListen(close) {
+  if (L) { L.token++; L = null; }
+  speechSynthesis?.cancel?.();
+  musicDuck(false);
+  if (close) {
+    $('#listen').hidden = true;
+    if ($('#wordModal').hidden && $('#settingsModal').hidden && $('#study').hidden) document.body.classList.remove('modal-open');
+  } else { $('#lsSetup').hidden = false; $('#lsPlay').hidden = true; renderListenSetup(); }
+}
+$('#lsStart').addEventListener('click', startListen);
+$('#lsToggle').addEventListener('click', () => {
+  if (!L) return;
+  if (L.paused) {
+    if (L.ended) { L.i = 0; L.ended = false; }
+    L.paused = false; runListen();
+  } else { L.paused = true; L.token++; speechSynthesis.cancel(); $('#lsToggle').textContent = '▶'; }
+});
+$('#lsPrev').addEventListener('click', () => lsJump(-1));
+$('#lsNext').addEventListener('click', () => lsJump(1));
+$('#lsStop').addEventListener('click', () => stopListen(false));
+$('#lsClose').addEventListener('click', () => stopListen(true));
+document.addEventListener('keydown', e => {
+  if ($('#listen').hidden) return;
+  if (e.key === 'Escape') stopListen(true);
+  if (!L) return;
+  if (e.key === ' ') { e.preventDefault(); $('#lsToggle').click(); }
+  if (e.key === 'ArrowRight') lsJump(1);
+  if (e.key === 'ArrowLeft') lsJump(-1);
+});
+$('#qkListen').addEventListener('click', () => openListen(S.homeTag));
+$('#listenList').addEventListener('click', () => openListen(listTag === NO_TAG ? '' : listTag));
+$('#qkReview').addEventListener('click', () => $('#startReview').disabled ? toast('오늘 복습할 단어가 없어요 🎉') : $('#startReview').click());
+$('#qkQuiz').addEventListener('click', () => showTab('quiz'));
 
 /* ─────────────── 설정 · 태그 관리 ─────────────── */
 function openSettings(tab = 'tags') {
