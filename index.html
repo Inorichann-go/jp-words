@@ -579,6 +579,12 @@
     background: #fff repeating-linear-gradient(to bottom, transparent 0 calc(var(--k) * 44px - 1px), #f6dde5 calc(var(--k) * 44px - 1px) calc(var(--k) * 44px));
     box-shadow: 0 2px 10px rgba(232,115,154,.08);
   }
+  .sheet.bg-blank { background: #fff; }
+  .nitem.b textarea { font-weight: 700; }
+  .nitem.u textarea { text-decoration: underline; text-underline-offset: .18em; }
+  .dtool.fmt { min-width: 30px; font-size: 13px; }
+  .tsz-val { font-size: 11px; font-weight: 700; color: var(--text2); min-width: 22px; text-align: center; }
+  #noteFmt[hidden], #noteSizes[hidden] { display: none; }
   .sheet canvas { position: absolute; inset: 0; display: block; touch-action: none; pointer-events: none; }
   .sheet.tool-pen canvas, .sheet.tool-eraser canvas { pointer-events: auto; }
   .sheet.tool-pen canvas { cursor: crosshair; }
@@ -884,6 +890,13 @@
             <button class="dcol" data-c="#f5c400" style="--c:#f5c400" title="노랑"></button>
             <label class="dcol pal" title="팔레트에서 색 고르기"><i></i><input type="color" id="notePal"></label>
           </div>
+          <div class="dgrp" id="noteFmt" hidden>
+            <button class="dtool fmt" data-fmt="b" title="굵게 (Ctrl+B)"><b>B</b></button>
+            <button class="dtool fmt" data-fmt="u" title="밑줄 (Ctrl+U)"><u>U</u></button>
+            <button class="dtool" data-tsz="-1" title="글씨 작게">A−</button>
+            <span class="tsz-val" id="noteTsz" title="글씨 크기">36</span>
+            <button class="dtool" data-tsz="1" title="글씨 크게">A+</button>
+          </div>
           <div class="dgrp" id="noteSizes">
             <button class="dsz" data-s="0" title="가늘게 / 작은 글씨"><i style="--d:3px"></i></button>
             <button class="dsz" data-s="1" title="보통"><i style="--d:6px"></i></button>
@@ -902,6 +915,7 @@
           <span class="lbl" id="pageLbl">1 / 1</span>
           <button class="dtool" id="pageNext" title="다음 페이지">▶</button>
           <button class="btn sm primary" id="pageAdd">➕ 다음 페이지 추가</button>
+          <button class="btn sm" id="pageBg" title="이 페이지의 종이 모양 바꾸기">📝 줄노트</button>
           <button class="btn sm danger" id="pageDel">이 페이지 삭제</button>
         </div>
       </div>
@@ -2514,9 +2528,11 @@ $('#resetWords').addEventListener('click', async () => {
 // page: {id, strokes:[{c, w, e?, p:[x,y,…]}], items:[{id, t:'text'|'img', x, y, w, h?, text?, sz?, c?, src?}]}
 // 좌표는 가로 1000 기준 → 화면 크기와 상관없이 같은 모양
 const NW = 1000, NH = 1414;
-const PEN_W = [2, 4, 8], ERASE_W = [14, 28, 56], TXT_SZ = [26, 36, 52];
+const PEN_W = [2, 4, 8], ERASE_W = [14, 28, 56];
+const TSZ = [18, 22, 26, 30, 36, 42, 50, 60, 72, 90, 110];   // 글씨 크기 단계
 const QUICK_COLORS = ['#222222', '#e5484d', '#2f6fd6', '#f5c400'];
-const newPage = () => ({ id: uid(), strokes: [], items: [] });
+const newPage = (bg = 'lined') => ({ id: uid(), bg, strokes: [], items: [] });
+const BG_NAME = { lined: '📝 줄노트', blank: '⬜ 흰 종이' };
 function normNote(n) {
   n = { ...n };
   if (!Array.isArray(n.pages)) {                // 예전 노트(텍스트 + 손글씨 한 장) → 첫 페이지로
@@ -2534,6 +2550,7 @@ function normNote(n) {
 }
 S.notes = (Array.isArray(S.notes) ? S.notes : []).map(normNote);
 if (!S.notePen) S.notePen = { color: '#222222', sizeI: 1, custom: '#8e5bd6' };
+S.notePen = { tsz: 36, tb: false, tu: false, ...S.notePen };
 const N = { tool: 'pen', pageI: {}, sel: null, hist: {}, drawing: null, pointers: new Map(), k: .6, kc: 1, shown: null, drag: null, editing: null, lastEdit: null, created: null };
 const curNote = () => S.notes.find(n => n.id === S.noteCur);
 const pageIdx = n => Math.max(0, Math.min(N.pageI[n.id] || 0, n.pages.length - 1));
@@ -2575,18 +2592,24 @@ function renderNotes() {
 const HINTS = {
   pen: '손가락·펜·마우스로 써요. 폰에서는 두 손가락으로 밀면 위아래로 움직여요.',
   eraser: '손글씨만 지워요. 글상자·사진은 👆 이동에서 × 로 지워요.',
-  text: '종이를 누른 곳에 글상자가 생겨요. 색·크기를 고르면 쓰고 있는 글에 적용돼요.',
+  text: '종이를 누른 곳에 글상자가 생겨요. 색·B(굵게)·U(밑줄)·A−/A+(크기)는 쓰고 있는 글상자 전체에 적용돼요.',
   select: '글·사진을 끌어서 옮기고, 오른쪽 아래 ■ 로 크기를 바꿔요. × 또는 Delete 키로 지워요.'
 };
 function renderTools() {
   const P = S.notePen, pg = curPage();
   $$('#noteTools [data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === N.tool));
-  $('#sheet').className = 'sheet tool-' + N.tool;
+  $('#sheet').className = `sheet tool-${N.tool} bg-${pg?.bg || 'lined'}`;
   const custom = !QUICK_COLORS.includes(P.color);
   $$('#noteColors [data-c]').forEach(b => b.classList.toggle('on', b.dataset.c === P.color));
   const pal = $('#noteColors .pal'); pal.style.setProperty('--c', P.custom); pal.classList.toggle('on', custom);
   $('#notePal').value = P.custom;
   $$('#noteSizes [data-s]').forEach(b => b.classList.toggle('on', +b.dataset.s === P.sizeI));
+  const tgt = styleTarget(), txt = N.tool === 'text' || !!tgt;
+  $('#noteFmt').hidden = !txt; $('#noteSizes').hidden = N.tool === 'text' || N.tool === 'select';
+  const tb = tgt ? !!tgt.b : P.tb, tu = tgt ? !!tgt.u : P.tu, tsz = tgt ? tgt.sz : P.tsz;
+  $('#noteFmt [data-fmt=b]').classList.toggle('on', tb); $('#noteFmt [data-fmt=u]').classList.toggle('on', tu);
+  $('#noteTsz').textContent = tsz;
+  $('#noteFmt [data-tsz="-1"]').disabled = tsz <= TSZ[0]; $('#noteFmt [data-tsz="1"]').disabled = tsz >= TSZ[TSZ.length - 1];
   $('#noteHint').textContent = HINTS[N.tool] || '';
   const h = pg && N.hist[pg.id];
   $('#drawUndo').disabled = !h?.u.length; $('#drawRedo').disabled = !h?.r.length;
@@ -2596,6 +2619,7 @@ function renderPageNav() {
   $('#pageLbl').textContent = `${i + 1} / ${n.pages.length}`;
   $('#pagePrev').disabled = i === 0; $('#pageNext').disabled = i === n.pages.length - 1;
   $('#pageDel').disabled = n.pages.length === 1;
+  $('#pageBg').textContent = BG_NAME[n.pages[i].bg || 'lined'];
 }
 let sheetW = 0;
 function renderPage() {
@@ -2611,7 +2635,7 @@ new ResizeObserver(() => { const w = $('#sheet').clientWidth; if (w && w !== she
 const fitTa = ta => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
 function itemHtml(it) {
   const st = `--x:${it.x};--y:${it.y};--w:${it.w};` + (it.t === 'text' ? `--sz:${it.sz};--tc:${it.c};` : '');
-  return `<div class="nitem ${it.t} ${N.sel === it.id ? 'sel' : ''}" data-id="${esc(it.id)}" style="${st}">` +
+  return `<div class="nitem ${it.t} ${it.b ? 'b' : ''} ${it.u ? 'u' : ''} ${N.sel === it.id ? 'sel' : ''}" data-id="${esc(it.id)}" style="${st}">` +
     (it.t === 'img' ? `<img src="${esc(it.src)}" alt="" draggable="false">`
       : `<textarea class="jp" rows="1" spellcheck="false" ${N.tool === 'text' ? '' : 'readonly tabindex="-1"'}>${esc(it.text)}</textarea>`) +
     `<button class="nx" data-del-item title="삭제">×</button><span class="nres" data-res title="크기 조절"></span></div>`;
@@ -2646,8 +2670,15 @@ function histStep(back) {
 }
 
 // ── 노트 · 페이지 ──
-function newNote() {
-  const n = { id: uid(), title: '', pages: [newPage()], created: Date.now(), mt: Date.now() };
+function askBg(title) {
+  const last = S.noteBg || 'lined';
+  const opts = [{ v: 'lined', label: '📝 줄노트', cls: last === 'lined' ? 'primary' : '' }, { v: 'blank', label: '⬜ 흰 종이 (줄 없음)', cls: last === 'blank' ? 'primary' : '' }];
+  return ask({ title, html: '종이 모양을 골라주세요. 나중에 페이지 아래 버튼으로 바꿀 수도 있어요.', choices: opts });
+}
+async function newNote() {
+  const bg = await askBg('새 노트 · 종이 고르기'); if (!bg) return;
+  S.noteBg = bg;
+  const n = { id: uid(), title: '', pages: [newPage(bg)], created: Date.now(), mt: Date.now() };
   S.notes.push(n); S.noteCur = n.id; N.tool = 'pen';
   store.save(); renderNotes();
 }
@@ -2685,12 +2716,20 @@ function goPage(i) {
 }
 $('#pagePrev').addEventListener('click', () => goPage(pageIdx(curNote()) - 1));
 $('#pageNext').addEventListener('click', () => goPage(pageIdx(curNote()) + 1));
-$('#pageAdd').addEventListener('click', () => {
+$('#pageAdd').addEventListener('click', async () => {
   const n = curNote(); if (!n) return;
+  const bg = await askBg('다음 페이지 · 종이 고르기'); if (!bg) return;
+  S.noteBg = bg;
   const i = pageIdx(n);
-  n.pages.splice(i + 1, 0, newPage());
+  n.pages.splice(i + 1, 0, newPage(bg));
   touchNote(n, true); goPage(i + 1);
   toast(`${i + 2}쪽을 만들었어요`);
+});
+$('#pageBg').addEventListener('click', () => {
+  const pg = curPage(); if (!pg) return;
+  pg.bg = (pg.bg || 'lined') === 'lined' ? 'blank' : 'lined';
+  renderTools(); renderPageNav(); touchNote(curNote(), true);
+  toast(`이 페이지를 ${BG_NAME[pg.bg]}로 바꿨어요`);
 });
 $('#pageDel').addEventListener('click', async () => {
   const n = curNote(); if (!n || n.pages.length < 2) return;
@@ -2737,7 +2776,11 @@ function applyTextStyle(patch) {
   if (!N.editing) pushHist(curPage());
   Object.assign(it, patch);
   const el = $(`#pageItems .nitem[data-id="${CSS.escape(it.id)}"]`);
-  if (el) { el.style.setProperty('--tc', it.c); el.style.setProperty('--sz', it.sz); fitTa(el.querySelector('textarea')); }
+  if (el) {
+    el.style.setProperty('--tc', it.c); el.style.setProperty('--sz', it.sz);
+    el.classList.toggle('b', !!it.b); el.classList.toggle('u', !!it.u);
+    fitTa(el.querySelector('textarea'));
+  }
   touchNote(curNote());
 }
 function setColor(c, custom) {
@@ -2748,8 +2791,20 @@ $('#noteTools').addEventListener('click', e => {
   const tb = e.target.closest('[data-tool]'); if (tb) return setTool(tb.dataset.tool);
   const cb = e.target.closest('[data-c]'); if (cb) return setColor(cb.dataset.c);
   const sb = e.target.closest('[data-s]');
-  if (sb) { S.notePen.sizeI = +sb.dataset.s; applyTextStyle({ sz: TXT_SZ[S.notePen.sizeI] }); renderTools(); store.save(); }
+  if (sb) { S.notePen.sizeI = +sb.dataset.s; renderTools(); store.save(); }
+  const fb = e.target.closest('[data-fmt]'); if (fb) return toggleFmt(fb.dataset.fmt);
+  const zb = e.target.closest('[data-tsz]'); if (zb) return stepTextSize(+zb.dataset.tsz);
 });
+function toggleFmt(f) {                   // f: 'b' | 'u'
+  const P = S.notePen, it = styleTarget(), key = f === 'b' ? 'tb' : 'tu';
+  const v = !(it ? !!it[f] : P[key]);
+  P[key] = v; applyTextStyle({ [f]: v }); renderTools(); store.save();
+}
+function stepTextSize(dir) {
+  const P = S.notePen, it = styleTarget(), cur = it ? it.sz : P.tsz;
+  const next = dir > 0 ? (TSZ.find(z => z > cur) ?? TSZ[TSZ.length - 1]) : ([...TSZ].reverse().find(z => z < cur) ?? TSZ[0]);
+  P.tsz = next; applyTextStyle({ sz: next }); renderTools(); store.save();
+}
 $('#notePal').addEventListener('input', e => setColor(e.target.value, true));
 $('#notePal').addEventListener('click', () => { const P = S.notePen; if (P.color !== P.custom) setColor(P.custom); });
 $('#drawUndo').addEventListener('click', () => histStep(true));
@@ -2822,11 +2877,11 @@ $('#sheet').addEventListener('pointerdown', e => {
     if (e.target.closest('.nitem')) return;
     e.preventDefault();
     if ($('#pageItems').contains(document.activeElement)) { document.activeElement.blur(); }
-    const P = S.notePen, sz = TXT_SZ[P.sizeI];
+    const P = S.notePen, sz = P.tsz;
     let [x, y] = sheetPt(e);
     x = clamp(Math.round(x - 6), 0, NW - 120); y = clamp(Math.round(y - sz * .7), 0, pageH(pg) - sz * 1.5);
     pushHist(pg);
-    const it = { id: uid(), t: 'text', x, y, w: Math.min(560, NW - x - 10), text: '', sz, c: P.color };
+    const it = { id: uid(), t: 'text', x, y, w: Math.min(560, NW - x - 10), text: '', sz, c: P.color, b: !!P.tb, u: !!P.tu };
     pg.items.push(it); N.editing = it.id; N.created = it.id;
     renderItems();
     const ta = $(`#pageItems .nitem[data-id="${CSS.escape(it.id)}"] textarea`);
@@ -2875,7 +2930,12 @@ $('#pageItems').addEventListener('focusin', e => {
   const id = ta.closest('.nitem').dataset.id;
   if (N.editing !== id) { pushHist(curPage()); N.editing = id; }
   const it = findItem(id);
-  if (it) { S.notePen.color = it.c; renderTools(); }
+  if (it) { S.notePen.color = it.c; renderTools(); }   // 도구 줄에 이 글상자의 색·굵게·밑줄·크기 표시
+});
+$('#pageItems').addEventListener('keydown', e => {
+  if (!e.target.closest('textarea') || !(e.ctrlKey || e.metaKey)) return;
+  const k = e.key.toLowerCase();
+  if (k === 'b' || k === 'u') { e.preventDefault(); toggleFmt(k); }
 });
 $('#pageItems').addEventListener('input', e => {
   const ta = e.target.closest('textarea'); if (!ta) return;
