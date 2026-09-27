@@ -2629,14 +2629,24 @@ async function syncNow() {
       const { error: e2 } = await sb.from(SB_TABLE).upsert({ user_id: sbUser.id, data: merged, updated_at: new Date().toISOString() });
       if (e2) throw e2;
     }
-    SY.dirty = false; SY.retried = false;
+    SY.dirty = false; SY.retried = false; SY.futureTries = 0;
     S.lastSync = Date.now();
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
     setSync('ok');
   } catch (e) {
     console.warn('sync', e);
+    const et = errText(e);
+    // 서버끼리 시계가 조금 어긋나 '방금 발급된' 로그인 정보가 거절됨 → 새로 받지 말고 조금 기다렸다가 재시도
+    if (/PGRST303|issued at future/i.test(et) && (SY.futureTries || 0) < 5) {
+      const wait = [2000, 5000, 10000, 20000, 40000][SY.futureTries++];
+      SY.busy = false;
+      setSync('busy');
+      $('#syncInfo').textContent = `⟳ 서버 시간 맞추는 중… ${Math.round(wait / 1000)}초 뒤 다시 시도해요`;
+      clearTimeout(pushTimer); pushTimer = setTimeout(syncNow, wait);
+      return;
+    }
     // 로그인 토큰 문제면 한 번 새로 받아서 다시 시도
-    if (JWT_ERR.test(errText(e)) && !SY.retried) {
+    if (JWT_ERR.test(et) && !/PGRST303|issued at future/i.test(et) && !SY.retried) {
       SY.retried = true;
       const { error: re } = await sb.auth.refreshSession().catch(err => ({ error: err }));
       if (!re) SY.again = true;
@@ -2656,6 +2666,7 @@ function syncErrMsg(e) {
   const m = errText(e);
   const why = /relation .* does not exist|Could not find the table|PGRST205|42P01/i.test(m) ? 'Supabase에 jp_words_data 표가 없어요 (SQL 실행 필요)'
     : /permission denied|42501|row-level security/i.test(m) ? '표 권한(보안 규칙)이 없어요 (SQL을 다시 실행해 주세요)'
+    : /PGRST303|issued at future/i.test(m) ? 'Supabase 서버 시간이 맞지 않아 거절됐어요. 이 PC의 날짜·시간이 정확한지 확인하고 잠시 뒤 [지금 동기화]를 눌러 주세요'
     : JWT_ERR.test(m) ? '로그인 정보가 거절됐어요. 로그아웃 후 다시 로그인해 주세요'
     : /fetch|network/i.test(m) ? '인터넷 연결을 확인해 주세요'
     : '동기화 중 오류가 났어요';
@@ -2725,7 +2736,7 @@ async function doAuth(kind) {
   finally { $$('#authForm button').forEach(b => b.disabled = false); }
 }
 $('#authForm').addEventListener('submit', e => { e.preventDefault(); doAuth(e.submitter?.dataset.kind === 'up' ? 'up' : 'in'); });
-$('#syncNowBtn').addEventListener('click', () => syncNow());
+$('#syncNowBtn').addEventListener('click', () => { SY.futureTries = 0; syncNow(); });
 $('#logoutBtn').addEventListener('click', async () => {
   if (!confirm('로그아웃할까요?\n(이 기기의 단어는 그대로 남아요)')) return;
   await sb?.auth.signOut();
