@@ -6,6 +6,14 @@
 <!-- 유튜브 임베드는 Referer(어느 사이트에서 재생하는지)가 없으면 오류 153으로 막힘 -->
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>일본어 단어장</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#e8739a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="단어장">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -341,6 +349,11 @@
   .data-row { display: flex; align-items: center; gap: 10px; padding: 10px 4px; border-bottom: 1px dashed var(--border); font-size: 12px; }
   .data-row > div { flex: 1; }
   .data-row .muted { font-size: 10px; }
+
+  /* ── 앱 설치 ── */
+  .app-state { background: var(--accent-light); color: var(--accent-dark); border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 700; margin-bottom: 10px; }
+  .app-how { font-size: 11px; line-height: 1.6; }
+  .app-how ol { margin: 2px 0 8px 18px; color: var(--text2); }
 
   /* ── 설정 ── */
   .modal-box.wide { max-width: 520px; }
@@ -830,6 +843,7 @@
     <div class="stabs">
       <button class="stab on" data-stab="tags">🏷 태그 관리</button>
       <button class="stab" data-stab="data">💾 데이터</button>
+      <button class="stab" data-stab="app">📲 앱 설치</button>
     </div>
     <div class="spane" data-spane="tags">
       <form class="tag-add" id="tagAddForm" autocomplete="off">
@@ -859,6 +873,26 @@
       </div>
       <div class="muted" style="font-size:10px; margin-top:8px; line-height:1.6">
         · 단어는 지금 쓰는 브라우저 안에만 저장돼요. 폰↔PC처럼 기기를 옮길 땐 백업 → 불러오기를 써 주세요.
+      </div>
+    </div>
+    <div class="spane" data-spane="app" hidden>
+      <div id="appState" class="app-state"></div>
+      <button class="btn primary" id="installBtn" hidden style="width:100%; padding:10px; margin-bottom:10px">📲 홈 화면에 설치하기</button>
+      <div class="app-how">
+        <b>🍎 아이폰 · 아이패드 (Safari)</b>
+        <ol><li>Safari로 이 사이트를 열어요</li><li>아래쪽 <b>공유 버튼(□↑)</b>을 눌러요</li><li><b>홈 화면에 추가</b> → 추가</li></ol>
+        <b>🤖 안드로이드 (Chrome · 삼성 인터넷)</b>
+        <ol><li>위의 설치 버튼을 누르거나</li><li>오른쪽 위 <b>⋮ 메뉴 → 홈 화면에 추가 / 앱 설치</b></li></ol>
+        <b>💻 PC (Chrome · Edge)</b>
+        <ol><li>주소창 오른쪽의 <b>설치 아이콘(⊕)</b>을 눌러요</li></ol>
+      </div>
+      <div class="bk-warn" style="margin-top:8px; line-height:1.6">
+        ⚠️ <b>아이폰은 홈 화면 앱과 Safari의 저장 공간이 따로예요.</b><br>
+        설치한 뒤 단어가 안 보이면 Safari에서 <b>💾 데이터 → 백업</b> 한 파일을 앱에서 <b>불러오기</b> 해 주세요.
+      </div>
+      <div class="muted" style="font-size:10px; margin-top:8px; line-height:1.6">
+        · 설치하면 주소창 없이 앱처럼 열리고, 인터넷이 없어도 단어 공부·퀴즈·카드를 할 수 있어요 (음악만 인터넷 필요).<br>
+        · 발음 듣기는 폰에 설치된 음성을 써서, 기기에 따라 인터넷 없이도 될 수 있어요.
       </div>
     </div>
   </div>
@@ -1837,7 +1871,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#bulkM
 function openSettings(tab = 'tags') {
   $$('.stab').forEach(b => b.classList.toggle('on', b.dataset.stab === tab));
   $$('.spane').forEach(p => p.hidden = p.dataset.spane !== tab);
-  renderTagRows();
+  renderTagRows(); renderAppState();
   $('#settingsModal').hidden = false;
   document.body.classList.add('modal-open');
 }
@@ -2403,6 +2437,27 @@ function initPlayer() {
   loadYTApi();
   // 듣던 중에 창을 닫았으면 자동으로 이어서 재생 시도 (브라우저가 자동재생을 막으면 ▶를 눌러 이어 듣기)
   if (r && r.playing) playItem(M.cur, { resume: r });
+}
+
+/* ─────────────── 앱 설치 (PWA) ─────────────── */
+let installEvt = null;
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+function renderAppState() {
+  $('#appState').textContent = isStandalone() ? '✅ 지금 앱으로 실행 중이에요'
+    : !location.protocol.startsWith('http') ? '⚠️ 파일로 열면 설치할 수 없어요. https:// 주소로 열어 주세요'
+    : installEvt ? '📲 이 기기에 바로 설치할 수 있어요' : '📲 아래 방법으로 홈 화면에 추가할 수 있어요';
+  $('#installBtn').hidden = !installEvt || isStandalone();
+}
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; renderAppState(); });
+addEventListener('appinstalled', () => { installEvt = null; renderAppState(); toast('📲 홈 화면에 설치했어요'); });
+$('#installBtn').addEventListener('click', async () => {
+  if (!installEvt) return;
+  installEvt.prompt();
+  await installEvt.userChoice.catch(() => {});
+  installEvt = null; renderAppState();
+});
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
 
 /* ─────────────── 시작 ─────────────── */
