@@ -558,39 +558,61 @@
   .note-head { display: flex; gap: 6px; align-items: center; }
   .note-head input { flex: 1; min-width: 0; border: none; border-bottom: 1.5px solid var(--border); padding: 6px 2px; font-size: 16px; font-weight: 700; background: transparent; }
   .note-head input:focus { outline: none; border-bottom-color: var(--accent); }
-  .note-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
-  .note-meta { font-size: 10px; color: var(--text3); }
-  .note-text {
-    width: 100%; min-height: 60vh; resize: vertical; border: 1px solid var(--border); border-radius: 12px;
-    padding: 6px 12px; font-size: 14px; line-height: 28px; color: var(--text);
-    background: #fff repeating-linear-gradient(to bottom, transparent 0 27px, #f6dde5 27px 28px);
-    background-attachment: local; background-position: 0 6px;
-  }
-  .note-text:focus { outline: none; border-color: var(--accent); }
-  .draw-tools { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-bottom: 8px; }
+  .note-meta { font-size: 10px; color: var(--text3); white-space: nowrap; }
+  .note-tools { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; padding: 8px 0 6px; background: var(--surface); }
+  @media (min-width: 721px) { .note-tools { position: sticky; top: 88px; z-index: 6; } }
+  .note-hint { font-size: 10px; color: var(--text3); margin-bottom: 6px; min-height: 14px; }
   .dgrp { display: flex; gap: 4px; align-items: center; }
-  .dcol { width: 24px; height: 24px; border-radius: 99px; border: 2px solid #fff; background: var(--c); box-shadow: 0 0 0 1px var(--border); }
+  .dcol { width: 24px; height: 24px; border-radius: 99px; border: 2px solid #fff; background: var(--c); box-shadow: 0 0 0 1px var(--border); flex-shrink: 0; cursor: pointer; }
   .dcol.on { box-shadow: 0 0 0 2px var(--accent); }
+  .dcol.pal { position: relative; overflow: hidden; background: conic-gradient(#f44, #fd0, #4d4, #2cf, #44f, #d4f, #f44); }
+  .dcol.pal i { position: absolute; inset: 5px; border-radius: 99px; background: var(--c, #fff); border: 1.5px solid #fff; }
+  .dcol.pal input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: none; padding: 0; }
   .dsz { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); display: inline-flex; align-items: center; justify-content: center; }
   .dsz i { display: block; width: var(--d); height: var(--d); border-radius: 99px; background: var(--text2); }
   .dsz.on { border-color: var(--accent); background: var(--accent-light); }
-  .dtool { height: 28px; min-width: 28px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-size: 12px; color: var(--text2); }
+  .dtool { height: 28px; min-width: 28px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-size: 12px; color: var(--text2); white-space: nowrap; }
   .dtool.on { background: var(--accent); color: #fff; border-color: var(--accent); }
   .dtool:disabled { opacity: .35; }
-  .draw-wrap {
-    border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
-    background: #fff repeating-linear-gradient(to bottom, transparent 0 31px, #f6dde5 31px 32px);
+  .sheet {
+    --k: .6; position: relative; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; user-select: none;
+    background: #fff repeating-linear-gradient(to bottom, transparent 0 calc(var(--k) * 44px - 1px), #f6dde5 calc(var(--k) * 44px - 1px) calc(var(--k) * 44px));
+    box-shadow: 0 2px 10px rgba(232,115,154,.08);
   }
-  .draw-wrap canvas { display: block; touch-action: none; cursor: crosshair; }
-  .draw-wrap.erase canvas { cursor: cell; }
-  .draw-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px; font-size: 10px; }
+  .sheet canvas { position: absolute; inset: 0; display: block; touch-action: none; pointer-events: none; }
+  .sheet.tool-pen canvas, .sheet.tool-eraser canvas { pointer-events: auto; }
+  .sheet.tool-pen canvas { cursor: crosshair; }
+  .sheet.tool-eraser canvas { cursor: cell; }
+  .sheet.tool-text { cursor: text; }
+  .page-items { position: absolute; inset: 0; }
+  .nitem { position: absolute; left: calc(var(--k) * var(--x) * 1px); top: calc(var(--k) * var(--y) * 1px); width: calc(var(--k) * var(--w) * 1px); pointer-events: none; border-radius: 4px; }
+  .nitem img { display: block; width: 100%; height: auto; pointer-events: none; border-radius: 4px; }
+  .nitem textarea {
+    display: block; width: 100%; border: none; background: transparent; resize: none; overflow: hidden; padding: 2px 4px;
+    font-size: calc(var(--k) * var(--sz) * 1px); line-height: 1.35; color: var(--tc); font-family: inherit; user-select: text;
+  }
+  .nitem textarea:focus { outline: none; }
+  .tool-text .nitem.text { pointer-events: auto; outline: 1px dashed rgba(232,115,154,.35); }
+  .tool-text .nitem.text:focus-within { outline: 1.5px dashed var(--accent); background: rgba(255,255,255,.6); }
+  .tool-select .nitem { pointer-events: auto; cursor: move; touch-action: none; }
+  .tool-select .nitem textarea { pointer-events: none; }
+  .tool-select .nitem:hover { outline: 1px dashed var(--accent); }
+  .nitem.sel { outline: 2px solid var(--accent) !important; }
+  .nx, .nres { display: none; }
+  .tool-select .nitem.sel .nx {
+    display: flex; position: absolute; top: 3px; right: 3px; width: 22px; height: 22px; border-radius: 99px; padding: 0;
+    background: var(--danger); color: #fff; border: 2px solid #fff; align-items: center; justify-content: center; font-size: 13px; line-height: 1; cursor: pointer;
+  }
+  .tool-select .nitem.sel .nres { display: block; position: absolute; right: 2px; bottom: 2px; width: 16px; height: 16px; border-radius: 4px; background: var(--accent); border: 2px solid #fff; cursor: nwse-resize; }
+  .page-nav { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .page-nav .lbl { font-size: 12px; font-weight: 700; min-width: 46px; text-align: center; color: var(--text2); }
   @media (max-width: 720px) {
     .notes-layout { grid-template-columns: 1fr; }
     .note-side { position: static; max-height: none; flex-direction: row; overflow-x: auto; padding: 6px; gap: 4px; }
     .note-item { width: auto; max-width: 150px; flex-shrink: 0; padding: 5px 10px; border-radius: 99px; }
     .note-item .d { display: none; }
     .note-item.new { margin-bottom: 0; border-radius: 99px; }
-    .note-text { min-height: 55vh; }
+    .note-tools { gap: 6px; }
   }
 
   /* ── 팝업 ── */
@@ -837,48 +859,50 @@
       <div id="noteEmpty" class="note-empty">
         <div style="font-size:30px">📓</div>
         <div>아직 노트가 없어요</div>
-        <div class="muted" style="font-size:11px">글로 적거나, 손가락·펜·마우스로 직접 써서 필기할 수 있어요</div>
+        <div class="muted" style="font-size:11px">손가락·펜·마우스로 직접 쓰고, 글상자와 사진도 넣을 수 있어요</div>
         <button class="btn primary" id="noteNew2">➕ 새 노트 만들기</button>
       </div>
       <div id="noteEd" hidden>
         <div class="note-head">
-          <input id="noteTitle" placeholder="제목 (비워두면 첫 줄이 제목이 돼요)" maxlength="60" autocomplete="off">
+          <input id="noteTitle" placeholder="제목 (비워두면 첫 글이 제목이 돼요)" maxlength="60" autocomplete="off">
+          <span class="note-meta" id="noteMeta"></span>
           <button class="ic" id="noteDel" title="이 노트 삭제" style="color:var(--danger)">🗑</button>
         </div>
-        <div class="note-bar">
-          <div class="seg note-mode" id="noteMode">
-            <button data-m="text" class="on">📝 텍스트</button>
-            <button data-m="draw">✏️ 손글씨</button>
+        <div class="note-tools" id="noteTools">
+          <div class="dgrp">
+            <button class="dtool on" data-tool="pen" title="펜으로 쓰기">✏️ 펜</button>
+            <button class="dtool" data-tool="eraser" title="지우개 (손글씨만 지워요)">🧽 지우개</button>
+            <button class="dtool" data-tool="text" title="글상자: 종이를 누른 곳에 글을 써요">🔤 글</button>
+            <button class="dtool" data-tool="select" title="이동: 글·사진을 옮기거나 크기를 바꿔요">👆 이동</button>
+            <button class="dtool" id="noteImgBtn" title="사진 넣기 (복사한 사진은 Ctrl+V 로 붙여넣기)">🖼 사진</button>
+            <input type="file" id="noteImgFile" accept="image/*" multiple hidden>
           </div>
-          <span class="note-meta" id="noteMeta"></span>
+          <div class="dgrp" id="noteColors">
+            <button class="dcol" data-c="#222222" style="--c:#222222" title="검정"></button>
+            <button class="dcol" data-c="#e5484d" style="--c:#e5484d" title="빨강"></button>
+            <button class="dcol" data-c="#2f6fd6" style="--c:#2f6fd6" title="파랑"></button>
+            <button class="dcol" data-c="#f5c400" style="--c:#f5c400" title="노랑"></button>
+            <label class="dcol pal" title="팔레트에서 색 고르기"><i></i><input type="color" id="notePal"></label>
+          </div>
+          <div class="dgrp" id="noteSizes">
+            <button class="dsz" data-s="0" title="가늘게 / 작은 글씨"><i style="--d:3px"></i></button>
+            <button class="dsz" data-s="1" title="보통"><i style="--d:6px"></i></button>
+            <button class="dsz" data-s="2" title="굵게 / 큰 글씨"><i style="--d:10px"></i></button>
+          </div>
+          <div class="dgrp">
+            <button class="dtool" id="drawUndo" title="되돌리기 (Ctrl+Z)">↶</button>
+            <button class="dtool" id="drawRedo" title="다시하기 (Ctrl+Y)">↷</button>
+            <button class="dtool" id="pageClear" title="이 페이지 비우기">🗑</button>
+          </div>
         </div>
-        <textarea id="noteText" class="note-text jp" placeholder="여기에 자유롭게 적어요. 자동으로 저장돼요."></textarea>
-        <div id="noteDraw" hidden>
-          <div class="draw-tools" id="drawTools">
-            <div class="dgrp">
-              <button class="dcol on" data-c="#4a3a40" style="--c:#4a3a40" title="검정"></button>
-              <button class="dcol" data-c="#e8739a" style="--c:#e8739a" title="분홍"></button>
-              <button class="dcol" data-c="#e5484d" style="--c:#e5484d" title="빨강"></button>
-              <button class="dcol" data-c="#3f7fd9" style="--c:#3f7fd9" title="파랑"></button>
-              <button class="dcol" data-c="#2f9e6a" style="--c:#2f9e6a" title="초록"></button>
-            </div>
-            <div class="dgrp">
-              <button class="dsz" data-s="2" title="가늘게"><i style="--d:3px"></i></button>
-              <button class="dsz on" data-s="4" title="보통"><i style="--d:6px"></i></button>
-              <button class="dsz" data-s="8" title="굵게"><i style="--d:10px"></i></button>
-            </div>
-            <div class="dgrp">
-              <button class="dtool" id="drawEraser" title="지우개">🧽 지우개</button>
-              <button class="dtool" id="drawUndo" title="되돌리기 (Ctrl+Z)">↶</button>
-              <button class="dtool" id="drawRedo" title="다시하기 (Ctrl+Y)">↷</button>
-              <button class="dtool" id="drawClear" title="손글씨 전체 지우기">🗑</button>
-            </div>
-          </div>
-          <div class="draw-wrap" id="drawWrap"><canvas id="drawCanvas"></canvas></div>
-          <div class="draw-foot">
-            <span class="muted">폰에서는 두 손가락으로 밀면 위아래로 움직여요</span>
-            <button class="btn sm" id="drawMore">➕ 종이 늘리기</button>
-          </div>
+        <div class="note-hint" id="noteHint"></div>
+        <div class="sheet tool-pen" id="sheet"><div class="page-items" id="pageItems"></div><canvas id="drawCanvas"></canvas></div>
+        <div class="page-nav">
+          <button class="dtool" id="pagePrev" title="이전 페이지">◀</button>
+          <span class="lbl" id="pageLbl">1 / 1</span>
+          <button class="dtool" id="pageNext" title="다음 페이지">▶</button>
+          <button class="btn sm primary" id="pageAdd">➕ 다음 페이지 추가</button>
+          <button class="btn sm danger" id="pageDel">이 페이지 삭제</button>
         </div>
       </div>
     </div>
@@ -1216,7 +1240,7 @@ const store = {
   sync: {}                                    // 동기화 상태 (아래 클라우드 동기화 참고)
 };
 const S = Object.assign({
-  notes: [],          // 노트패드 {id, title, text, strokes, h, created, mt}
+  notes: [],          // 노트패드 {id, title, pages:[{strokes, items}], created, mt}
   words: [],          // {id, yomi, word, meaning, example, tags, memorized, important, memorizedAt, created, wrong, right, srs:{lv, due, last}}
   goal: 5,
   today: null,        // {date, ids}
@@ -1842,7 +1866,7 @@ $('#importFile').addEventListener('change', async e => {
     if (Array.isArray(data.tags)) S.tags = replace ? [...data.tags] : [...new Set([...S.tags, ...data.tags])];
     if (Array.isArray(data.notes)) {
       const nids = new Set(S.notes.map(n => n.id));
-      S.notes = replace ? data.notes : [...S.notes, ...data.notes.filter(n => !nids.has(n.id))];
+      S.notes = (replace ? data.notes : [...S.notes, ...data.notes.filter(n => !nids.has(n.id))]).map(normNote);
     }
     if (Array.isArray(data.folders)) S.folders = replace ? [...data.folders] : [...new Set([...S.folders, ...data.folders])];
     if (data.tagFolder && typeof data.tagFolder === 'object') S.tagFolder = replace ? { ...data.tagFolder } : { ...data.tagFolder, ...S.tagFolder };
@@ -2486,23 +2510,55 @@ $('#resetWords').addEventListener('click', async () => {
 });
 
 /* ─────────────── 노트패드 ─────────────── */
-// note: {id, title, text, strokes:[{c, w, e?, p:[x,y,x,y…]}], h, created, mt}
-// 손글씨는 가로 1000 기준 좌표로 저장 → 화면 크기와 상관없이 같은 모양
-if (!Array.isArray(S.notes)) S.notes = [];
-const NW = 1000, NOTE_H = 1400;
-const N = { color: '#4a3a40', size: 4, eraser: false, redo: [], drawing: null, pointers: new Map(), shown: null, k: 1 };
+// note: {id, title, pages:[page], created, mt}
+// page: {id, strokes:[{c, w, e?, p:[x,y,…]}], items:[{id, t:'text'|'img', x, y, w, h?, text?, sz?, c?, src?}]}
+// 좌표는 가로 1000 기준 → 화면 크기와 상관없이 같은 모양
+const NW = 1000, NH = 1414;
+const PEN_W = [2, 4, 8], ERASE_W = [14, 28, 56], TXT_SZ = [26, 36, 52];
+const QUICK_COLORS = ['#222222', '#e5484d', '#2f6fd6', '#f5c400'];
+const newPage = () => ({ id: uid(), strokes: [], items: [] });
+function normNote(n) {
+  n = { ...n };
+  if (!Array.isArray(n.pages)) {                // 예전 노트(텍스트 + 손글씨 한 장) → 첫 페이지로
+    const pg = newPage();
+    pg.strokes = Array.isArray(n.strokes) ? n.strokes : [];
+    if ((n.text || '').trim()) pg.items.push({ id: uid(), t: 'text', x: 40, y: 30, w: 920, text: n.text, sz: 36, c: '#222222' });
+    if (n.h > NH) pg.h = n.h;
+    n.pages = [pg];
+  }
+  delete n.text; delete n.strokes; delete n.h;
+  n.pages = n.pages.map(p => ({ ...p, id: p.id || uid(), strokes: Array.isArray(p.strokes) ? p.strokes : [], items: Array.isArray(p.items) ? p.items : [] }));
+  if (!n.pages.length) n.pages.push(newPage());
+  n.title = n.title || '';
+  return n;
+}
+S.notes = (Array.isArray(S.notes) ? S.notes : []).map(normNote);
+if (!S.notePen) S.notePen = { color: '#222222', sizeI: 1, custom: '#8e5bd6' };
+const N = { tool: 'pen', pageI: {}, sel: null, hist: {}, drawing: null, pointers: new Map(), k: .6, kc: 1, shown: null, drag: null, editing: null, lastEdit: null, created: null };
 const curNote = () => S.notes.find(n => n.id === S.noteCur);
-const noteName = n => (n.title || '').trim() || (n.text || '').trim().split('\n')[0].slice(0, 40) || (n.strokes?.length ? '✏️ 손글씨 노트' : '빈 노트');
+const pageIdx = n => Math.max(0, Math.min(N.pageI[n.id] || 0, n.pages.length - 1));
+const curPage = () => { const n = curNote(); return n ? n.pages[pageIdx(n)] : null; };
+const pageH = pg => pg.h || NH;
+const findItem = id => curPage()?.items.find(i => i.id === id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function noteFirstText(n) {
+  for (const p of n.pages) for (const i of p.items) if (i.t === 'text' && (i.text || '').trim()) return i.text.trim().split('\n')[0];
+  return '';
+}
+const noteName = n => n.title.trim() || noteFirstText(n).slice(0, 40)
+  || (n.pages.some(p => p.strokes.length || p.items.length) ? '✏️ 손글씨 노트' : '빈 노트');
 function noteDate(t) {
   if (!t) return '';
-  const d = new Date(t), today = dkey();
-  return dkey(d) === today ? `오늘 ${pad(d.getHours())}:${pad(d.getMinutes())}` : `${d.getMonth() + 1}/${d.getDate()}`;
+  const d = new Date(t);
+  return dkey(d) === dkey() ? `오늘 ${pad(d.getHours())}:${pad(d.getMinutes())}` : `${d.getMonth() + 1}/${d.getDate()}`;
 }
+
+// ── 목록 · 화면 ──
 function renderNoteSide() {
   const list = [...S.notes].sort((a, b) => (b.mt || b.created || 0) - (a.mt || a.created || 0));
   $('#noteSide').innerHTML = `<button class="note-item new" data-note-new>➕ 새 노트</button>` +
     list.map(n => `<button class="note-item ${n.id === S.noteCur ? 'on' : ''}" data-note="${esc(n.id)}" title="${esc(noteName(n))}">
-      <span class="t">${n.strokes?.length ? '✏️ ' : ''}${esc(noteName(n))}</span><span class="d">${noteDate(n.mt || n.created)}</span></button>`).join('');
+      <span class="t">${esc(noteName(n))}</span><span class="d">${n.pages.length > 1 ? `${n.pages.length}쪽 · ` : ''}${noteDate(n.mt || n.created)}</span></button>`).join('');
 }
 function renderNotes() {
   if (S.noteCur && !curNote()) S.noteCur = null;
@@ -2511,44 +2567,107 @@ function renderNotes() {
   const n = curNote();
   $('#noteEmpty').hidden = !!n; $('#noteEd').hidden = !n;
   if (!n) { N.shown = null; return; }
-  // 입력 중인 칸은 건드리지 않기
-  if (document.activeElement !== $('#noteTitle')) $('#noteTitle').value = n.title || '';
-  if (document.activeElement !== $('#noteText')) $('#noteText').value = n.text || '';
-  if (N.shown !== n.id) { N.shown = n.id; N.redo = []; }
-  setNoteMode(S.noteMode || 'text', true);
+  if (document.activeElement !== $('#noteTitle')) $('#noteTitle').value = n.title;
+  if (N.shown !== n.id) { N.shown = n.id; N.sel = null; }
   $('#noteMeta').textContent = n.mt ? `저장됨 · ${noteDate(n.mt)}` : '';
+  renderTools(); renderPage();
 }
-function newNote() {
-  const n = { id: uid(), title: '', text: '', strokes: [], h: NOTE_H, created: Date.now(), mt: Date.now() };
-  S.notes.push(n); S.noteCur = n.id;
-  store.save(); renderNotes();
-  if ((S.noteMode || 'text') === 'text') $('#noteText').focus(); else $('#noteTitle').focus();
+const HINTS = {
+  pen: '손가락·펜·마우스로 써요. 폰에서는 두 손가락으로 밀면 위아래로 움직여요.',
+  eraser: '손글씨만 지워요. 글상자·사진은 👆 이동에서 × 로 지워요.',
+  text: '종이를 누른 곳에 글상자가 생겨요. 색·크기를 고르면 쓰고 있는 글에 적용돼요.',
+  select: '글·사진을 끌어서 옮기고, 오른쪽 아래 ■ 로 크기를 바꿔요. × 또는 Delete 키로 지워요.'
+};
+function renderTools() {
+  const P = S.notePen, pg = curPage();
+  $$('#noteTools [data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === N.tool));
+  $('#sheet').className = 'sheet tool-' + N.tool;
+  const custom = !QUICK_COLORS.includes(P.color);
+  $$('#noteColors [data-c]').forEach(b => b.classList.toggle('on', b.dataset.c === P.color));
+  const pal = $('#noteColors .pal'); pal.style.setProperty('--c', P.custom); pal.classList.toggle('on', custom);
+  $('#notePal').value = P.custom;
+  $$('#noteSizes [data-s]').forEach(b => b.classList.toggle('on', +b.dataset.s === P.sizeI));
+  $('#noteHint').textContent = HINTS[N.tool] || '';
+  const h = pg && N.hist[pg.id];
+  $('#drawUndo').disabled = !h?.u.length; $('#drawRedo').disabled = !h?.r.length;
 }
+function renderPageNav() {
+  const n = curNote(), i = pageIdx(n);
+  $('#pageLbl').textContent = `${i + 1} / ${n.pages.length}`;
+  $('#pagePrev').disabled = i === 0; $('#pageNext').disabled = i === n.pages.length - 1;
+  $('#pageDel').disabled = n.pages.length === 1;
+}
+let sheetW = 0;
+function renderPage() {
+  const pg = curPage(); if (!pg) return;
+  renderPageNav();
+  const sheet = $('#sheet'), cssW = sheet.clientWidth; if (!cssW) return;
+  sheetW = cssW; N.k = cssW / NW;
+  sheet.style.setProperty('--k', N.k);
+  sheet.style.height = Math.round(pageH(pg) * N.k) + 'px';
+  renderItems(); sizeCanvas();
+}
+new ResizeObserver(() => { const w = $('#sheet').clientWidth; if (w && w !== sheetW) renderPage(); }).observe($('#sheet'));
+const fitTa = ta => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
+function itemHtml(it) {
+  const st = `--x:${it.x};--y:${it.y};--w:${it.w};` + (it.t === 'text' ? `--sz:${it.sz};--tc:${it.c};` : '');
+  return `<div class="nitem ${it.t} ${N.sel === it.id ? 'sel' : ''}" data-id="${esc(it.id)}" style="${st}">` +
+    (it.t === 'img' ? `<img src="${esc(it.src)}" alt="" draggable="false">`
+      : `<textarea class="jp" rows="1" spellcheck="false" ${N.tool === 'text' ? '' : 'readonly tabindex="-1"'}>${esc(it.text)}</textarea>`) +
+    `<button class="nx" data-del-item title="삭제">×</button><span class="nres" data-res title="크기 조절"></span></div>`;
+}
+function renderItems() {
+  const box = $('#pageItems'), pg = curPage(); if (!pg) return;
+  if (box.contains(document.activeElement)) { box.querySelectorAll('textarea').forEach(fitTa); return; }  // 쓰는 중이면 그대로
+  box.innerHTML = pg.items.map(itemHtml).join('');
+  box.querySelectorAll('textarea').forEach(fitTa);
+}
+
+// ── 저장 · 되돌리기 ──
 let noteSaveT;
 function touchNote(n, now = false) {
+  if (!n) return;
   n.mt = Date.now();
   $('#noteMeta').textContent = '저장 중…';
   clearTimeout(noteSaveT);
   const go = () => { store.save(); renderNoteSide(); $('#noteMeta').textContent = `저장됨 · ${noteDate(n.mt)}`; };
   if (now) go(); else noteSaveT = setTimeout(go, 500);
 }
+const H = pg => N.hist[pg.id] || (N.hist[pg.id] = { u: [], r: [] });
+const snap = pg => ({ strokes: [...pg.strokes], items: pg.items.map(i => ({ ...i })) });
+function pushHist(pg) { const h = H(pg); h.u.push(snap(pg)); if (h.u.length > 80) h.u.shift(); h.r = []; renderTools(); }
+function histStep(back) {
+  const box = $('#pageItems'); if (box.contains(document.activeElement)) document.activeElement.blur();
+  const pg = curPage(); if (!pg) return;
+  const h = H(pg), from = back ? h.u : h.r, to = back ? h.r : h.u;
+  if (!from.length) return;
+  to.push(snap(pg)); Object.assign(pg, from.pop());
+  N.sel = null; renderItems(); redraw(); renderTools(); touchNote(curNote(), true);
+}
+
+// ── 노트 · 페이지 ──
+function newNote() {
+  const n = { id: uid(), title: '', pages: [newPage()], created: Date.now(), mt: Date.now() };
+  S.notes.push(n); S.noteCur = n.id; N.tool = 'pen';
+  store.save(); renderNotes();
+}
 $('#noteSide').addEventListener('click', e => {
   if (e.target.closest('[data-note-new]')) return newNote();
   const b = e.target.closest('[data-note]'); if (!b) return;
   clearTimeout(noteSaveT); store.save();
-  S.noteCur = b.dataset.note; renderNotes();
+  S.noteCur = b.dataset.note; N.sel = null; renderNotes();
 });
 $('#noteNew2').addEventListener('click', newNote);
 $('#noteTitle').addEventListener('input', e => { const n = curNote(); if (n) { n.title = e.target.value; touchNote(n); } });
-$('#noteText').addEventListener('input', e => { const n = curNote(); if (n) { n.text = e.target.value; touchNote(n); } });
-$('#noteTitle').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); (S.noteMode === 'draw' ? $('#noteTitle') : $('#noteText')).focus(); } });
+$('#noteTitle').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
+const pageEmpty = pg => !pg.strokes.length && !pg.items.length;
 $('#noteDel').addEventListener('click', async () => {
   const n = curNote(); if (!n) return;
-  const empty = !(n.text || '').trim() && !n.strokes?.length && !(n.title || '').trim();
-  if (!empty) {
+  if (n.title.trim() || !n.pages.every(pageEmpty)) {
+    const imgs = n.pages.reduce((a, p) => a + p.items.filter(i => i.t === 'img').length, 0);
     const v = await ask({
       title: `'${noteName(n)}' 노트를 삭제할까요?`,
-      html: `적은 글${n.strokes?.length ? '과 손글씨' : ''}이 모두 지워지고 되돌릴 수 없어요.` + syncWarn(),
+      html: `페이지 <b>${n.pages.length}쪽</b>${imgs ? `, 사진 ${imgs}장` : ''}이 모두 지워지고 되돌릴 수 없어요.` + syncWarn(),
       choices: [{ v: 'del', label: '🗑 노트 삭제', cls: 'solid-danger' }]
     });
     if (!v) return;
@@ -2556,33 +2675,239 @@ $('#noteDel').addEventListener('click', async () => {
   S.notes = S.notes.filter(x => x.id !== n.id); S.noteCur = null;
   store.save(); renderNotes(); toast('노트를 삭제했어요');
 });
-function setNoteMode(m, quiet) {
-  S.noteMode = m;
-  $$('#noteMode button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
-  $('#noteText').hidden = m !== 'text'; $('#noteDraw').hidden = m !== 'draw';
-  if (m === 'draw') requestAnimationFrame(sizeCanvas);
-  if (!quiet) store.save();
+function goPage(i) {
+  const n = curNote(); if (!n) return;
+  if ($('#pageItems').contains(document.activeElement)) document.activeElement.blur();
+  N.pageI[n.id] = clamp(i, 0, n.pages.length - 1); N.sel = null;
+  renderPage(); renderTools();
+  const r = $('#sheet').getBoundingClientRect();
+  if (r.top < 90 || r.top > innerHeight * .6) window.scrollBy({ top: r.top - 150, behavior: 'smooth' });
 }
-$('#noteMode').addEventListener('click', e => {
-  const b = e.target.closest('[data-m]'); if (!b) return;
-  setNoteMode(b.dataset.m);
-  if (b.dataset.m === 'text') $('#noteText').focus();
+$('#pagePrev').addEventListener('click', () => goPage(pageIdx(curNote()) - 1));
+$('#pageNext').addEventListener('click', () => goPage(pageIdx(curNote()) + 1));
+$('#pageAdd').addEventListener('click', () => {
+  const n = curNote(); if (!n) return;
+  const i = pageIdx(n);
+  n.pages.splice(i + 1, 0, newPage());
+  touchNote(n, true); goPage(i + 1);
+  toast(`${i + 2}쪽을 만들었어요`);
+});
+$('#pageDel').addEventListener('click', async () => {
+  const n = curNote(); if (!n || n.pages.length < 2) return;
+  const i = pageIdx(n), pg = n.pages[i];
+  if (!pageEmpty(pg)) {
+    const v = await ask({
+      title: `${i + 1}쪽을 삭제할까요?`,
+      html: '이 페이지의 손글씨·글·사진이 모두 지워지고 되돌릴 수 없어요.',
+      choices: [{ v: 'del', label: `🗑 ${i + 1}쪽 삭제`, cls: 'solid-danger' }]
+    });
+    if (!v) return;
+  }
+  n.pages.splice(i, 1); delete N.hist[pg.id];
+  touchNote(n, true); goPage(Math.min(i, n.pages.length - 1));
+  toast('페이지를 삭제했어요');
+});
+$('#pageClear').addEventListener('click', async () => {
+  const pg = curPage(); if (!pg || pageEmpty(pg)) return toast('비어 있는 페이지예요');
+  const v = await ask({
+    title: '이 페이지를 비울까요?',
+    html: '이 페이지의 손글씨·글상자·사진이 모두 지워져요.<br>지운 직후에는 ↶ 로 되돌릴 수 있어요.',
+    choices: [{ v: 'clear', label: '🗑 페이지 비우기', cls: 'solid-danger' }]
+  });
+  if (!v) return;
+  pushHist(pg); pg.strokes = []; pg.items = []; N.sel = null;
+  renderItems(); redraw(); touchNote(curNote(), true);
+});
+
+// ── 도구 · 색 · 크기 ──
+function setTool(t) {
+  if ($('#pageItems').contains(document.activeElement)) document.activeElement.blur();
+  N.tool = t; if (t !== 'select') N.sel = null; N.lastEdit = null;
+  renderTools(); renderItems();
+}
+// 도구 버튼을 눌러도 쓰고 있던 글상자의 커서가 빠지지 않게
+$('#noteTools').addEventListener('pointerdown', e => { if (e.target.closest('button')) e.preventDefault(); });
+function styleTarget() {
+  const id = N.tool === 'select' ? N.sel : N.tool === 'text' ? (N.editing || N.lastEdit) : null;
+  const it = id && findItem(id);
+  return it && it.t === 'text' ? it : null;
+}
+function applyTextStyle(patch) {
+  const it = styleTarget(); if (!it) return;
+  if (!N.editing) pushHist(curPage());
+  Object.assign(it, patch);
+  const el = $(`#pageItems .nitem[data-id="${CSS.escape(it.id)}"]`);
+  if (el) { el.style.setProperty('--tc', it.c); el.style.setProperty('--sz', it.sz); fitTa(el.querySelector('textarea')); }
+  touchNote(curNote());
+}
+function setColor(c, custom) {
+  const P = S.notePen; P.color = c; if (custom) P.custom = c;
+  applyTextStyle({ c }); renderTools(); store.save();
+}
+$('#noteTools').addEventListener('click', e => {
+  const tb = e.target.closest('[data-tool]'); if (tb) return setTool(tb.dataset.tool);
+  const cb = e.target.closest('[data-c]'); if (cb) return setColor(cb.dataset.c);
+  const sb = e.target.closest('[data-s]');
+  if (sb) { S.notePen.sizeI = +sb.dataset.s; applyTextStyle({ sz: TXT_SZ[S.notePen.sizeI] }); renderTools(); store.save(); }
+});
+$('#notePal').addEventListener('input', e => setColor(e.target.value, true));
+$('#notePal').addEventListener('click', () => { const P = S.notePen; if (P.color !== P.custom) setColor(P.custom); });
+$('#drawUndo').addEventListener('click', () => histStep(true));
+$('#drawRedo').addEventListener('click', () => histStep(false));
+document.addEventListener('keydown', e => {
+  if (!$('#page-notes').classList.contains('active') || !curNote() || !$('#askModal').hidden) return;
+  if (e.target.matches('input, textarea, select')) return;
+  const k = e.key.toLowerCase();
+  if ((e.ctrlKey || e.metaKey) && k === 'z' && !e.shiftKey) { e.preventDefault(); histStep(true); }
+  else if ((e.ctrlKey || e.metaKey) && (k === 'y' || (k === 'z' && e.shiftKey))) { e.preventDefault(); histStep(false); }
+  else if ((k === 'delete' || k === 'backspace') && N.tool === 'select' && N.sel) { e.preventDefault(); deleteItem(N.sel); }
+});
+
+// ── 사진 ──
+function loadImg(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const m = 1200, sc = Math.min(1, m / Math.max(im.naturalWidth, im.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(im.naturalWidth * sc)); c.height = Math.max(1, Math.round(im.naturalHeight * sc));
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      res({ src: c.toDataURL('image/jpeg', .8), w: c.width, h: c.height });
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); rej(); };
+    im.src = url;
+  });
+}
+function visibleTopV() {
+  const r = $('#sheet').getBoundingClientRect();
+  return Math.round(Math.max(0, 150 - r.top) / N.k + 30);
+}
+async function insertImages(files) {
+  const pg = curPage(); if (!pg) return;
+  const imgs = [...files].filter(f => f.type.startsWith('image/')); if (!imgs.length) return;
+  pushHist(pg);
+  let y = visibleTopV(), ok = 0;
+  for (const f of imgs) {
+    try {
+      const im = await loadImg(f);
+      const w = Math.round(Math.min(640, NW - 80, im.w * 1.2, 560 * im.w / im.h)), h = Math.round(w * im.h / im.w);
+      const it = { id: uid(), t: 'img', x: Math.round((NW - w) / 2), y: clamp(y, 0, Math.max(0, pageH(pg) - h)), w, h, src: im.src };
+      pg.items.push(it); N.sel = it.id; y = it.y + h + 20; ok++;
+    } catch { toast('사진을 읽지 못했어요'); }
+  }
+  if (!ok) return;
+  N.tool = 'select'; renderTools(); renderItems(); touchNote(curNote(), true);
+  toast('사진을 넣었어요 · 끌어서 옮기고 ■ 로 크기를 바꿔요');
+}
+$('#noteImgBtn').addEventListener('click', () => $('#noteImgFile').click());
+$('#noteImgFile').addEventListener('change', e => { insertImages(e.target.files); e.target.value = ''; });
+document.addEventListener('paste', e => {
+  if (!$('#page-notes').classList.contains('active') || !curNote()) return;
+  const files = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/'));
+  if (!files.length) return;
+  e.preventDefault(); insertImages(files);
+});
+
+// ── 글상자 · 이동 ──
+function deleteItem(id) {
+  const pg = curPage(); if (!pg) return;
+  pushHist(pg); pg.items = pg.items.filter(i => i.id !== id); N.sel = null;
+  renderItems(); touchNote(curNote(), true);
+}
+const sheetPt = e => { const r = $('#sheet').getBoundingClientRect(); return [(e.clientX - r.left) / N.k, (e.clientY - r.top) / N.k]; };
+$('#sheet').addEventListener('pointerdown', e => {
+  const pg = curPage(); if (!pg) return;
+  if (N.tool === 'text') {
+    if (e.target.closest('.nitem')) return;
+    e.preventDefault();
+    if ($('#pageItems').contains(document.activeElement)) { document.activeElement.blur(); }
+    const P = S.notePen, sz = TXT_SZ[P.sizeI];
+    let [x, y] = sheetPt(e);
+    x = clamp(Math.round(x - 6), 0, NW - 120); y = clamp(Math.round(y - sz * .7), 0, pageH(pg) - sz * 1.5);
+    pushHist(pg);
+    const it = { id: uid(), t: 'text', x, y, w: Math.min(560, NW - x - 10), text: '', sz, c: P.color };
+    pg.items.push(it); N.editing = it.id; N.created = it.id;
+    renderItems();
+    const ta = $(`#pageItems .nitem[data-id="${CSS.escape(it.id)}"] textarea`);
+    setTimeout(() => ta && ta.focus(), 0);
+    return;
+  }
+  if (N.tool !== 'select') return;
+  const el = e.target.closest('.nitem');
+  if (!el) { if (N.sel) { N.sel = null; renderItems(); } return; }
+  const it = findItem(el.dataset.id); if (!it) return;
+  e.preventDefault();
+  if (e.target.closest('[data-del-item]')) return deleteItem(it.id);
+  N.sel = it.id;
+  $$('#pageItems .nitem').forEach(x => x.classList.toggle('sel', x === el));
+  el.setPointerCapture?.(e.pointerId);
+  N.drag = { id: it.id, el, pid: e.pointerId, res: !!e.target.closest('[data-res]'), sx: e.clientX, sy: e.clientY, x: it.x, y: it.y, w: it.w, h: it.h, moved: false };
+});
+$('#sheet').addEventListener('pointermove', e => {
+  const d = N.drag; if (!d || e.pointerId !== d.pid) return;
+  const pg = curPage(), it = findItem(d.id); if (!it) return;
+  const dx = (e.clientX - d.sx) / N.k, dy = (e.clientY - d.sy) / N.k;
+  if (!d.moved) { if (Math.hypot(dx, dy) < 3) return; pushHist(pg); d.moved = true; }
+  if (d.res) {
+    it.w = Math.round(clamp(d.w + dx, 60, NW - it.x));
+    if (it.t === 'img') it.h = Math.round(it.w * d.h / d.w);
+  } else {
+    it.x = Math.round(clamp(d.x + dx, 40 - it.w, NW - 40));
+    it.y = Math.round(clamp(d.y + dy, 0, pageH(pg) - 30));
+  }
+  d.el.style.setProperty('--x', it.x); d.el.style.setProperty('--y', it.y); d.el.style.setProperty('--w', it.w);
+  const ta = d.el.querySelector('textarea'); if (ta) fitTa(ta);
+});
+['pointerup', 'pointercancel'].forEach(t => $('#sheet').addEventListener(t, e => {
+  const d = N.drag; if (!d || e.pointerId !== d.pid) return;
+  N.drag = null;
+  if (d.moved) touchNote(curNote(), true);
+}));
+$('#sheet').addEventListener('dblclick', e => {
+  if (N.tool !== 'select') return;
+  const el = e.target.closest('.nitem.text'); if (!el) return;
+  const id = el.dataset.id; setTool('text');
+  const ta = $(`#pageItems .nitem[data-id="${CSS.escape(id)}"] textarea`); if (ta) ta.focus();
+});
+$('#pageItems').addEventListener('focusin', e => {
+  const ta = e.target.closest('textarea'); if (!ta) return;
+  const id = ta.closest('.nitem').dataset.id;
+  if (N.editing !== id) { pushHist(curPage()); N.editing = id; }
+  const it = findItem(id);
+  if (it) { S.notePen.color = it.c; renderTools(); }
+});
+$('#pageItems').addEventListener('input', e => {
+  const ta = e.target.closest('textarea'); if (!ta) return;
+  const it = findItem(ta.closest('.nitem').dataset.id); if (!it) return;
+  it.text = ta.value; fitTa(ta); touchNote(curNote());
+});
+$('#pageItems').addEventListener('focusout', e => {
+  const ta = e.target.closest('textarea'); if (!ta) return;
+  const id = ta.closest('.nitem').dataset.id, pg = curPage();
+  N.editing = null; N.lastEdit = id;
+  const it = pg && pg.items.find(i => i.id === id);
+  if (it && !it.text.trim()) {                    // 빈 글상자는 없애기
+    pg.items = pg.items.filter(i => i !== it);
+    const h = H(pg); if (N.created === id) h.u.pop();
+    N.lastEdit = null;
+    setTimeout(renderItems, 0);
+  }
+  N.created = null;
+  renderTools(); touchNote(curNote(), true);
 });
 
 // ── 손글씨 ──
 const cv = $('#drawCanvas'), cx = cv.getContext('2d');
 function sizeCanvas() {
-  const n = curNote(), wrap = $('#drawWrap');
-  if (!n || $('#noteDraw').hidden) return;
-  const cssW = wrap.clientWidth; if (!cssW) return;
-  const dpr = Math.min(window.devicePixelRatio || 1, 2), cssH = Math.round((n.h || NOTE_H) * cssW / NW);
+  const sheet = $('#sheet'), cssW = sheet.clientWidth, cssH = sheet.clientHeight; if (!cssW) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const W = Math.round(cssW * dpr), Hh = Math.round(cssH * dpr);
+  if (cv.width !== W || cv.height !== Hh) { cv.width = W; cv.height = Hh; }
   cv.style.width = cssW + 'px'; cv.style.height = cssH + 'px';
-  const W = Math.round(cssW * dpr), H = Math.round(cssH * dpr);
-  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
-  N.k = cssW * dpr / NW;
+  N.kc = W / NW;
   redraw();
 }
-new ResizeObserver(() => sizeCanvas()).observe($('#drawWrap'));
 function strokeStyle(s) {
   cx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
   cx.strokeStyle = s.e ? '#000' : s.c; cx.lineWidth = s.w; cx.lineCap = 'round'; cx.lineJoin = 'round';
@@ -2596,38 +2921,36 @@ function drawStroke(s) {
   cx.stroke();
 }
 function redraw() {
-  const n = curNote();
+  const pg = curPage();
   cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height);
-  cx.setTransform(N.k, 0, 0, N.k, 0, 0);
-  (n?.strokes || []).forEach(drawStroke);
+  cx.setTransform(N.kc, 0, 0, N.kc, 0, 0);
+  (pg?.strokes || []).forEach(drawStroke);
   if (N.drawing) drawStroke(N.drawing);
   cx.globalCompositeOperation = 'source-over';
-  $('#drawUndo').disabled = !n?.strokes?.length; $('#drawRedo').disabled = !N.redo.length;
 }
 const toV = e => { const r = cv.getBoundingClientRect(), f = NW / r.width;
   return [Math.round((e.clientX - r.left) * f * 10) / 10, Math.round((e.clientY - r.top) * f * 10) / 10]; };
 const avgY = () => { const v = [...N.pointers.values()]; return v.reduce((a, b) => a + b.y, 0) / v.length; };
 cv.addEventListener('pointerdown', e => {
-  N.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, touch: e.pointerType === 'touch' });
+  N.pointers.set(e.pointerId, { y: e.clientY, touch: e.pointerType === 'touch' });
   if (e.pointerType === 'touch' && [...N.pointers.values()].filter(p => p.touch).length >= 2) {
-    // 두 손가락 = 화면 이동 (그리던 획은 취소)
-    if (N.drawing) { N.drawing = null; redraw(); }
+    if (N.drawing) { N.drawing = null; redraw(); }      // 두 손가락 = 화면 이동
     N.panY = avgY(); return;
   }
   if (e.button > 0 || N.drawing) return;
   e.preventDefault();
   cv.setPointerCapture?.(e.pointerId);
-  const [x, y] = toV(e);
-  N.drawing = { c: N.color, w: N.eraser ? N.size * 5 : N.size, p: [x, y], pid: e.pointerId };
-  if (N.eraser) N.drawing.e = 1;
+  const [x, y] = toV(e), P = S.notePen, er = N.tool === 'eraser';
+  N.drawing = { c: P.color, w: er ? ERASE_W[P.sizeI] : PEN_W[P.sizeI], p: [x, y], pid: e.pointerId };
+  if (er) N.drawing.e = 1;
   redraw();
 });
 cv.addEventListener('pointermove', e => {
-  if (N.pointers.has(e.pointerId)) N.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, touch: e.pointerType === 'touch' });
+  if (N.pointers.has(e.pointerId)) N.pointers.set(e.pointerId, { y: e.clientY, touch: e.pointerType === 'touch' });
   if (N.panY != null && N.pointers.size >= 2) { const y = avgY(); window.scrollBy(0, N.panY - y); N.panY = y; return; }
   const d = N.drawing; if (!d || e.pointerId !== d.pid) return;
-  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
-  cx.setTransform(N.k, 0, 0, N.k, 0, 0); strokeStyle(d);
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+  cx.setTransform(N.kc, 0, 0, N.kc, 0, 0); strokeStyle(d);
   for (const ev of (evs.length ? evs : [e])) {
     const [x, y] = toV(ev), lx = d.p[d.p.length - 2], ly = d.p[d.p.length - 1];
     if (Math.hypot(x - lx, y - ly) < 1.2) continue;
@@ -2641,50 +2964,12 @@ function endPointer(e) {
   if (N.pointers.size < 2) N.panY = null;
   const d = N.drawing; if (!d || e.pointerId !== d.pid) return;
   N.drawing = null;
-  const n = curNote(); if (!n) return;
+  const pg = curPage(); if (!pg) return;
   delete d.pid;
-  (n.strokes = n.strokes || []).push(d); N.redo = [];
-  redraw(); touchNote(n, true);
+  pushHist(pg); pg.strokes.push(d);
+  redraw(); touchNote(curNote(), true);
 }
 ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => cv.addEventListener(t, endPointer));
-$('#drawTools').addEventListener('click', e => {
-  const col = e.target.closest('[data-c]'), sz = e.target.closest('[data-s]');
-  if (col) { N.color = col.dataset.c; N.eraser = false; }
-  if (sz) N.size = +sz.dataset.s;
-  if (col || sz) {
-    $$('.dcol').forEach(b => b.classList.toggle('on', b.dataset.c === N.color && !N.eraser));
-    $$('.dsz').forEach(b => b.classList.toggle('on', +b.dataset.s === N.size));
-    $('#drawEraser').classList.toggle('on', N.eraser); $('#drawWrap').classList.toggle('erase', N.eraser);
-  }
-});
-$('#drawEraser').addEventListener('click', () => {
-  N.eraser = !N.eraser;
-  $('#drawEraser').classList.toggle('on', N.eraser); $('#drawWrap').classList.toggle('erase', N.eraser);
-  $$('.dcol').forEach(b => b.classList.toggle('on', b.dataset.c === N.color && !N.eraser));
-});
-function drawUndo() { const n = curNote(); if (!n?.strokes?.length) return; N.redo.push(n.strokes.pop()); redraw(); touchNote(n, true); }
-function drawRedo() { const n = curNote(); if (!n || !N.redo.length) return; n.strokes.push(N.redo.pop()); redraw(); touchNote(n, true); }
-$('#drawUndo').addEventListener('click', drawUndo);
-$('#drawRedo').addEventListener('click', drawRedo);
-document.addEventListener('keydown', e => {
-  if (!$('#page-notes').classList.contains('active') || $('#noteDraw').hidden || !(e.ctrlKey || e.metaKey)) return;
-  if (e.target.matches('input, textarea')) return;
-  const k = e.key.toLowerCase();
-  if (k === 'z' && !e.shiftKey) { e.preventDefault(); drawUndo(); }
-  else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); drawRedo(); }
-});
-$('#drawClear').addEventListener('click', async () => {
-  const n = curNote(); if (!n?.strokes?.length) return toast('지울 손글씨가 없어요');
-  const v = await ask({ title: '손글씨를 전부 지울까요?', html: '이 노트의 손글씨가 모두 지워져요. (텍스트는 그대로 남아요)<br>지운 직후에는 ↶ 로 되돌릴 수 있어요.',
-    choices: [{ v: 'clear', label: '🗑 손글씨 전체 지우기', cls: 'solid-danger' }] });
-  if (!v) return;
-  N.redo = [...n.strokes].reverse(); n.strokes = [];
-  redraw(); touchNote(n, true);
-});
-$('#drawMore').addEventListener('click', () => {
-  const n = curNote(); if (!n) return;
-  n.h = (n.h || NOTE_H) + 700; sizeCanvas(); touchNote(n, true); toast('종이를 늘렸어요');
-});
 
 /* ─────────────── 퀴즈 ─────────────── */
 const opts = { range: 'all', mode: 'w2m', answer: 'choice', count: '10', diff: 'hard' };
@@ -3472,7 +3757,7 @@ function mergePayload(L, R) {
 function applyPayload(P) {
   S.words = P.words.map(w => ({ tags: [], ...w, tags: Array.isArray(w.tags) ? w.tags : [] }));
   S.words.forEach(w => { if (!w.srs) w.srs = w.memorized ? { lv: 1, due: addDays(w.memorizedAt || dkey(), 1) } : { lv: 0, due: null }; });
-  if (Array.isArray(P.notes)) S.notes = P.notes.map(n => ({ title: '', text: '', strokes: [], h: NOTE_H, ...n }));
+  if (Array.isArray(P.notes)) S.notes = P.notes.map(normNote);
   S.deleted = P.deleted; S.reviewLog = P.reviewLog; S.quizLog = P.quizLog; S.metaMt = P.metaMt;
   const m = P.meta || {};
   if (Array.isArray(m.tags)) S.tags = m.tags;
@@ -3493,7 +3778,7 @@ function applyPayload(P) {
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
   $('#pageSize').value = S.pageSize;
   renderAll(); renderPlaylist(); renderTagRows();
-  if ($('#page-notes').classList.contains('active')) { renderNotes(); if (!$('#noteDraw').hidden) redraw(); }
+  if ($('#page-notes').classList.contains('active')) renderNotes();
 }
 
 // ── 서버와 주고받기: 받아서 → 합치고 → 달라졌으면 올리기 ──
