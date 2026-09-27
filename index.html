@@ -105,6 +105,11 @@
   .empty { color: var(--text3); text-align: center; padding: 14px 0; font-size: 11px; }
 
   /* ── 통계 ── */
+  .srs-bar { display: flex; height: 8px; border-radius: 99px; overflow: hidden; gap: 2px; margin: 2px 0 5px; }
+  .srs-legend { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 10px; color: var(--text3); margin-bottom: 8px; }
+  .srs-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 3px; margin-right: 3px; vertical-align: -1px; }
+  .lv0 { background: #eee4e8; } .lv1 { background: #fbd0dd; } .lv2 { background: #f7aac2; } .lv3 { background: #ef86a8; }
+  .lv4 { background: #9fdcc0; } .lv5 { background: #5fbf95; } .lv6 { background: #f2cf63; }
   .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
   .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 9px 10px; box-shadow: var(--shadow); }
   .stat .v { font-size: 18px; font-weight: 700; }
@@ -167,6 +172,10 @@
     font-size: 13px; line-height: 1; color: var(--text3);
   }
   .ic.on-mem { background: var(--success); border-color: var(--success); color: #fff; }
+  .ic.master { background: #fff3c4; border-color: #f2cf63; }
+  .tag.srs { background: #eef7f2; color: #3c8d6c; }
+  .tag.srs.due { background: #fff0d6; color: #c47d12; font-weight: 700; }
+  .tag.srs.master { background: #fff3c4; color: #a57a00; }
   .ic.on-star { background: #fff6e6; border-color: #f7d9a8; color: var(--star); }
 
   /* ── 진도율 ── */
@@ -240,6 +249,57 @@
     .side-item .nm { overflow: visible; }
     .side-item.manage { margin-top: 0; border-top: none; border: 1px dashed var(--border); border-radius: 99px; }
   }
+
+  /* ── 플래시카드 ── */
+  .study {
+    position: fixed; inset: 0; z-index: 75; background: rgba(255,244,247,.97); backdrop-filter: blur(4px);
+    display: flex; justify-content: center; align-items: flex-start; overflow-y: auto;
+    padding: 16px 16px calc(var(--player-h) + 16px); animation: fade .15s;
+  }
+  .study[hidden] { display: none; }
+  .study-box { width: 100%; max-width: 520px; }
+  .study-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+  .study-top b { font-size: 14px; }
+  .study-top .muted { flex: 1; }
+  .st-opt { font-size: 11px; color: var(--text2); display: flex; align-items: center; gap: 3px; cursor: pointer; }
+  .st-opt input { accent-color: var(--accent); }
+  .fcard {
+    position: relative; margin: 12px 0; min-height: 300px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; box-shadow: 0 8px 30px rgba(232,115,154,.15); padding: 24px 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    cursor: pointer; user-select: none; touch-action: pan-y; outline: none; overflow: hidden;
+    transition: transform .25s ease, opacity .25s;
+  }
+  .fcard.flip-out { transform: perspective(800px) rotateY(90deg); transition-duration: .13s; }
+  .fcard.fly-left { transform: translateX(-120%) rotate(-12deg); opacity: 0; }
+  .fcard.fly-right { transform: translateX(120%) rotate(12deg); opacity: 0; }
+  .fcard.dragging { transition: none; }
+  .swipe-tint { position: absolute; inset: 0; pointer-events: none; opacity: 0; border-radius: 20px; }
+  .fc-word { font-family: var(--jp); font-size: 40px; font-weight: 500; line-height: 1.5; }
+  .fc-word rt { font-size: 14px; color: var(--text2); }
+  .fc-yomi { font-family: var(--jp); color: var(--text3); font-size: 14px; margin-top: 2px; }
+  .fc-meaning { font-size: 20px; font-weight: 700; margin-top: 14px; color: var(--accent-dark); }
+  .fc-ex { display: flex; gap: 6px; align-items: flex-start; justify-content: center; margin-top: 14px; font-family: var(--jp); font-size: 13px; color: var(--text2); line-height: 1.6; max-width: 100%; }
+  .fc-tags { margin-top: 12px; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+  .fc-hint { position: absolute; bottom: 12px; left: 0; right: 0; font-size: 11px; color: var(--text3); }
+  .fc-state { position: absolute; top: 12px; left: 14px; font-size: 10px; }
+  .fc-speak { position: absolute; top: 10px; right: 12px; }
+  .st-actions { text-align: center; }
+  .st-flip { width: 100%; padding: 12px; font-size: 14px; border-radius: 14px !important; }
+  .st-flip small, .g small { display: block; font-size: 10px; opacity: .75; font-weight: 400; }
+  .grades { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .grades[hidden] { display: none; }
+  .g { border: none; border-radius: 14px; padding: 10px 4px; font-size: 14px; color: #fff; }
+  .g.again { background: #ef7b8b; } .g.hard { background: #f2b653; } .g.good { background: #4caf8a; }
+  .g:active { transform: scale(.97); }
+  .st-hint { font-size: 10px; margin-top: 10px; }
+  #stDone { text-align: center; padding: 24px 0; }
+  .st-done-emoji { font-size: 40px; }
+  .st-done-title { font-size: 18px; font-weight: 700; margin: 4px 0 10px; }
+  .st-sum { display: flex; justify-content: center; gap: 8px; margin-bottom: 14px; }
+  .st-sum span { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 8px 14px; font-size: 12px; }
+  .st-sum b { display: block; font-size: 20px; }
+  .st-done-acts { display: flex; gap: 8px; justify-content: center; margin-top: 14px; }
 
   /* ── 설정 ── */
   .modal-box.wide { max-width: 520px; }
@@ -406,9 +466,19 @@
 
     <div class="card">
       <div class="card-h">
+        <h2>🔁 오늘 복습 <span class="sub" id="reviewSub"></span></h2>
+        <button class="btn sm primary" id="startReview">🃏 카드로 복습</button>
+      </div>
+      <div id="srsBar"></div>
+      <div class="wlist" id="reviewList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
         <h2>✏️ 오늘 외울 단어 <span class="sub" id="todaySub"></span></h2>
         <div class="acts">
           <select class="tag-sel" id="homeTag" title="단어장 선택"></select>
+          <button class="btn sm primary" id="cardToday">🃏 카드로 외우기</button>
           <button class="btn sm" data-toggle-hide="today">뜻 가리기</button>
           <button class="btn sm" id="rerollToday">다시 뽑기</button>
         </div>
@@ -426,21 +496,11 @@
       </div>
       <div class="card">
         <div class="card-h">
-          <h2>🔁 복습</h2>
-          <div class="seg" id="reviewSeg">
-            <button data-d="1" class="on">어제</button><button data-d="3">3일 전</button><button data-d="7">7일 전</button>
-          </div>
+          <h2>❌ 자주 틀린 단어 <span class="sub">오답 많은 순</span></h2>
+          <button class="btn sm" id="quizWrongBtn">오답만 퀴즈</button>
         </div>
-        <div class="wlist" id="reviewList"></div>
+        <div class="wlist" id="wrongList"></div>
       </div>
-    </div>
-
-    <div class="card">
-      <div class="card-h">
-        <h2>❌ 자주 틀린 단어 <span class="sub">퀴즈 오답 많은 순</span></h2>
-        <button class="btn sm" id="quizWrongBtn">오답만 퀴즈</button>
-      </div>
-      <div class="wlist" id="wrongList"></div>
     </div>
   </section>
 
@@ -453,6 +513,7 @@
         <h2>📚 내 단어 <span class="sub" id="wordCount"></span></h2>
         <div class="acts">
           <button class="btn sm primary" id="openAdd">➕ 단어 추가</button>
+          <button class="btn sm" id="cardList" title="지금 보이는 목록(필터 적용)으로 카드 학습">🃏 카드</button>
           <button class="btn sm" data-toggle-hide="list">뜻 가리기</button>
           <button class="btn sm" id="exportBtn">백업</button>
           <button class="btn sm" id="importBtn">불러오기</button>
@@ -466,12 +527,15 @@
           <option value="todo">못 외운 단어</option>
           <option value="mem">외운 단어</option>
           <option value="star">중요 단어</option>
+          <option value="due">오늘 복습 대상</option>
+          <option value="master">🏆 완전히 외운 단어</option>
         </select>
         <select id="sort">
           <option value="new">최신순</option>
           <option value="old">등록순</option>
           <option value="kana">가나다(요미)순</option>
           <option value="wrong">오답순</option>
+          <option value="due">복습일순</option>
         </select>
         <select id="pageSize" title="한 페이지에 보일 개수">
           <option value="10">10개씩</option>
@@ -491,7 +555,7 @@
       <div class="card-h"><h2>🎯 퀴즈 설정</h2></div>
       <div class="opt-row"><span>범위</span>
         <div class="seg" data-opt="range">
-          <button data-v="all" class="on">전체</button><button data-v="todo">못 외운</button><button data-v="star">중요</button><button data-v="wrong">오답</button>
+          <button data-v="all" class="on">전체</button><button data-v="todo">못 외운</button><button data-v="star">중요</button><button data-v="wrong">오답</button><button data-v="due">복습</button>
         </div>
       </div>
       <div class="opt-row"><span>단어장</span>
@@ -579,6 +643,44 @@
   </div>
 </div>
 
+<!-- ═══════════ 플래시카드 ═══════════ -->
+<div class="study" id="study" hidden>
+  <div class="study-box">
+    <div class="study-top">
+      <b id="stTitle"></b>
+      <span class="muted" id="stProg"></span>
+      <label class="st-opt" title="카드를 뒤집으면 발음 자동 재생"><input type="checkbox" id="stAuto"> 🔊 자동</label>
+      <button class="ic" id="stClose" title="닫기 (Esc)">✕</button>
+    </div>
+    <div class="progress"><div id="stBar"></div></div>
+    <div id="stMain">
+      <div class="fcard" id="fcard" tabindex="0">
+        <div class="swipe-tint"></div>
+        <div id="fcContent"></div>
+      </div>
+      <div class="st-actions">
+        <button class="btn primary st-flip" id="stFlip">뒤집기 <small>Space</small></button>
+        <div class="grades" id="stGrades" hidden>
+          <button class="g again" data-g="again"><b>모름</b><small id="gAgain"></small></button>
+          <button class="g hard" data-g="hard"><b>헷갈림</b><small id="gHard"></small></button>
+          <button class="g good" data-g="good"><b>앎</b><small id="gGood"></small></button>
+        </div>
+        <div class="st-hint muted">카드를 누르면 뒤집혀요 · 뒤집은 뒤 ← 밀면 모름, → 밀면 앎 · 키보드 1 2 3</div>
+      </div>
+    </div>
+    <div id="stDone" hidden>
+      <div class="st-done-emoji">🎉</div>
+      <div class="st-done-title">수고했어요!</div>
+      <div class="st-sum" id="stSum"></div>
+      <div class="wlist" id="stAgainList"></div>
+      <div class="st-done-acts">
+        <button class="btn" id="stRetry">모름만 다시</button>
+        <button class="btn primary" id="stEnd">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════ 설정 ═══════════ -->
 <div class="modal" id="settingsModal" hidden>
   <div class="modal-box wide" role="dialog" aria-modal="true" aria-label="설정">
@@ -647,13 +749,14 @@ const store = {
   }
 };
 const S = Object.assign({
-  words: [],          // {id, yomi, word, meaning, example, memorized, important, memorizedAt, created, wrong, right}
+  words: [],          // {id, yomi, word, meaning, example, tags, memorized, important, memorizedAt, created, wrong, right, srs:{lv, due, last}}
   goal: 5,
   today: null,        // {date, ids}
   starPick: null,     // {date, ids}
-  quizLog: {},
-  homeTag: '',
-  pageSize: 10,       // 단어목록 페이지당 개수        // 홈 '오늘 외울 단어' 단어장 범위 ('' = 전체)        // {date: n}  퀴즈 푼 날짜 기록 (연속 학습일 계산용)
+  quizLog: {},        // {date: n}  퀴즈 푼 날짜 (연속 학습일 계산용)
+  reviewLog: {},      // {date: n}  복습한 단어 수
+  homeTag: '',        // 홈 '오늘 외울 단어' 단어장 범위 ('' = 전체)
+  pageSize: 10,       // 단어목록 페이지당 개수
   music: { url: '', loop: true, vol: 50, resume: null }  // resume: {url, idx, t, title, playing}
 }, store.load());
 
@@ -713,6 +816,55 @@ function speak(text) {
   const u = new SpeechSynthesisUtterance(text); u.lang = 'ja-JP'; u.rate = .9;
   speechSynthesis.speak(u);
 }
+/* ─────────────── 자동 복습 일정 (간격 반복) ───────────────
+   외운 단어는 단계(lv)마다 정해진 날 뒤에 다시 복습 대상이 됨.
+   앎 → 다음 단계, 헷갈림 → 같은 단계 절반 간격, 모름 → 1단계(내일)부터 다시.
+   6단계(30일 뒤 복습 통과) = 🏆 완전히 외움, 그 뒤로는 90일마다 가볍게 점검. */
+const SRS_DAYS = [0, 1, 3, 7, 14, 30, 90];
+const MASTER_LV = 6;
+function addDays(key, n) {
+  const [y, m, d] = key.split('-').map(Number);
+  return dkey(new Date(y, m - 1, d + n));
+}
+const dayDiff = (a, b) => Math.round((new Date(b) - new Date(a)) / 864e5);
+function srsOf(w) { return w.srs || (w.srs = { lv: 0, due: null }); }
+const isDue = (w, today = dkey()) => w.memorized && !!w.srs?.due && w.srs.due <= today;
+const isMastered = w => w.memorized && (w.srs?.lv || 0) >= MASTER_LV;
+function markLearned(w) {
+  w.memorized = true; w.memorizedAt = dkey();
+  w.srs = { lv: 1, due: addDays(dkey(), SRS_DAYS[1]), last: dkey() };
+}
+function markUnlearned(w) { w.memorized = false; w.memorizedAt = null; w.srs = { lv: 0, due: null }; }
+// 채점 결과를 미리 계산 (버튼에 '7일 후' 같은 안내용)
+function srsPreview(w, g) {
+  const today = dkey(), s = srsOf(w);
+  if (!w.memorized) return g === 'good' ? { lv: 1, due: addDays(today, 1), learned: true } : { lv: 0, due: null, again: true };
+  if (g === 'again') return { lv: 1, due: addDays(today, 1), again: true };
+  if (g === 'hard') { const lv = Math.max(1, s.lv); return { lv, due: addDays(today, Math.max(1, Math.round(SRS_DAYS[lv] / 2))) }; }
+  // 복습일 전에 미리 본 경우엔 단계를 올리지 않음
+  if (s.due && s.due > today) return { lv: s.lv, due: s.due };
+  const lv = Math.min(MASTER_LV, s.lv + 1);
+  return { lv, due: addDays(today, SRS_DAYS[lv]) };
+}
+function grade(w, g) {
+  const today = dkey(), p = srsPreview(w, g);
+  S.reviewLog[today] = (S.reviewLog[today] || 0) + 1;
+  if (p.learned) return markLearned(w);
+  if (!w.memorized) return;
+  if (g === 'again') w.lapses = (w.lapses || 0) + 1;
+  w.srs = { lv: p.lv, due: p.due, last: today };
+}
+function dueLabel(due) {
+  const d = dayDiff(dkey(), due);
+  return d <= 0 ? '오늘 복습' : d === 1 ? '내일 복습' : `${d}일 후 복습`;
+}
+const intervalLabel = due => { const d = dayDiff(dkey(), due); return d <= 0 ? '오늘' : d === 1 ? '내일' : `${d}일 후`; };
+// 예전 데이터: 외운 단어에 복습 일정 부여 (외운 날 다음 날부터)
+S.words.forEach(w => {
+  if (w.srs) return;
+  w.srs = w.memorized ? { lv: 1, due: addDays(w.memorizedAt || dkey(), 1) } : { lv: 0, due: null };
+});
+
 /* ─────────────── 후리가나 자동 정렬 ───────────────
    1) 오쿠리가나 자동 맞춤: 食べる + たべる → 食(た)べる
    2) 한자 여러 글자: 요미가나를 점(.)으로 나누면 한 글자씩
@@ -771,17 +923,21 @@ function rowHtml(w, { hide = false, edit = false } = {}) {
     <div class="m-col">
       <div class="m-line">
         <div class="meaning ${hide ? 'hidden' : ''}" data-reveal>${esc(w.meaning)}</div>
-        ${w.tags.length ? `<div class="tags">${w.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
+        ${w.tags.length || w.memorized ? `<div class="tags">${w.memorized ? srsPill(w) : ''}${w.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
       </div>
       ${w.example ? `<div class="ex-line"><button class="ic xs" data-act="speak-ex" title="예문 듣기">🔊</button><div class="example" data-expand title="눌러서 전체 보기">${esc(w.example)}</div></div>` : ''}
     </div>
     <div class="acts ${edit ? 'many' : ''}">
       <button class="ic" data-act="speak" title="발음 듣기">🔊</button>
       <button class="ic ${w.important ? 'on-star' : ''}" data-act="star" title="중요 단어">★</button>
-      <button class="ic ${w.memorized ? 'on-mem' : ''}" data-act="mem" title="외움 표시">✓</button>
+      <button class="ic ${w.memorized ? 'on-mem' : ''} ${isMastered(w) ? 'master' : ''}" data-act="mem" title="${w.memorized ? `외움 · ${isMastered(w) ? '완전히 외움' : `${w.srs.lv}단계 · ${dueLabel(w.srs.due)}`} (누르면 못 외운 단어로)` : '외움 표시'}">${isMastered(w) ? '🏆' : '✓'}</button>
       ${edit ? `<button class="ic" data-act="edit" title="수정">✎</button><button class="ic" data-act="del" title="삭제" style="color:var(--danger)">🗑</button>` : ''}
     </div>
   </div>`;
+}
+function srsPill(w) {
+  if (isMastered(w)) return '<span class="tag srs master">🏆 완전히 외움</span>';
+  return `<span class="tag srs ${isDue(w) ? 'due' : ''}" title="${w.srs.lv}단계">${dueLabel(w.srs.due)}</span>`;
 }
 function listHtml(words, opts, emptyMsg) {
   return words.length ? words.map(w => rowHtml(w, opts)).join('') : `<div class="empty">${emptyMsg}</div>`;
@@ -805,9 +961,8 @@ document.addEventListener('click', e => {
   }
   if (act === 'star') { w.important = !w.important; toast(w.important ? '⭐ 중요 단어로 표시' : '중요 표시 해제'); }
   if (act === 'mem') {
-    w.memorized = !w.memorized;
-    w.memorizedAt = w.memorized ? dkey() : null;
-    toast(w.memorized ? '✓ 외운 단어로 표시' : '못 외운 단어로 되돌림');
+    if (w.memorized) { markUnlearned(w); toast('못 외운 단어로 되돌림'); }
+    else { markLearned(w); toast('✓ 외운 단어로 표시 · 내일 복습에 나와요'); }
   }
   if (act === 'edit') return startEdit(w);
   if (act === 'del') {
@@ -858,20 +1013,20 @@ function streak() {
   let n = 0;
   for (let i = 0; i < 365; i++) {
     const k = dkey(daysAgo(i));
-    const active = learnedOn(k) > 0 || S.quizLog[k];
+    const active = learnedOn(k) > 0 || S.quizLog[k] || S.reviewLog[k];
     if (active) n++;
     else if (i > 0) break;   // 오늘은 아직 안 했어도 연속 유지
   }
   return n;
 }
-let reviewDay = 1;
 function renderHome() {
   const total = S.words.length, mem = S.words.filter(w => w.memorized).length;
   const star = S.words.filter(w => w.important).length;
+  const master = S.words.filter(isMastered).length;
   $('#stats').innerHTML = `
     <div class="stat"><div class="v">${total}</div><div class="l">전체 단어</div></div>
     <div class="stat"><div class="v" style="color:var(--success)">${mem}</div><div class="l">외운 단어 ${total ? Math.round(mem / total * 100) : 0}%</div></div>
-    <div class="stat"><div class="v" style="color:var(--star)">${star}</div><div class="l">중요 단어</div></div>
+    <div class="stat"><div class="v" style="color:var(--star)">${master}</div><div class="l">🏆 완전히 외움</div></div>
     <div class="stat"><div class="v" style="color:var(--accent)">${streak()}일</div><div class="l">🔥 연속 학습</div></div>`;
 
   // 주간 진도율
@@ -911,13 +1066,21 @@ function renderHome() {
   $('#starSub').textContent = star > 5 ? `${star}개 중 랜덤 5개` : '';
   $('#starList').innerHTML = listHtml(stars, {}, '★ 버튼으로 중요 단어를 표시해 보세요');
 
-  // 복습
-  $$('#reviewSeg button').forEach(b => b.classList.toggle('on', +b.dataset.d === reviewDay));
-  const rk = dkey(daysAgo(reviewDay));
-  const reviews = S.words.filter(w => w.memorized && w.memorizedAt === rk);
-  $('#reviewList').innerHTML = listHtml(reviews, { hide: true },
-    `${reviewDay === 1 ? '어제' : reviewDay + '일 전'} 외운 단어가 없어요`) +
-    (reviews.length ? `<div class="muted" style="font-size:10px; margin-top:4px">회색 칸을 누르면 뜻이 보여요 · 잊었다면 ✓를 눌러 다시 외울 단어로</div>` : '');
+  // 오늘 복습 (간격 반복)
+  const today = dkey(), tomorrow = addDays(today, 1);
+  const due = S.words.filter(w => isDue(w, today)).sort((a, b) => a.srs.due.localeCompare(b.srs.due));
+  const doneToday = S.reviewLog[today] || 0;
+  const tmr = S.words.filter(w => w.memorized && w.srs?.due === tomorrow).length;
+  $('#reviewSub').textContent = due.length ? `${due.length}개 남음` : doneToday ? '오늘 복습 끝! 🎉' : '';
+  $('#startReview').disabled = !due.length;
+  const lvCount = [...Array(MASTER_LV + 1)].map((_, lv) => S.words.filter(w => lv === 0 ? !w.memorized : w.memorized && Math.min(w.srs.lv, MASTER_LV) === lv).length);
+  const lvName = ['학습 전', '1일', '3일', '7일', '14일', '30일', '🏆'];
+  $('#srsBar').innerHTML = total ? `<div class="srs-bar">${lvCount.map((n, lv) => n ? `<div class="seg-lv lv${lv}" style="flex:${n}" title="${lvName[lv]} 단계 ${n}개"></div>` : '').join('')}</div>
+    <div class="srs-legend">${lvCount.map((n, lv) => `<span><i class="lv${lv}"></i>${lvName[lv]} ${n}</span>`).join('')}</div>` : '';
+  $('#reviewList').innerHTML = listHtml(due.slice(0, 5), { hide: true },
+    total ? `오늘 복습할 단어가 없어요${tmr ? ` · 내일 ${tmr}개` : ''}` : '단어를 외우면 복습 일정이 자동으로 잡혀요') +
+    (due.length > 5 ? `<div class="muted" style="font-size:10px; margin-top:4px; text-align:center">외 ${due.length - 5}개 더 · 카드로 복습을 눌러 한 번에 해요</div>` : '') +
+    (due.length && due.length <= 5 ? `<div class="muted" style="font-size:10px; margin-top:4px">회색 칸을 누르면 뜻이 보여요</div>` : '');
 
   // 자주 틀린 단어
   const wrongs = S.words.filter(w => (w.wrong || 0) > 0)
@@ -932,10 +1095,7 @@ $('#goalInput').addEventListener('change', e => {
 $('#homeTag').addEventListener('change', e => { S.homeTag = e.target.value; pickToday(true); renderHome(); });
 $('#rerollToday').addEventListener('click', () => { pickToday(true); renderHome(); });
 $('#rerollStar').addEventListener('click', () => { pickStars(true); renderHome(); });
-$('#reviewSeg').addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b) return;
-  reviewDay = +b.dataset.d; renderHome();
-});
+
 $$('[data-toggle-hide]').forEach(b => b.addEventListener('click', () => {
   const k = b.dataset.toggleHide;
   hideMeaning[k] = !hideMeaning[k];
@@ -1075,21 +1235,26 @@ $('#pickTags').addEventListener('click', e => {
 });
 $('#fTags').addEventListener('input', renderPickTags);
 
-function renderWords() {
-  renderTagSide();
-  if (document.activeElement?.id !== 'fTags') renderPickTags();
+function currentList() {
   const q = $('#search').value.trim().toLowerCase();
   const f = $('#filter').value, sort = $('#sort').value;
   let list = S.words.filter(w => inTag(w, listTag) &&
-    (f === 'all' || (f === 'todo' && !w.memorized) || (f === 'mem' && w.memorized) || (f === 'star' && w.important)) &&
+    (f === 'all' || (f === 'todo' && !w.memorized) || (f === 'mem' && w.memorized) || (f === 'star' && w.important) ||
+     (f === 'due' && isDue(w)) || (f === 'master' && isMastered(w))) &&
     (!q || [w.word, plainYomi(w.yomi), w.meaning, w.example, ...w.tags].some(v => (v || '').toLowerCase().includes(q))));
   const cmp = {
     new: (a, b) => b.created - a.created,
     old: (a, b) => a.created - b.created,
     kana: (a, b) => (plainYomi(a.yomi) || a.word).localeCompare(plainYomi(b.yomi) || b.word, 'ja'),
-    wrong: (a, b) => (b.wrong || 0) - (a.wrong || 0)
+    wrong: (a, b) => (b.wrong || 0) - (a.wrong || 0),
+    due: (a, b) => (a.srs?.due || '9999').localeCompare(b.srs?.due || '9999')
   }[sort];
-  list.sort(cmp);
+  return list.sort(cmp);
+}
+function renderWords() {
+  renderTagSide();
+  if (document.activeElement?.id !== 'fTags') renderPickTags();
+  const list = currentList();
   const mem = S.words.filter(w => w.memorized).length;
   $('#wordCount').textContent = `총 ${S.words.length}개 · 외움 ${mem} · 표시 ${list.length}`;
   const size = S.pageSize, pages = Math.max(1, Math.ceil(list.length / size));
@@ -1141,7 +1306,8 @@ $('#importFile').addEventListener('change', async e => {
       id: w.id || uid(), yomi: w.yomi || '', word: w.word, meaning: w.meaning || '', example: w.example || '',
       memorized: !!w.memorized, important: !!w.important, memorizedAt: w.memorizedAt || null,
       created: w.created || Date.now(), wrong: w.wrong || 0, right: w.right || 0,
-      tags: Array.isArray(w.tags) ? w.tags : []
+      tags: Array.isArray(w.tags) ? w.tags : [],
+      srs: w.srs || (w.memorized ? { lv: 1, due: addDays(w.memorizedAt || dkey(), 1) } : { lv: 0, due: null })
     }));
     if (replace) S.words = clean;
     else { const ids = new Set(S.words.map(w => w.id)); S.words.push(...clean.filter(w => !ids.has(w.id))); }
@@ -1152,6 +1318,138 @@ $('#importFile').addEventListener('change', async e => {
   } catch { toast('파일 형식이 올바르지 않아요'); }
   e.target.value = '';
 });
+
+/* ─────────────── 플래시카드 ─────────────── */
+if (S.autoSpeak === undefined) S.autoSpeak = true;
+let F = null;   // {title, queue:[id], i, flipped, tries:{id:n}, res:{again,hard,good}, againIds:Set}
+function openStudy(words, title) {
+  if (!words.length) return toast('학습할 단어가 없어요');
+  F = { title, queue: words.map(w => w.id), i: 0, flipped: false, tries: {}, res: { again: 0, hard: 0, good: 0 }, againIds: new Set(), total: words.length };
+  $('#stTitle').textContent = title;
+  $('#stAuto').checked = S.autoSpeak;
+  $('#stMain').hidden = false; $('#stDone').hidden = true;
+  $('#study').hidden = false; document.body.classList.add('modal-open');
+  renderCard();
+  $('#fcard').focus();
+}
+function closeStudy() {
+  $('#study').hidden = true; F = null;
+  if ($('#wordModal').hidden && $('#settingsModal').hidden) document.body.classList.remove('modal-open');
+  speechSynthesis?.cancel?.();
+  renderAll();
+}
+function renderCard() {
+  const w = byId(F.queue[F.i]);
+  if (!w) return nextCard();
+  const done = Math.min(F.i, F.queue.length);
+  $('#stProg').textContent = `${done + 1} / ${F.queue.length}`;
+  $('#stBar').style.width = `${done / F.queue.length * 100}%`;
+  const fc = $('#fcard');
+  fc.className = 'fcard'; fc.style.transform = ''; fc.querySelector('.swipe-tint').style.opacity = 0;
+  const state = !w.memorized ? '<span class="tag">새 단어</span>' : isMastered(w) ? '<span class="tag srs master">🏆</span>' : `<span class="tag srs ${isDue(w) ? 'due' : ''}">${w.srs.lv}단계</span>`;
+  $('#fcContent').innerHTML = F.flipped ? `
+      <div class="fc-state">${state}</div>
+      <span class="fc-speak" data-id="${w.id}"><button class="ic" data-act="speak" title="발음 듣기">🔊</button></span>
+      <div class="fc-word">${wordHtml(w)}</div>
+      ${w.yomi ? `<div class="fc-yomi">${esc(plainYomi(w.yomi))}</div>` : ''}
+      <div class="fc-meaning">${esc(w.meaning)}</div>
+      ${w.example ? `<div class="fc-ex" data-id="${w.id}"><button class="ic xs" data-act="speak-ex" title="예문 듣기">🔊</button><span>${esc(w.example)}</span></div>` : ''}
+      ${w.tags.length ? `<div class="fc-tags">${w.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}`
+    : `<div class="fc-state">${state}</div>
+      <div class="fc-word">${esc(w.word)}</div>
+      <div class="fc-hint">뜻과 읽는 법을 떠올려 보고 카드를 눌러요</div>`;
+  $('#stFlip').hidden = F.flipped;
+  $('#stGrades').hidden = !F.flipped;
+  if (F.flipped) {
+    const lab = g => { const p = srsPreview(w, g); return p.again ? '다시 보기' : p.learned ? '내일 복습' : intervalLabel(p.due); };
+    $('#gAgain').textContent = lab('again');
+    $('#gHard').textContent = w.memorized ? lab('hard') : '다시 보기';
+    $('#gGood').textContent = lab('good');
+  }
+}
+function flipCard() {
+  if (!F || F.flipped) return;
+  const fc = $('#fcard');
+  fc.classList.add('flip-out');
+  setTimeout(() => {
+    F.flipped = true; renderCard();
+    const w = byId(F.queue[F.i]);
+    if (S.autoSpeak && w) speak(plainYomi(w.yomi) || w.word);
+  }, 130);
+}
+function gradeCard(g) {
+  if (!F || !F.flipped) return;
+  const w = byId(F.queue[F.i]);
+  if (w) {
+    grade(w, g);
+    F.res[g]++;
+    if (g === 'again') F.againIds.add(w.id);
+    // 모르거나(새 단어는 헷갈려도) → 이번 학습 뒤쪽에 한 번 더 (최대 2번)
+    const again = g === 'again' || (g === 'hard' && !w.memorized);
+    if (again && (F.tries[w.id] = (F.tries[w.id] || 0) + 1) <= 2) F.queue.push(w.id);
+    store.save();
+  }
+  const fc = $('#fcard');
+  fc.classList.add(g === 'good' ? 'fly-right' : 'fly-left');
+  setTimeout(nextCard, 220);
+}
+function nextCard() {
+  F.i++; F.flipped = false;
+  if (F.i >= F.queue.length) return finishStudy();
+  renderCard();
+}
+function finishStudy() {
+  $('#stBar').style.width = '100%';
+  $('#stProg').textContent = '';
+  $('#stMain').hidden = true; $('#stDone').hidden = false;
+  $('#stSum').innerHTML = `<span style="color:#ef7b8b"><b>${F.res.again}</b>모름</span><span style="color:#d9952a"><b>${F.res.hard}</b>헷갈림</span><span style="color:var(--success)"><b>${F.res.good}</b>앎</span>`;
+  const ag = [...F.againIds].map(byId).filter(Boolean);
+  $('#stAgainList').innerHTML = ag.length ? `<div class="muted" style="font-size:11px; margin-bottom:4px; text-align:left">모름으로 답한 단어</div>` + listHtml(ag, {}, '') : '';
+  $('#stRetry').hidden = !ag.length;
+}
+$('#fcard').addEventListener('click', e => { if (!e.target.closest('[data-act]') && !F?.dragged) flipCard(); });
+$('#stFlip').addEventListener('click', flipCard);
+$('#stGrades').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (b) gradeCard(b.dataset.g); });
+$('#stClose').addEventListener('click', closeStudy);
+$('#stEnd').addEventListener('click', closeStudy);
+$('#stRetry').addEventListener('click', () => openStudy([...F.againIds].map(byId).filter(Boolean), F.title + ' · 다시'));
+$('#stAuto').addEventListener('change', e => { S.autoSpeak = e.target.checked; store.save(); });
+document.addEventListener('keydown', e => {
+  if ($('#study').hidden || !F) return;
+  if (e.key === 'Escape') return closeStudy();
+  if ($('#stMain').hidden) return;
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); F.flipped ? gradeCard('good') : flipCard(); }
+  const g = { 1: 'again', 2: 'hard', 3: 'good' }[e.key];
+  if (g) gradeCard(g);
+});
+// 스와이프: 뒤집은 뒤 ← 모름 / → 앎
+(() => {
+  const fc = $('#fcard'); let x0 = null, dx = 0;
+  fc.addEventListener('pointerdown', e => { if (!F?.flipped || e.target.closest('[data-act]')) return; x0 = e.clientX; dx = 0; F.dragged = false; fc.classList.add('dragging'); });
+  fc.addEventListener('pointermove', e => {
+    if (x0 === null) return;
+    dx = e.clientX - x0;
+    if (Math.abs(dx) > 6) F.dragged = true;
+    fc.style.transform = `translateX(${dx}px) rotate(${dx / 25}deg)`;
+    const t = fc.querySelector('.swipe-tint');
+    t.style.background = dx > 0 ? 'rgba(76,175,138,.18)' : 'rgba(239,123,139,.18)';
+    t.style.opacity = Math.min(1, Math.abs(dx) / 100);
+  });
+  const end = () => {
+    if (x0 === null) return;
+    x0 = null; fc.classList.remove('dragging');
+    if (Math.abs(dx) > 90) gradeCard(dx > 0 ? 'good' : 'again');
+    else { fc.style.transform = ''; fc.querySelector('.swipe-tint').style.opacity = 0; }
+    setTimeout(() => { if (F) F.dragged = false; }, 0);
+  };
+  fc.addEventListener('pointerup', end); fc.addEventListener('pointercancel', end); fc.addEventListener('pointerleave', end);
+})();
+$('#startReview').addEventListener('click', () => {
+  const due = shuffle(S.words.filter(w => isDue(w)));
+  openStudy(due, '🔁 오늘 복습');
+});
+$('#cardToday').addEventListener('click', () => openStudy(pickToday().map(byId).filter(Boolean), '✏️ 오늘 외울 단어'));
+$('#cardList').addEventListener('click', () => openStudy(currentList(), '📚 ' + (listTag === NO_TAG ? '태그 없음' : listTag || '내 단어')));
 
 /* ─────────────── 설정 · 태그 관리 ─────────────── */
 function openSettings(tab = 'tags') {
@@ -1248,7 +1546,7 @@ let quizTag = '';
 $('#quizTag').addEventListener('change', e => { quizTag = e.target.value; renderQuizSetup(); });
 function quizPool() {
   return S.words.filter(w => inTag(w, quizTag) && ({
-    all: true, todo: !w.memorized, star: w.important, wrong: (w.wrong || 0) > 0
+    all: true, todo: !w.memorized, star: w.important, wrong: (w.wrong || 0) > 0, due: isDue(w)
   })[opts.range]);
 }
 function renderQuizSetup() {
@@ -1326,6 +1624,9 @@ function renderQ() {
 function judge(ok, w, it) {
   if (ok) { Q.right++; w.right = (w.right || 0) + 1; }
   else { Q.wrongIds.push(w.id); w.wrong = (w.wrong || 0) + 1; }
+  // 복습 일정 반영: 외운 단어를 틀리면 내일 다시, 복습일이 된 단어를 맞히면 다음 단계로
+  if (!ok && w.memorized) grade(w, 'again');
+  else if (ok && isDue(w)) grade(w, 'good');
   store.save();
   $('#qScore').textContent = `정답 ${Q.right}`;
   $('#qAfter').innerHTML = `${ok ? '<b style="color:var(--success)">⭕ 정답!</b>' : '<b style="color:var(--danger)">❌ 오답</b>'}
