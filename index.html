@@ -538,6 +538,61 @@
   .pl-row .ic { width: 22px; height: 22px; font-size: 10px; }
   .pl-row .ic:disabled { opacity: .3; cursor: default; }
 
+  /* ── 노트패드 ── */
+  .notes-layout { display: grid; grid-template-columns: 170px 1fr; gap: 12px; align-items: start; }
+  .note-main { margin-bottom: 0; min-width: 0; }
+  .note-side {
+    position: sticky; top: 92px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 8px 6px; box-shadow: var(--shadow); max-height: calc(100vh - 92px - var(--player-h) - 20px); overflow-y: auto;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .note-item { display: flex; flex-direction: column; align-items: stretch; width: 100%; text-align: left; border: none; background: none; padding: 6px 8px; border-radius: 8px; color: var(--text2); min-width: 0; }
+  .note-item .t { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .note-item .d { font-size: 9px; color: var(--text3); }
+  .note-item:hover { background: var(--accent-light); }
+  .note-item.on { background: var(--accent); color: #fff; font-weight: 700; }
+  .note-item.on .d { color: #ffe6ee; }
+  .note-item.new { flex-direction: row; gap: 4px; font-size: 12px; font-weight: 700; color: var(--accent-dark); border: 1px dashed var(--accent); margin-bottom: 4px; justify-content: center; }
+  .note-empty { text-align: center; padding: 40px 10px; display: flex; flex-direction: column; gap: 8px; align-items: center; font-size: 13px; }
+  .note-empty[hidden], #noteEd[hidden] { display: none; }
+  .note-head { display: flex; gap: 6px; align-items: center; }
+  .note-head input { flex: 1; min-width: 0; border: none; border-bottom: 1.5px solid var(--border); padding: 6px 2px; font-size: 16px; font-weight: 700; background: transparent; }
+  .note-head input:focus { outline: none; border-bottom-color: var(--accent); }
+  .note-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
+  .note-meta { font-size: 10px; color: var(--text3); }
+  .note-text {
+    width: 100%; min-height: 60vh; resize: vertical; border: 1px solid var(--border); border-radius: 12px;
+    padding: 6px 12px; font-size: 14px; line-height: 28px; color: var(--text);
+    background: #fff repeating-linear-gradient(to bottom, transparent 0 27px, #f6dde5 27px 28px);
+    background-attachment: local; background-position: 0 6px;
+  }
+  .note-text:focus { outline: none; border-color: var(--accent); }
+  .draw-tools { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-bottom: 8px; }
+  .dgrp { display: flex; gap: 4px; align-items: center; }
+  .dcol { width: 24px; height: 24px; border-radius: 99px; border: 2px solid #fff; background: var(--c); box-shadow: 0 0 0 1px var(--border); }
+  .dcol.on { box-shadow: 0 0 0 2px var(--accent); }
+  .dsz { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); display: inline-flex; align-items: center; justify-content: center; }
+  .dsz i { display: block; width: var(--d); height: var(--d); border-radius: 99px; background: var(--text2); }
+  .dsz.on { border-color: var(--accent); background: var(--accent-light); }
+  .dtool { height: 28px; min-width: 28px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-size: 12px; color: var(--text2); }
+  .dtool.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .dtool:disabled { opacity: .35; }
+  .draw-wrap {
+    border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    background: #fff repeating-linear-gradient(to bottom, transparent 0 31px, #f6dde5 31px 32px);
+  }
+  .draw-wrap canvas { display: block; touch-action: none; cursor: crosshair; }
+  .draw-wrap.erase canvas { cursor: cell; }
+  .draw-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px; font-size: 10px; }
+  @media (max-width: 720px) {
+    .notes-layout { grid-template-columns: 1fr; }
+    .note-side { position: static; max-height: none; flex-direction: row; overflow-x: auto; padding: 6px; gap: 4px; }
+    .note-item { width: auto; max-width: 150px; flex-shrink: 0; padding: 5px 10px; border-radius: 99px; }
+    .note-item .d { display: none; }
+    .note-item.new { margin-bottom: 0; border-radius: 99px; }
+    .note-text { min-height: 55vh; }
+  }
+
   /* ── 팝업 ── */
   .modal {
     position: fixed; inset: 0; z-index: 80;
@@ -598,6 +653,7 @@
       <button class="tab active" data-tab="home">홈</button>
       <button class="tab" data-tab="words">단어목록</button>
       <button class="tab" data-tab="quiz">단어퀴즈</button>
+      <button class="tab" data-tab="notes">노트패드</button>
     </nav>
   </div>
 </header>
@@ -772,6 +828,61 @@
         <button class="btn primary" id="backSetup">새 퀴즈</button>
       </div>
     </div>
+  </section>
+  <!-- ═══════════ 노트패드 ═══════════ -->
+  <section class="page" id="page-notes">
+  <div class="notes-layout">
+    <aside class="note-side" id="noteSide"></aside>
+    <div class="card note-main">
+      <div id="noteEmpty" class="note-empty">
+        <div style="font-size:30px">📓</div>
+        <div>아직 노트가 없어요</div>
+        <div class="muted" style="font-size:11px">글로 적거나, 손가락·펜·마우스로 직접 써서 필기할 수 있어요</div>
+        <button class="btn primary" id="noteNew2">➕ 새 노트 만들기</button>
+      </div>
+      <div id="noteEd" hidden>
+        <div class="note-head">
+          <input id="noteTitle" placeholder="제목 (비워두면 첫 줄이 제목이 돼요)" maxlength="60" autocomplete="off">
+          <button class="ic" id="noteDel" title="이 노트 삭제" style="color:var(--danger)">🗑</button>
+        </div>
+        <div class="note-bar">
+          <div class="seg note-mode" id="noteMode">
+            <button data-m="text" class="on">📝 텍스트</button>
+            <button data-m="draw">✏️ 손글씨</button>
+          </div>
+          <span class="note-meta" id="noteMeta"></span>
+        </div>
+        <textarea id="noteText" class="note-text jp" placeholder="여기에 자유롭게 적어요. 자동으로 저장돼요."></textarea>
+        <div id="noteDraw" hidden>
+          <div class="draw-tools" id="drawTools">
+            <div class="dgrp">
+              <button class="dcol on" data-c="#4a3a40" style="--c:#4a3a40" title="검정"></button>
+              <button class="dcol" data-c="#e8739a" style="--c:#e8739a" title="분홍"></button>
+              <button class="dcol" data-c="#e5484d" style="--c:#e5484d" title="빨강"></button>
+              <button class="dcol" data-c="#3f7fd9" style="--c:#3f7fd9" title="파랑"></button>
+              <button class="dcol" data-c="#2f9e6a" style="--c:#2f9e6a" title="초록"></button>
+            </div>
+            <div class="dgrp">
+              <button class="dsz" data-s="2" title="가늘게"><i style="--d:3px"></i></button>
+              <button class="dsz on" data-s="4" title="보통"><i style="--d:6px"></i></button>
+              <button class="dsz" data-s="8" title="굵게"><i style="--d:10px"></i></button>
+            </div>
+            <div class="dgrp">
+              <button class="dtool" id="drawEraser" title="지우개">🧽 지우개</button>
+              <button class="dtool" id="drawUndo" title="되돌리기 (Ctrl+Z)">↶</button>
+              <button class="dtool" id="drawRedo" title="다시하기 (Ctrl+Y)">↷</button>
+              <button class="dtool" id="drawClear" title="손글씨 전체 지우기">🗑</button>
+            </div>
+          </div>
+          <div class="draw-wrap" id="drawWrap"><canvas id="drawCanvas"></canvas></div>
+          <div class="draw-foot">
+            <span class="muted">폰에서는 두 손가락으로 밀면 위아래로 움직여요</span>
+            <button class="btn sm" id="drawMore">➕ 종이 늘리기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   </section>
 </main>
 
@@ -1105,6 +1216,7 @@ const store = {
   sync: {}                                    // 동기화 상태 (아래 클라우드 동기화 참고)
 };
 const S = Object.assign({
+  notes: [],          // 노트패드 {id, title, text, strokes, h, created, mt}
   words: [],          // {id, yomi, word, meaning, example, tags, memorized, important, memorizedAt, created, wrong, right, srs:{lv, due, last}}
   goal: 5,
   today: null,        // {date, ids}
@@ -1700,7 +1812,7 @@ function addSamples() {
   store.save(); renderAll(); toast('예시 단어를 추가했어요');
 }
 $('#exportBtn').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify({ words: S.words, goal: S.goal, tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, reviewLog: S.reviewLog, quizLog: S.quizLog }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ words: S.words, notes: S.notes, goal: S.goal, tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, reviewLog: S.reviewLog, quizLog: S.quizLog }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `일본어단어장_${dkey()}.json`;
@@ -1728,6 +1840,10 @@ $('#importFile').addEventListener('change', async e => {
     if (data.reviewLog) S.reviewLog = replace ? data.reviewLog : { ...data.reviewLog, ...S.reviewLog };
     if (data.quizLog) S.quizLog = replace ? data.quizLog : { ...data.quizLog, ...S.quizLog };
     if (Array.isArray(data.tags)) S.tags = replace ? [...data.tags] : [...new Set([...S.tags, ...data.tags])];
+    if (Array.isArray(data.notes)) {
+      const nids = new Set(S.notes.map(n => n.id));
+      S.notes = replace ? data.notes : [...S.notes, ...data.notes.filter(n => !nids.has(n.id))];
+    }
     if (Array.isArray(data.folders)) S.folders = replace ? [...data.folders] : [...new Set([...S.folders, ...data.folders])];
     if (data.tagFolder && typeof data.tagFolder === 'object') S.tagFolder = replace ? { ...data.tagFolder } : { ...data.tagFolder, ...S.tagFolder };
     S.today = null; S.starPick = null;
@@ -2367,6 +2483,207 @@ $('#resetWords').addEventListener('click', async () => {
   if (v === 'tag' && listTag === tagSel && keepTags && tagSel === NO_TAG) listTag = '';
   store.save(); renderTagRows(); renderAll();
   toast(`단어 ${del}개를 삭제했어요`);
+});
+
+/* ─────────────── 노트패드 ─────────────── */
+// note: {id, title, text, strokes:[{c, w, e?, p:[x,y,x,y…]}], h, created, mt}
+// 손글씨는 가로 1000 기준 좌표로 저장 → 화면 크기와 상관없이 같은 모양
+if (!Array.isArray(S.notes)) S.notes = [];
+const NW = 1000, NOTE_H = 1400;
+const N = { color: '#4a3a40', size: 4, eraser: false, redo: [], drawing: null, pointers: new Map(), shown: null, k: 1 };
+const curNote = () => S.notes.find(n => n.id === S.noteCur);
+const noteName = n => (n.title || '').trim() || (n.text || '').trim().split('\n')[0].slice(0, 40) || (n.strokes?.length ? '✏️ 손글씨 노트' : '빈 노트');
+function noteDate(t) {
+  if (!t) return '';
+  const d = new Date(t), today = dkey();
+  return dkey(d) === today ? `오늘 ${pad(d.getHours())}:${pad(d.getMinutes())}` : `${d.getMonth() + 1}/${d.getDate()}`;
+}
+function renderNoteSide() {
+  const list = [...S.notes].sort((a, b) => (b.mt || b.created || 0) - (a.mt || a.created || 0));
+  $('#noteSide').innerHTML = `<button class="note-item new" data-note-new>➕ 새 노트</button>` +
+    list.map(n => `<button class="note-item ${n.id === S.noteCur ? 'on' : ''}" data-note="${esc(n.id)}" title="${esc(noteName(n))}">
+      <span class="t">${n.strokes?.length ? '✏️ ' : ''}${esc(noteName(n))}</span><span class="d">${noteDate(n.mt || n.created)}</span></button>`).join('');
+}
+function renderNotes() {
+  if (S.noteCur && !curNote()) S.noteCur = null;
+  if (!S.noteCur && S.notes.length) S.noteCur = [...S.notes].sort((a, b) => (b.mt || 0) - (a.mt || 0))[0].id;
+  renderNoteSide();
+  const n = curNote();
+  $('#noteEmpty').hidden = !!n; $('#noteEd').hidden = !n;
+  if (!n) { N.shown = null; return; }
+  // 입력 중인 칸은 건드리지 않기
+  if (document.activeElement !== $('#noteTitle')) $('#noteTitle').value = n.title || '';
+  if (document.activeElement !== $('#noteText')) $('#noteText').value = n.text || '';
+  if (N.shown !== n.id) { N.shown = n.id; N.redo = []; }
+  setNoteMode(S.noteMode || 'text', true);
+  $('#noteMeta').textContent = n.mt ? `저장됨 · ${noteDate(n.mt)}` : '';
+}
+function newNote() {
+  const n = { id: uid(), title: '', text: '', strokes: [], h: NOTE_H, created: Date.now(), mt: Date.now() };
+  S.notes.push(n); S.noteCur = n.id;
+  store.save(); renderNotes();
+  if ((S.noteMode || 'text') === 'text') $('#noteText').focus(); else $('#noteTitle').focus();
+}
+let noteSaveT;
+function touchNote(n, now = false) {
+  n.mt = Date.now();
+  $('#noteMeta').textContent = '저장 중…';
+  clearTimeout(noteSaveT);
+  const go = () => { store.save(); renderNoteSide(); $('#noteMeta').textContent = `저장됨 · ${noteDate(n.mt)}`; };
+  if (now) go(); else noteSaveT = setTimeout(go, 500);
+}
+$('#noteSide').addEventListener('click', e => {
+  if (e.target.closest('[data-note-new]')) return newNote();
+  const b = e.target.closest('[data-note]'); if (!b) return;
+  clearTimeout(noteSaveT); store.save();
+  S.noteCur = b.dataset.note; renderNotes();
+});
+$('#noteNew2').addEventListener('click', newNote);
+$('#noteTitle').addEventListener('input', e => { const n = curNote(); if (n) { n.title = e.target.value; touchNote(n); } });
+$('#noteText').addEventListener('input', e => { const n = curNote(); if (n) { n.text = e.target.value; touchNote(n); } });
+$('#noteTitle').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); (S.noteMode === 'draw' ? $('#noteTitle') : $('#noteText')).focus(); } });
+$('#noteDel').addEventListener('click', async () => {
+  const n = curNote(); if (!n) return;
+  const empty = !(n.text || '').trim() && !n.strokes?.length && !(n.title || '').trim();
+  if (!empty) {
+    const v = await ask({
+      title: `'${noteName(n)}' 노트를 삭제할까요?`,
+      html: `적은 글${n.strokes?.length ? '과 손글씨' : ''}이 모두 지워지고 되돌릴 수 없어요.` + syncWarn(),
+      choices: [{ v: 'del', label: '🗑 노트 삭제', cls: 'solid-danger' }]
+    });
+    if (!v) return;
+  }
+  S.notes = S.notes.filter(x => x.id !== n.id); S.noteCur = null;
+  store.save(); renderNotes(); toast('노트를 삭제했어요');
+});
+function setNoteMode(m, quiet) {
+  S.noteMode = m;
+  $$('#noteMode button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+  $('#noteText').hidden = m !== 'text'; $('#noteDraw').hidden = m !== 'draw';
+  if (m === 'draw') requestAnimationFrame(sizeCanvas);
+  if (!quiet) store.save();
+}
+$('#noteMode').addEventListener('click', e => {
+  const b = e.target.closest('[data-m]'); if (!b) return;
+  setNoteMode(b.dataset.m);
+  if (b.dataset.m === 'text') $('#noteText').focus();
+});
+
+// ── 손글씨 ──
+const cv = $('#drawCanvas'), cx = cv.getContext('2d');
+function sizeCanvas() {
+  const n = curNote(), wrap = $('#drawWrap');
+  if (!n || $('#noteDraw').hidden) return;
+  const cssW = wrap.clientWidth; if (!cssW) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2), cssH = Math.round((n.h || NOTE_H) * cssW / NW);
+  cv.style.width = cssW + 'px'; cv.style.height = cssH + 'px';
+  const W = Math.round(cssW * dpr), H = Math.round(cssH * dpr);
+  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+  N.k = cssW * dpr / NW;
+  redraw();
+}
+new ResizeObserver(() => sizeCanvas()).observe($('#drawWrap'));
+function strokeStyle(s) {
+  cx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+  cx.strokeStyle = s.e ? '#000' : s.c; cx.lineWidth = s.w; cx.lineCap = 'round'; cx.lineJoin = 'round';
+}
+function drawStroke(s) {
+  const p = s.p; if (!p || p.length < 2) return;
+  strokeStyle(s); cx.beginPath(); cx.moveTo(p[0], p[1]);
+  if (p.length === 2) cx.lineTo(p[0] + .01, p[1]);
+  for (let i = 2; i < p.length - 2; i += 2) cx.quadraticCurveTo(p[i], p[i + 1], (p[i] + p[i + 2]) / 2, (p[i + 1] + p[i + 3]) / 2);
+  if (p.length > 2) cx.lineTo(p[p.length - 2], p[p.length - 1]);
+  cx.stroke();
+}
+function redraw() {
+  const n = curNote();
+  cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height);
+  cx.setTransform(N.k, 0, 0, N.k, 0, 0);
+  (n?.strokes || []).forEach(drawStroke);
+  if (N.drawing) drawStroke(N.drawing);
+  cx.globalCompositeOperation = 'source-over';
+  $('#drawUndo').disabled = !n?.strokes?.length; $('#drawRedo').disabled = !N.redo.length;
+}
+const toV = e => { const r = cv.getBoundingClientRect(), f = NW / r.width;
+  return [Math.round((e.clientX - r.left) * f * 10) / 10, Math.round((e.clientY - r.top) * f * 10) / 10]; };
+const avgY = () => { const v = [...N.pointers.values()]; return v.reduce((a, b) => a + b.y, 0) / v.length; };
+cv.addEventListener('pointerdown', e => {
+  N.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, touch: e.pointerType === 'touch' });
+  if (e.pointerType === 'touch' && [...N.pointers.values()].filter(p => p.touch).length >= 2) {
+    // 두 손가락 = 화면 이동 (그리던 획은 취소)
+    if (N.drawing) { N.drawing = null; redraw(); }
+    N.panY = avgY(); return;
+  }
+  if (e.button > 0 || N.drawing) return;
+  e.preventDefault();
+  cv.setPointerCapture?.(e.pointerId);
+  const [x, y] = toV(e);
+  N.drawing = { c: N.color, w: N.eraser ? N.size * 5 : N.size, p: [x, y], pid: e.pointerId };
+  if (N.eraser) N.drawing.e = 1;
+  redraw();
+});
+cv.addEventListener('pointermove', e => {
+  if (N.pointers.has(e.pointerId)) N.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, touch: e.pointerType === 'touch' });
+  if (N.panY != null && N.pointers.size >= 2) { const y = avgY(); window.scrollBy(0, N.panY - y); N.panY = y; return; }
+  const d = N.drawing; if (!d || e.pointerId !== d.pid) return;
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  cx.setTransform(N.k, 0, 0, N.k, 0, 0); strokeStyle(d);
+  for (const ev of (evs.length ? evs : [e])) {
+    const [x, y] = toV(ev), lx = d.p[d.p.length - 2], ly = d.p[d.p.length - 1];
+    if (Math.hypot(x - lx, y - ly) < 1.2) continue;
+    d.p.push(x, y);
+    cx.beginPath(); cx.moveTo(lx, ly); cx.lineTo(x, y); cx.stroke();
+  }
+  cx.globalCompositeOperation = 'source-over';
+});
+function endPointer(e) {
+  N.pointers.delete(e.pointerId);
+  if (N.pointers.size < 2) N.panY = null;
+  const d = N.drawing; if (!d || e.pointerId !== d.pid) return;
+  N.drawing = null;
+  const n = curNote(); if (!n) return;
+  delete d.pid;
+  (n.strokes = n.strokes || []).push(d); N.redo = [];
+  redraw(); touchNote(n, true);
+}
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => cv.addEventListener(t, endPointer));
+$('#drawTools').addEventListener('click', e => {
+  const col = e.target.closest('[data-c]'), sz = e.target.closest('[data-s]');
+  if (col) { N.color = col.dataset.c; N.eraser = false; }
+  if (sz) N.size = +sz.dataset.s;
+  if (col || sz) {
+    $$('.dcol').forEach(b => b.classList.toggle('on', b.dataset.c === N.color && !N.eraser));
+    $$('.dsz').forEach(b => b.classList.toggle('on', +b.dataset.s === N.size));
+    $('#drawEraser').classList.toggle('on', N.eraser); $('#drawWrap').classList.toggle('erase', N.eraser);
+  }
+});
+$('#drawEraser').addEventListener('click', () => {
+  N.eraser = !N.eraser;
+  $('#drawEraser').classList.toggle('on', N.eraser); $('#drawWrap').classList.toggle('erase', N.eraser);
+  $$('.dcol').forEach(b => b.classList.toggle('on', b.dataset.c === N.color && !N.eraser));
+});
+function drawUndo() { const n = curNote(); if (!n?.strokes?.length) return; N.redo.push(n.strokes.pop()); redraw(); touchNote(n, true); }
+function drawRedo() { const n = curNote(); if (!n || !N.redo.length) return; n.strokes.push(N.redo.pop()); redraw(); touchNote(n, true); }
+$('#drawUndo').addEventListener('click', drawUndo);
+$('#drawRedo').addEventListener('click', drawRedo);
+document.addEventListener('keydown', e => {
+  if (!$('#page-notes').classList.contains('active') || $('#noteDraw').hidden || !(e.ctrlKey || e.metaKey)) return;
+  if (e.target.matches('input, textarea')) return;
+  const k = e.key.toLowerCase();
+  if (k === 'z' && !e.shiftKey) { e.preventDefault(); drawUndo(); }
+  else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); drawRedo(); }
+});
+$('#drawClear').addEventListener('click', async () => {
+  const n = curNote(); if (!n?.strokes?.length) return toast('지울 손글씨가 없어요');
+  const v = await ask({ title: '손글씨를 전부 지울까요?', html: '이 노트의 손글씨가 모두 지워져요. (텍스트는 그대로 남아요)<br>지운 직후에는 ↶ 로 되돌릴 수 있어요.',
+    choices: [{ v: 'clear', label: '🗑 손글씨 전체 지우기', cls: 'solid-danger' }] });
+  if (!v) return;
+  N.redo = [...n.strokes].reverse(); n.strokes = [];
+  redraw(); touchNote(n, true);
+});
+$('#drawMore').addEventListener('click', () => {
+  const n = curNote(); if (!n) return;
+  n.h = (n.h || NOTE_H) + 700; sizeCanvas(); touchNote(n, true); toast('종이를 늘렸어요');
 });
 
 /* ─────────────── 퀴즈 ─────────────── */
@@ -3090,6 +3407,7 @@ function metaOf() {
 const logsSig = () => JSON.stringify([S.reviewLog, S.quizLog]);
 function trackBaseline() {
   SY.sig = new Map(S.words.map(w => [w.id, wordSig(w)]));
+  SY.nsig = new Map(S.notes.map(n => [n.id, wordSig(n)]));
   SY.meta = JSON.stringify(metaOf());
   SY.logs = logsSig();
 }
@@ -3102,6 +3420,14 @@ function trackChanges() {
     if (SY.sig.get(w.id) !== sg) { w.mt = now; SY.sig.set(w.id, sg); SY.dirty = true; }
   }
   for (const id of [...SY.sig.keys()]) if (!seen.has(id)) { SY.sig.delete(id); S.deleted[id] = now; SY.dirty = true; }
+  if (!SY.nsig) SY.nsig = new Map();
+  const nseen = new Set();
+  for (const n of S.notes) {
+    nseen.add(n.id);
+    const sg = wordSig(n);
+    if (SY.nsig.get(n.id) !== sg) { if (SY.nsig.has(n.id) || !n.mt) n.mt = Math.max(now, n.mt || 0); SY.nsig.set(n.id, sg); SY.dirty = true; }
+  }
+  for (const id of [...SY.nsig.keys()]) if (!nseen.has(id)) { SY.nsig.delete(id); S.deleted[id] = now; SY.dirty = true; }
   const ms = JSON.stringify(metaOf());
   if (ms !== SY.meta) { SY.meta = ms; S.metaMt = now; SY.dirty = true; }
   const ls = logsSig();
@@ -3111,7 +3437,7 @@ function onLocalSaved() { if (SY.dirty && sbUser) schedulePush(); }
 
 // ── 합치기 ──
 function payload() {
-  return { v: 1, words: S.words, deleted: S.deleted, reviewLog: S.reviewLog, quizLog: S.quizLog, meta: metaOf(), metaMt: S.metaMt || 0 };
+  return { v: 1, words: S.words, notes: S.notes, deleted: S.deleted, reviewLog: S.reviewLog, quizLog: S.quizLog, meta: metaOf(), metaMt: S.metaMt || 0 };
 }
 function maxMerge(a = {}, b = {}) {
   const o = { ...a };
@@ -3130,9 +3456,15 @@ function mergePayload(L, R) {
   }
   const words = [...byId.values()].filter(w => !(deleted[w.id] >= (w.mt || 0)))
     .sort((a, b) => (a.created || 0) - (b.created || 0));
+  const nById = new Map();
+  for (const n of [...(R.notes || []), ...(L.notes || [])]) {
+    const cur = nById.get(n.id);
+    if (!cur || (n.mt || 0) >= (cur.mt || 0)) nById.set(n.id, n);
+  }
+  const notes = [...nById.values()].filter(n => !(deleted[n.id] >= (n.mt || 0)));
   const remoteMeta = (R.metaMt || 0) > (L.metaMt || 0);
   return {
-    v: 1, words, deleted,
+    v: 1, words, notes, deleted,
     reviewLog: maxMerge(L.reviewLog, R.reviewLog), quizLog: maxMerge(L.quizLog, R.quizLog),
     meta: remoteMeta ? R.meta : L.meta, metaMt: Math.max(L.metaMt || 0, R.metaMt || 0)
   };
@@ -3140,6 +3472,7 @@ function mergePayload(L, R) {
 function applyPayload(P) {
   S.words = P.words.map(w => ({ tags: [], ...w, tags: Array.isArray(w.tags) ? w.tags : [] }));
   S.words.forEach(w => { if (!w.srs) w.srs = w.memorized ? { lv: 1, due: addDays(w.memorizedAt || dkey(), 1) } : { lv: 0, due: null }; });
+  if (Array.isArray(P.notes)) S.notes = P.notes.map(n => ({ title: '', text: '', strokes: [], h: NOTE_H, ...n }));
   S.deleted = P.deleted; S.reviewLog = P.reviewLog; S.quizLog = P.quizLog; S.metaMt = P.metaMt;
   const m = P.meta || {};
   if (Array.isArray(m.tags)) S.tags = m.tags;
@@ -3160,6 +3493,7 @@ function applyPayload(P) {
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
   $('#pageSize').value = S.pageSize;
   renderAll(); renderPlaylist(); renderTagRows();
+  if ($('#page-notes').classList.contains('active')) { renderNotes(); if (!$('#noteDraw').hidden) redraw(); }
 }
 
 // ── 서버와 주고받기: 받아서 → 합치고 → 달라졌으면 올리기 ──
@@ -3360,6 +3694,7 @@ function connectSync() {
 /* ─────────────── 시작 ─────────────── */
 function renderAll() {
   renderHome(); renderWords(); renderQuizSetup();
+  if ($('#page-notes').classList.contains('active')) renderNotes();
   if (Q && $('#quizResult').style.display !== 'none') renderResultWrong();
 }
 initPlayer();
