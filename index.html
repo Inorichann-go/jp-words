@@ -2658,8 +2658,10 @@ async function syncNow() {
       if (/PGRST303|issued at future/i.test(et)) {
         const sk = await clockSkew();
         // 방금 받은 로그인 정보라면 차이가 수십 초 이내여야 정상
-        if (sk !== null && Math.abs(sk) > 60) msg = `이 PC의 시간 설정이 맞지 않아요 · ${skewText(sk)}.\n` +
-          `윈도우: 설정 → 시간 및 언어 → 날짜 및 시간 → '자동으로 시간 설정'·'자동으로 표준 시간대 설정' 켜기 (또는 표준 시간대를 (UTC+09:00) 서울로) → '지금 동기화'. 그다음 이 화면에서 로그아웃 후 다시 로그인해 주세요\n(오류 원문: ${et})`;
+        if (sk !== null && Math.abs(sk) > 60) msg = `기기와 Supabase 서버의 시계가 맞지 않아요 · ${skewText(sk)}.\n` +
+          `① https://time.is 에서 이 기기 시간이 정확한지 확인 (틀리면 윈도우 설정 → 시간 및 언어 → 자동으로 시간·표준 시간대 설정 켜기)\n` +
+          `② 기기 시간이 정확하면 Supabase 서버 쪽 문제예요 → Supabase 프로젝트 Settings → General → Restart project\n` +
+          `③ 그다음 이 화면에서 로그아웃 후 다시 로그인\n(오류 원문: ${et})`;
         else if (sk !== null) msg += ` · 시계 차이 ${sk}초`;
       }
       setSync('err', msg);
@@ -2693,7 +2695,7 @@ function syncErrMsg(e) {
   const m = errText(e);
   const why = /relation .* does not exist|Could not find the table|PGRST205|42P01/i.test(m) ? 'Supabase에 jp_words_data 표가 없어요 (SQL 실행 필요)'
     : /permission denied|42501|row-level security/i.test(m) ? '표 권한(보안 규칙)이 없어요 (SQL을 다시 실행해 주세요)'
-    : /PGRST303|issued at future/i.test(m) ? 'Supabase 서버 시간이 맞지 않아 거절됐어요. 이 PC의 날짜·시간이 정확한지 확인하고 잠시 뒤 [지금 동기화]를 눌러 주세요'
+    : /PGRST303|issued at future/i.test(m) ? '서버 시간이 맞지 않아 거절됐어요. 잠시 뒤 [지금 동기화]를 눌러 보고, 계속되면 Supabase 프로젝트를 재시작(Settings → General → Restart project)해 주세요'
     : JWT_ERR.test(m) ? '로그인 정보가 거절됐어요. 로그아웃 후 다시 로그인해 주세요'
     : /fetch|network/i.test(m) ? '인터넷 연결을 확인해 주세요'
     : '동기화 중 오류가 났어요';
