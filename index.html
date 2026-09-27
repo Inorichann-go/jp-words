@@ -159,6 +159,7 @@
   .ic.xs { width: 18px; height: 18px; font-size: 9px; border-radius: 5px; flex-shrink: 0; margin-top: 1px; }
   .tags { display: inline-flex; flex-wrap: nowrap; gap: 3px; flex-shrink: 0; margin-left: auto; }
   .acts { display: flex; gap: 3px; flex-shrink: 0; align-items: center; }
+  .words-main .card-h .acts { flex-wrap: wrap; flex-shrink: 1; row-gap: 4px; }
   /* 목록 너비 기준으로 좁으면 태그 숨기고 버튼 2줄 (홈의 반쪽 카드 포함) */
   .wlist { container-type: inline-size; }
   @container (max-width: 540px) {
@@ -530,6 +531,16 @@
   @keyframes fade { from { opacity: 0; } }
   @keyframes pop { from { opacity: 0; transform: translateY(10px) scale(.98); } }
   body.modal-open { overflow: hidden; }
+  .ask-modal { z-index: 85; }
+  .ask-box { max-width: 360px; }
+  .ask-title { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .ask-body { font-size: 12px; line-height: 1.6; color: var(--text2); }
+  .ask-body b { color: var(--text); }
+  .ask-body .warn { margin-top: 8px; padding: 7px 9px; border-radius: 8px; background: #fff1f3; color: var(--danger); font-size: 11px; }
+  .ask-body label { display: flex; gap: 6px; align-items: center; margin-top: 8px; font-size: 11px; cursor: pointer; }
+  .ask-btns { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+  .ask-btns .btn { width: 100%; justify-content: center; padding: 8px; }
+  .btn.solid-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
 
   .toast {
     position: fixed; left: 50%; bottom: calc(var(--player-h) + 16px); transform: translateX(-50%);
@@ -631,6 +642,7 @@
           <button class="btn sm" id="cardList" title="지금 보이는 목록(필터 적용)으로 카드 학습">🃏 카드</button>
           <button class="btn sm" id="listenList" title="듣기 모드">🎧 듣기</button>
           <button class="btn sm" data-toggle-hide="list">뜻 가리기</button>
+          <button class="btn sm danger" id="resetWords" title="단어 지우기 (확인 후 삭제)">🗑 초기화</button>
         </div>
       </div>
       <div class="toolbar">
@@ -910,7 +922,7 @@
       <div class="muted" style="font-size:10px; margin-top:8px; line-height:1.6">
         · 이름을 눌러 바로 고칠 수 있어요 (Enter로 저장). 같은 이름으로 바꾸면 두 태그가 합쳐져요.<br>
         · ↑↓ 로 순서를 바꾸면 단어목록 왼쪽 메뉴에도 그 순서로 보여요.<br>
-        · 태그를 삭제해도 단어는 지워지지 않아요.
+        · 🗑 를 누르면 <b>태그만 지울지</b>, <b>그 태그의 단어까지 모두 지울지</b> 고를 수 있어요.
       </div>
     </div>
     <div class="spane" data-spane="sync" hidden>
@@ -1030,6 +1042,13 @@
     <button class="pbtn opt" id="pRepeat" title="반복">🔁</button>
     <button class="pbtn opt" id="pShow" title="영상 보기">📺</button>
     <button class="pbtn" id="pListBtn" title="재생목록">📋<span class="cnt"></span></button>
+  </div>
+</div>
+<div class="modal ask-modal" id="askModal" hidden>
+  <div class="modal-box ask-box" role="alertdialog" aria-modal="true" aria-labelledby="askTitle">
+    <div class="ask-title" id="askTitle"></div>
+    <div class="ask-body" id="askBody"></div>
+    <div class="ask-btns" id="askBtns"></div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -2062,14 +2081,91 @@ $('#tagRows').addEventListener('click', e => {
     [S.tags[i], S.tags[j]] = [S.tags[j], S.tags[i]];
     return afterTagChange();
   }
-  if (e.target.closest('[data-del-tag]')) {
-    const n = S.words.filter(w => w.tags.includes(t)).length;
-    if (!confirm(`'${t}' 태그를 삭제할까요?${n ? `\n(단어 ${n}개는 그대로 남고 태그만 빠져요)` : ''}`)) return;
-    S.words.forEach(w => { w.tags = w.tags.filter(x => x !== t); });
-    S.tags = S.tags.filter(x => x !== t);
-    if (listTag === t) listTag = '';
-    afterTagChange();
+  if (e.target.closest('[data-del-tag]')) askDeleteTag(t);
+});
+
+/* ─────────────── 확인 팝업 · 삭제 ─────────────── */
+// ask({ title, html, choices: [{ v, label, cls }] }) → 고른 v (취소하면 null)
+function ask({ title, html, choices }) {
+  return new Promise(res => {
+    const m = $('#askModal'), prevOpen = document.body.classList.contains('modal-open');
+    $('#askTitle').textContent = title;
+    $('#askBody').innerHTML = html;
+    $('#askBtns').innerHTML = [...choices, { v: null, label: '취소', cls: '' }]
+      .map((c, i) => `<button class="btn ${c.cls || ''}" data-i="${i}">${c.label}</button>`).join('');
+    const all = [...choices, { v: null }];
+    const done = v => {
+      m.hidden = true; document.removeEventListener('keydown', key, true);
+      if (!prevOpen) document.body.classList.remove('modal-open');
+      res(v);
+    };
+    const key = e => { if (e.key === 'Escape') { e.stopPropagation(); done(null); } };
+    $('#askBtns').onclick = e => { const b = e.target.closest('[data-i]'); if (b) done(all[+b.dataset.i].v); };
+    m.onclick = e => { if (e.target === m) done(null); };
+    document.addEventListener('keydown', key, true);
+    m.hidden = false; document.body.classList.add('modal-open');
+    $('#askBtns .btn:last-child').focus();
+  });
+}
+const syncWarn = () => (typeof SY !== 'undefined' && SY.user)
+  ? '<div class="warn">☁️ 동기화 중이라 다른 기기에서도 똑같이 지워져요.</div>' : '';
+function removeWords(pred) {
+  const before = S.words.length;
+  S.words = S.words.filter(w => !pred(w));
+  return before - S.words.length;
+}
+async function askDeleteTag(t) {
+  const words = S.words.filter(w => w.tags.includes(t));
+  const n = words.length, multi = words.filter(w => w.tags.length > 1).length;
+  const choices = [{ v: 'tag', label: '🏷 태그만 삭제 (단어는 남기기)', cls: '' }];
+  if (n) choices.push({ v: 'all', label: `🗑 태그와 단어 ${n}개 모두 삭제`, cls: 'solid-danger' });
+  const v = await ask({
+    title: `'${t}' 태그를 삭제할까요?`,
+    html: n
+      ? `이 태그가 붙은 단어가 <b>${n}개</b> 있어요.<br>태그만 지우면 단어는 그대로 남아요.`
+        + (multi ? `<br><span class="muted" style="font-size:11px">· 단어까지 지우면 다른 태그도 붙어 있는 단어 ${multi}개도 함께 지워져요.</span>` : '')
+        + `<div class="warn">단어를 지우면 되돌릴 수 없어요. 필요하면 설정 › 데이터에서 먼저 백업하세요.</div>` + syncWarn()
+      : '이 태그가 붙은 단어는 없어요.',
+    choices
+  });
+  if (!v) return;
+  let del = 0;
+  if (v === 'all') del = removeWords(w => w.tags.includes(t));
+  S.words.forEach(w => { w.tags = w.tags.filter(x => x !== t); });
+  S.tags = S.tags.filter(x => x !== t);
+  if (listTag === t) listTag = '';
+  if (S.homeTag === t) S.homeTag = '';
+  if (quizTag === t) quizTag = '';
+  afterTagChange();
+  toast(v === 'all' ? `'${t}' 태그와 단어 ${del}개를 삭제했어요` : `'${t}' 태그를 삭제했어요`);
+}
+$('#resetWords').addEventListener('click', async () => {
+  const total = S.words.length;
+  if (!total) return toast('지울 단어가 없어요');
+  const tagSel = listTag && listTag !== NO_TAG ? listTag : listTag === NO_TAG ? NO_TAG : '';
+  const inSel = tagSel ? S.words.filter(w => inTag(w, tagSel)).length : 0;
+  const tagName = tagSel === NO_TAG ? '태그 없음' : tagSel;
+  const choices = [];
+  if (tagSel && inSel) choices.push({ v: 'tag', label: `🏷 '${esc(tagName)}' 단어 ${inSel}개만 삭제`, cls: 'danger' });
+  choices.push({ v: 'all', label: `🗑 전체 단어 ${total}개 모두 삭제`, cls: 'solid-danger' });
+  const v = await ask({
+    title: '단어목록을 초기화할까요?',
+    html: `지금 단어장에 <b>${total}개</b>의 단어가 있어요.`
+      + (tagSel && inSel ? `<br>왼쪽에서 고른 <b>'${esc(tagName)}'</b>의 단어(${inSel}개)만 지울 수도 있어요.` : '')
+      + `<label><input type="checkbox" id="askKeepTags" checked> 태그 목록은 남겨두기</label>`
+      + `<div class="warn">지운 단어와 복습 일정은 되돌릴 수 없어요. 필요하면 설정 › 데이터에서 먼저 백업하세요.</div>` + syncWarn(),
+    choices
+  });
+  if (!v) return;
+  const keepTags = $('#askKeepTags').checked;
+  const del = v === 'all' ? removeWords(() => true) : removeWords(w => inTag(w, tagSel));
+  if (!keepTags) {
+    if (v === 'all') { S.tags = []; listTag = ''; S.homeTag = ''; quizTag = ''; }
+    else if (tagSel !== NO_TAG) { S.tags = S.tags.filter(x => x !== tagSel); S.words.forEach(w => { w.tags = w.tags.filter(x => x !== tagSel); }); listTag = ''; }
   }
+  if (v === 'tag' && listTag === tagSel && keepTags && tagSel === NO_TAG) listTag = '';
+  store.save(); renderTagRows(); renderAll();
+  toast(`단어 ${del}개를 삭제했어요`);
 });
 
 /* ─────────────── 퀴즈 ─────────────── */
