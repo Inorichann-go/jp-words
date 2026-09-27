@@ -159,7 +159,7 @@
   .ic.xs { width: 18px; height: 18px; font-size: 9px; border-radius: 5px; flex-shrink: 0; margin-top: 1px; }
   .tags { display: inline-flex; flex-wrap: nowrap; gap: 3px; flex-shrink: 0; margin-left: auto; }
   .acts { display: flex; gap: 3px; flex-shrink: 0; align-items: center; }
-  .words-main .card-h .acts { flex-wrap: wrap; flex-shrink: 1; row-gap: 4px; }
+  .words-main .card-h .acts, .card-h .acts:has(#homeTag) { flex-wrap: wrap; flex-shrink: 1; row-gap: 4px; }
   /* 목록 너비 기준으로 좁으면 태그 숨기고 버튼 2줄 (홈의 반쪽 카드 포함) */
   .wlist { container-type: inline-size; }
   @container (max-width: 540px) {
@@ -373,7 +373,12 @@
   .modal-box.wide { max-width: 520px; }
   .stabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 10px; overflow-x: auto; scrollbar-width: none; }
   .stab { white-space: nowrap; flex-shrink: 0; }
-  .head-btns { display: flex; gap: 6px; }
+  .head-btns { display: flex; gap: 6px; align-items: center; }
+  .ext-links { display: flex; gap: 6px; }
+  .gear.ext { text-decoration: none; font-size: 14px; }
+  .gear.ext:hover { transform: translateY(-1px); background: var(--accent-light); }
+  .head-sep { width: 1px; height: 18px; background: var(--border); margin-top: 6px; }
+  @media (max-width: 400px) { .head-btns, .ext-links { gap: 4px; } .gear { width: 28px; height: 28px; } .gear.ext { font-size: 13px; } }
   .gear.cloud { font-size: 14px; }
   .gear.cloud[data-state="busy"] { animation: spin 1s linear infinite; }
   .gear.cloud[data-state="err"] { border-color: var(--danger); }
@@ -576,6 +581,13 @@
     <div class="logo-row">
       <div class="logo">🌸 <b>日本語</b> 단어장</div>
       <div class="head-btns">
+      <nav class="ext-links" aria-label="바로가기">
+        <a class="gear ext" href="https://studymini.com/" target="_blank" rel="noopener" title="스터디미니 (인터넷강의)" aria-label="스터디미니 인터넷강의">🎓</a>
+        <a class="gear ext" href="https://dict.naver.com/" target="_blank" rel="noopener" title="네이버 사전" aria-label="네이버 사전">📗</a>
+        <a class="gear ext" href="https://papago.naver.com/" target="_blank" rel="noopener" title="파파고 번역기" aria-label="파파고 번역기">🦜</a>
+        <a class="gear ext" href="https://chatgpt.com/" target="_blank" rel="noopener" title="ChatGPT" aria-label="ChatGPT">🤖</a>
+      </nav>
+      <span class="head-sep"></span>
       <button class="gear cloud" id="syncBtn" hidden title="동기화"></button>
       <button class="gear" id="openSettings" title="설정" aria-label="설정">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
