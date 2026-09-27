@@ -191,7 +191,11 @@
   .day .cnt { position: absolute; top: 3px; left: 0; right: 0; font-size: 10px; color: var(--text2); font-weight: 500; }
   .day.today { color: var(--accent); font-weight: 700; }
 
-  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .q.cloze { font-size: 18px; line-height: 1.8; }
+  .q .blank { display: inline-block; min-width: 3em; border-bottom: 2px solid var(--accent); color: var(--accent); margin: 0 2px; }
+  .big-speak { width: 64px; height: 64px; border-radius: 99px; border: none; background: var(--accent); color: #fff; font-size: 26px; box-shadow: 0 6px 18px rgba(232,115,154,.35); }
+  .big-speak:active { transform: scale(.95); }
   .seg button { border: none; background: var(--surface); padding: 3px 8px; font-size: 11px; color: var(--text2); }
   .seg button + button { border-left: 1px solid var(--border); }
   .seg button.on { background: var(--accent); color: #fff; }
@@ -589,8 +593,14 @@
       </div>
       <div class="opt-row"><span>유형</span>
         <div class="seg" data-opt="mode">
-          <button data-v="w2m" class="on">단어→뜻</button><button data-v="m2w">뜻→단어</button><button data-v="w2y">단어→읽기</button><button data-v="mix">섞기</button>
+          <button data-v="w2m" class="on">단어→뜻</button><button data-v="m2w">뜻→단어</button><button data-v="w2y">단어→읽기</button><button data-v="l2m">🔊 듣고 뜻</button><button data-v="cloze">예문 빈칸</button><button data-v="mix">섞기</button>
         </div>
+      </div>
+      <div class="opt-row"><span>보기</span>
+        <div class="seg" data-opt="diff">
+          <button data-v="hard" class="on">헷갈리게</button><button data-v="easy">랜덤</button>
+        </div>
+        <span class="muted" style="width:auto; font-size:10px">같은 태그·한자·어미를 가진 단어로 오답 보기를 만들어요</span>
       </div>
       <div class="opt-row"><span>답 방식</span>
         <div class="seg" data-opt="answer">
@@ -1761,7 +1771,7 @@ $('#tagRows').addEventListener('click', e => {
 });
 
 /* ─────────────── 퀴즈 ─────────────── */
-const opts = { range: 'all', mode: 'w2m', answer: 'choice', count: '10' };
+const opts = { range: 'all', mode: 'w2m', answer: 'choice', count: '10', diff: 'hard' };
 function setOpt(k, v) {
   opts[k] = v;
   $$(`[data-opt="${k}"] button`).forEach(b => b.classList.toggle('on', b.dataset.v === v));
@@ -1797,11 +1807,57 @@ function startQuiz(list) {
   S.quizLog[dkey()] = (S.quizLog[dkey()] || 0) + 1; store.save();
   renderQ();
 }
-// 요미가나가 없거나 단어와 같으면 읽기 문제는 불가 → 단어→뜻으로
-function fixMode(m, w) { return m === 'w2y' && (!w.yomi || plainYomi(w.yomi) === w.word) ? 'w2m' : m; }
-function pickMode(w) { return fixMode(['w2m', 'm2w', 'w2y'][Math.floor(Math.random() * 3)], w); }
+// 못 내는 유형이면 단어→뜻으로 (요미가나 없음 / 예문에 단어 없음 / 음성 미지원)
+function fixMode(m, w) {
+  if (m === 'w2y' && (!w.yomi || plainYomi(w.yomi) === w.word)) return 'w2m';
+  if (m === 'cloze' && !clozeOf(w)) return 'w2m';
+  if (m === 'l2m' && !('speechSynthesis' in window)) return 'w2m';
+  return m;
+}
+function pickMode(w) {
+  const ok = ['w2m', 'm2w', 'w2y', 'l2m', 'cloze'].filter(m => fixMode(m, w) === m);
+  return ok[Math.floor(Math.random() * ok.length)];
+}
+// 예문에서 단어(활용형 포함) 찾아 빈칸 만들기: 食べる → 食べた 도 食べ 까지 찾음
+function clozeOf(w) {
+  const ex = jpOnly(w.example); if (!ex) return null;
+  const cands = [w.word];
+  const hasKanji = [...w.word].some(isKanji);
+  for (let t = w.word; t.length > 1 && !isKanji(t.at(-1));) {
+    t = t.slice(0, -1);
+    if (hasKanji ? [...t].some(isKanji) : t.length >= Math.max(2, w.word.length - 2)) cands.push(t);
+  }
+  const y = plainYomi(w.yomi);
+  if (y && y !== w.word) for (let t = y; t.length >= Math.max(2, y.length - 2); t = t.slice(0, -1)) cands.push(t);
+  for (const c of cands) {
+    const i = ex.indexOf(c);
+    if (i >= 0) return { before: ex.slice(0, i), hit: c, after: ex.slice(i + c.length) };
+  }
+  return null;
+}
+// 헷갈리는 오답 보기: 같은 태그·같은 한자·비슷한 읽기·같은 어미(품사)일수록 높은 점수
+function similarity(a, b) {
+  let s = a.tags.filter(t => b.tags.includes(t)).length * 2;
+  const kb = new Set([...b.word].filter(isKanji));
+  s += [...a.word].filter(c => isKanji(c) && kb.has(c)).length * 4;
+  const ya = plainYomi(a.yomi) || a.word, yb = plainYomi(b.yomi) || b.word;
+  if (ya[0] === yb[0]) s += 1.5;
+  if (ya.at(-1) === yb.at(-1)) s += 1.5;
+  if (Math.abs(ya.length - yb.length) <= 1) s += 1;
+  if (a.meaning.trim().endsWith('다') === b.meaning.trim().endsWith('다')) s += 1.5;
+  return s;
+}
+function pickWrongChoices(w, key, n = 3) {
+  const seen = new Set([val(w, key)]), out = [];
+  const pool = S.words.filter(x => x.id !== w.id && val(x, key));
+  const ranked = opts.diff === 'hard'
+    ? pool.map(x => [x, similarity(w, x) + Math.random() * 2]).sort((a, b) => b[1] - a[1]).map(p => p[0])
+    : shuffle(pool);
+  for (const o of ranked) { const v = val(o, key); if (!seen.has(v)) { seen.add(v); out.push(o); } if (out.length === n) break; }
+  return out;
+}
 
-const field = { w2m: 'meaning', m2w: 'word', w2y: 'yomi' };
+const field = { w2m: 'meaning', m2w: 'word', w2y: 'yomi', l2m: 'meaning', cloze: 'word' };
 const val = (w, key) => key === 'yomi' ? plainYomi(w.yomi) : w[key];
 function renderQ() {
   const it = Q.items[Q.i], w = byId(it.id);
@@ -1810,9 +1866,18 @@ function renderQ() {
   $('#qScore').textContent = `정답 ${Q.right}`;
   $('#qBar').style.width = `${Q.i / Q.items.length * 100}%`;
   const qt = $('#qText');
-  qt.className = 'q' + (it.mode === 'm2w' ? ' ko' : '');
-  qt.innerHTML = it.mode === 'm2w' ? esc(w.meaning) : esc(w.word);
-  $('#qHint').textContent = { w2m: '뜻은?', m2w: '일본어 단어는?', w2y: '읽는 법(요미가나)은?' }[it.mode];
+  qt.className = 'q' + (it.mode === 'm2w' ? ' ko' : it.mode === 'cloze' ? ' cloze' : '');
+  const cz = it.mode === 'cloze' ? clozeOf(w) : null;
+  qt.innerHTML = it.mode === 'm2w' ? esc(w.meaning)
+    : it.mode === 'l2m' ? '<button class="big-speak" id="qSpeak" title="다시 듣기 (R)">🔊</button>'
+    : cz ? `${esc(cz.before)}<span class="blank">？</span>${esc(cz.after)}`
+    : esc(w.word);
+  $('#qHint').textContent = { w2m: '뜻은?', m2w: '일본어 단어는?', w2y: '읽는 법(요미가나)은?', l2m: '들리는 단어의 뜻은? (버튼을 누르면 다시 들려요)', cloze: `빈칸에 들어갈 단어는? · 뜻: ${w.meaning}` }[it.mode];
+  if (it.mode === 'l2m') {
+    const say = () => speak(plainYomi(w.yomi) || w.word);
+    $('#qSpeak').addEventListener('click', say);
+    setTimeout(say, 150);
+  }
   $('#qAfter').innerHTML = '';
   $('#nextQ').style.display = 'none';
 
@@ -1826,16 +1891,14 @@ function renderQ() {
       const norm = s => s.replace(/\s/g, '').toLowerCase();
       // 뜻은 쉼표로 여러 개일 수 있음
       const answers = key === 'meaning' ? w.meaning.split(/[,，、/]/).map(norm) : [norm(val(w, key))];
+      // 빈칸 문제는 단어·요미가나·예문 속 모양 모두 정답
+      if (it.mode === 'cloze') answers.push(norm(plainYomi(w.yomi)), norm(cz.hit));
       judge(answers.includes(norm(v)) && v !== '', w, it);
       $('#typeIn').disabled = true; e.target.querySelector('button').disabled = true;
     }, { once: true });
   } else {
-    const others = shuffle(S.words.filter(x => x.id !== w.id && val(x, key) && val(x, key) !== val(w, key)));
-    const seen = new Set([val(w, key)]);
-    const wrongs = [];
-    for (const o of others) { const v = val(o, key); if (!seen.has(v)) { seen.add(v); wrongs.push(o); } if (wrongs.length === 3) break; }
-    const choices = shuffle([w, ...wrongs]);
-    const jp = it.mode !== 'w2m';
+    const choices = shuffle([w, ...pickWrongChoices(w, key)]);
+    const jp = key !== 'meaning';
     $('#qAnswer').innerHTML = `<div class="choices">${choices.map(c =>
       `<button class="choice ${jp ? 'jp' : ''}" data-cid="${c.id}">${esc(val(c, key))}</button>`).join('')}</div>`;
     $$('.choice').forEach(b => b.addEventListener('click', () => {
@@ -1893,6 +1956,7 @@ document.addEventListener('keydown', e => {
   if (!$('#page-quiz').classList.contains('active') || $('#quizPlay').style.display === 'none') return;
   if (e.key === 'Enter' && $('#nextQ').style.display !== 'none' && document.activeElement?.id !== 'typeIn') { e.preventDefault(); $('#nextQ').click(); }
   if (opts.answer === 'choice' && /^[1-4]$/.test(e.key)) $$('.choice')[+e.key - 1]?.click();
+  if ((e.key === 'r' || e.key === 'R') && document.activeElement?.id !== 'typeIn') $('#qSpeak')?.click();
 });
 
 /* ─────────────── 유튜브 음악 바 (재생목록 · 이어 듣기) ───────────────
