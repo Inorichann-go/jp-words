@@ -7,6 +7,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>일본어 단어장</title>
 <link rel="manifest" href="manifest.webmanifest">
+<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" onload="window.__sbReady && window.__sbReady()"></script>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#e8739a">
@@ -357,7 +358,22 @@
 
   /* ── 설정 ── */
   .modal-box.wide { max-width: 520px; }
-  .stabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+  .stabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 10px; overflow-x: auto; scrollbar-width: none; }
+  .stab { white-space: nowrap; flex-shrink: 0; }
+  .head-btns { display: flex; gap: 6px; }
+  .gear.cloud { font-size: 14px; }
+  .gear.cloud[data-state="busy"] { animation: spin 1s linear infinite; }
+  .gear.cloud[data-state="err"] { border-color: var(--danger); }
+  .gear.cloud[data-state="offline"] { opacity: .5; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .auth-form { display: flex; flex-direction: column; gap: 6px; }
+  .auth-form input { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 13px; }
+  .auth-form input:focus { outline: 2px solid var(--pink-mid); border-color: transparent; }
+  .auth-btns { display: flex; gap: 6px; }
+  .auth-btns .btn { flex: 1; padding: 8px; font-size: 12px; }
+  .auth-msg { font-size: 11px; margin-top: 6px; min-height: 16px; }
+  .auth-msg.bad { color: var(--danger); } .auth-msg.ok { color: var(--success); }
+  .sync-info { font-size: 12px; color: var(--text2); }
   .stab { border: none; background: none; padding: 6px 10px; font-size: 12px; font-weight: 700; color: var(--text3); border-bottom: 2px solid transparent; }
   .stab.on { color: var(--accent); border-bottom-color: var(--accent); }
   .tag-add { display: flex; gap: 6px; margin-bottom: 8px; }
@@ -493,9 +509,12 @@
   <div class="head-inner">
     <div class="logo-row">
       <div class="logo">🌸 <b>日本語</b> 단어장</div>
+      <div class="head-btns">
+      <button class="gear cloud" id="syncBtn" hidden title="동기화"></button>
       <button class="gear" id="openSettings" title="설정" aria-label="설정">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
+      </div>
     </div>
     <nav class="tabs">
       <button class="tab active" data-tab="home">홈</button>
@@ -842,6 +861,7 @@
     </div>
     <div class="stabs">
       <button class="stab on" data-stab="tags">🏷 태그 관리</button>
+      <button class="stab" data-stab="sync">☁️ 동기화</button>
       <button class="stab" data-stab="data">💾 데이터</button>
       <button class="stab" data-stab="app">📲 앱 설치</button>
     </div>
@@ -855,6 +875,40 @@
         · 이름을 눌러 바로 고칠 수 있어요 (Enter로 저장). 같은 이름으로 바꾸면 두 태그가 합쳐져요.<br>
         · ↑↓ 로 순서를 바꾸면 단어목록 왼쪽 메뉴에도 그 순서로 보여요.<br>
         · 태그를 삭제해도 단어는 지워지지 않아요.
+      </div>
+    </div>
+    <div class="spane" data-spane="sync" hidden>
+      <div id="syncOut">
+        <div class="muted" style="font-size:11px; line-height:1.6; margin-bottom:8px">
+          로그인하면 단어·태그·복습 일정·학습 기록·재생목록이 저장돼서 <b>다른 PC·폰에서도 똑같이</b> 볼 수 있어요.<br>
+          처음 로그인하면 이 기기의 단어와 저장된 단어가 <b>합쳐져요</b> (지워지지 않아요).
+        </div>
+        <form id="authForm" class="auth-form" autocomplete="on">
+          <input id="authEmail" type="email" placeholder="이메일" autocomplete="username" required>
+          <input id="authPw" type="password" placeholder="비밀번호 (6자 이상)" autocomplete="current-password" required minlength="6">
+          <div class="auth-btns">
+            <button class="btn primary" data-kind="in">로그인</button>
+            <button class="btn" data-kind="up">처음이에요 · 가입하기</button>
+          </div>
+        </form>
+        <div id="authMsg" class="auth-msg"></div>
+        <div class="muted" style="font-size:10px; margin-top:8px; line-height:1.6">
+          · 가입하면 확인 메일이 와요. 메일의 링크를 한 번 누른 뒤 여기서 로그인하면 돼요 (링크가 다른 사이트로 열려도 괜찮아요).<br>
+          · 로그인은 기기마다 처음 한 번만 하면 계속 유지돼요.
+        </div>
+      </div>
+      <div id="syncIn" hidden>
+        <div class="app-state">☁️ <span id="syncWho"></span> 계정으로 동기화 중</div>
+        <div id="syncInfo" class="sync-info"></div>
+        <div class="auth-btns" style="margin-top:10px">
+          <button class="btn primary" id="syncNowBtn">⟳ 지금 동기화</button>
+          <button class="btn" id="logoutBtn">로그아웃</button>
+        </div>
+        <div class="muted" style="font-size:10px; margin-top:10px; line-height:1.6">
+          · 바꾼 내용은 몇 초 뒤 자동으로 올라가고, 앱을 다시 열거나 돌아오면 다른 기기의 변경을 받아와요.<br>
+          · 인터넷이 없을 땐 이 기기에 저장해 두었다가 연결되면 올려요.<br>
+          · 두 기기에서 같은 단어를 동시에 고치면 나중에 고친 쪽이 남아요.
+        </div>
       </div>
     </div>
     <div class="spane" data-spane="data" hidden>
@@ -937,8 +991,11 @@ const store = {
     try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
   },
   save() {
+    try { trackChanges(); } catch {}          // 동기화용 변경 기록
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { toast('저장 실패 (저장공간 확인)'); }
-  }
+    try { onLocalSaved(); } catch {}
+  },
+  sync: {}                                    // 동기화 상태 (아래 클라우드 동기화 참고)
 };
 const S = Object.assign({
   words: [],          // {id, yomi, word, meaning, example, tags, memorized, important, memorizedAt, created, wrong, right, srs:{lv, due, last}}
@@ -949,6 +1006,8 @@ const S = Object.assign({
   reviewLog: {},      // {date: n}  복습한 단어 수
   homeTag: '',        // 홈 '오늘 외울 단어' 단어장 범위 ('' = 전체)
   pageSize: 10,       // 단어목록 페이지당 개수
+  deleted: {},        // {단어id: 지운 시각}  기기 간 동기화용
+  metaMt: 0,          // 태그·설정·재생목록이 마지막으로 바뀐 시각
   music: { url: '', loop: true, vol: 50, resume: null }  // resume: {url, idx, t, title, playing}
 }, store.load());
 
@@ -1871,7 +1930,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#bulkM
 function openSettings(tab = 'tags') {
   $$('.stab').forEach(b => b.classList.toggle('on', b.dataset.stab === tab));
   $$('.spane').forEach(p => p.hidden = p.dataset.spane !== tab);
-  renderTagRows(); renderAppState();
+  renderTagRows(); renderAppState(); renderSyncPane();
   $('#settingsModal').hidden = false;
   document.body.classList.add('modal-open');
 }
@@ -2460,12 +2519,242 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
 
+/* ─────────────── ☁️ 클라우드 동기화 (Supabase) ───────────────
+   로그인하면 단어·태그·복습 일정·학습 기록·재생목록을 jp_words_data 표(사용자당 1줄)에 저장.
+   여러 기기에서 바꿔도 합쳐지도록: 단어는 단어별 수정 시각(mt), 삭제는 S.deleted, 기록은 날짜별 큰 값,
+   그 밖의 설정은 더 최근에 바뀐 쪽(metaMt)을 따름. */
+const SB_URL = 'https://gvymujdgwjfrktqurxzj.supabase.co';
+const SB_KEY = 'sb_publishable_eboSOPk_lS76DGG37CAoMA_Ozt4hH0n';   // 공개용 키 (데이터는 표의 보안 규칙이 보호)
+const SB_TABLE = 'jp_words_data';
+const SY = store.sync;
+let sb = null, sbUser = null;
+
+// ── 변경 추적: 저장할 때마다 바뀐 단어에 수정 시각을 찍고, 사라진 단어는 삭제 기록 ──
+function wordSig(w) { const { mt, ...rest } = w; return JSON.stringify(rest); }
+function metaOf() {
+  return { tags: S.tags, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder,
+    music: { list: S.music.list, repeat: S.music.repeat, shuffle: S.music.shuffle } };
+}
+const logsSig = () => JSON.stringify([S.reviewLog, S.quizLog]);
+function trackBaseline() {
+  SY.sig = new Map(S.words.map(w => [w.id, wordSig(w)]));
+  SY.meta = JSON.stringify(metaOf());
+  SY.logs = logsSig();
+}
+function trackChanges() {
+  if (!SY.sig) return trackBaseline();
+  const now = Date.now(), seen = new Set();
+  for (const w of S.words) {
+    seen.add(w.id);
+    const sg = wordSig(w);
+    if (SY.sig.get(w.id) !== sg) { w.mt = now; SY.sig.set(w.id, sg); SY.dirty = true; }
+  }
+  for (const id of [...SY.sig.keys()]) if (!seen.has(id)) { SY.sig.delete(id); S.deleted[id] = now; SY.dirty = true; }
+  const ms = JSON.stringify(metaOf());
+  if (ms !== SY.meta) { SY.meta = ms; S.metaMt = now; SY.dirty = true; }
+  const ls = logsSig();
+  if (ls !== SY.logs) { SY.logs = ls; SY.dirty = true; }
+}
+function onLocalSaved() { if (SY.dirty && sbUser) schedulePush(); }
+
+// ── 합치기 ──
+function payload() {
+  return { v: 1, words: S.words, deleted: S.deleted, reviewLog: S.reviewLog, quizLog: S.quizLog, meta: metaOf(), metaMt: S.metaMt || 0 };
+}
+function maxMerge(a = {}, b = {}) {
+  const o = { ...a };
+  for (const [k, v] of Object.entries(b)) o[k] = Math.max(o[k] || 0, v || 0);
+  return o;
+}
+function mergePayload(L, R) {
+  const deleted = maxMerge(L.deleted, R.deleted);
+  // 90일 지난 삭제 기록은 정리
+  const cut = Date.now() - 90 * 864e5;
+  for (const k of Object.keys(deleted)) if (deleted[k] < cut) delete deleted[k];
+  const byId = new Map();
+  for (const w of [...(R.words || []), ...(L.words || [])]) {     // 같은 시각이면 이 기기 것
+    const cur = byId.get(w.id);
+    if (!cur || (w.mt || 0) >= (cur.mt || 0)) byId.set(w.id, w);
+  }
+  const words = [...byId.values()].filter(w => !(deleted[w.id] >= (w.mt || 0)))
+    .sort((a, b) => (a.created || 0) - (b.created || 0));
+  const remoteMeta = (R.metaMt || 0) > (L.metaMt || 0);
+  return {
+    v: 1, words, deleted,
+    reviewLog: maxMerge(L.reviewLog, R.reviewLog), quizLog: maxMerge(L.quizLog, R.quizLog),
+    meta: remoteMeta ? R.meta : L.meta, metaMt: Math.max(L.metaMt || 0, R.metaMt || 0)
+  };
+}
+function applyPayload(P) {
+  S.words = P.words.map(w => ({ tags: [], ...w, tags: Array.isArray(w.tags) ? w.tags : [] }));
+  S.words.forEach(w => { if (!w.srs) w.srs = w.memorized ? { lv: 1, due: addDays(w.memorizedAt || dkey(), 1) } : { lv: 0, due: null }; });
+  S.deleted = P.deleted; S.reviewLog = P.reviewLog; S.quizLog = P.quizLog; S.metaMt = P.metaMt;
+  const m = P.meta || {};
+  if (Array.isArray(m.tags)) S.tags = m.tags;
+  for (const k of ['goal', 'autoSpeak', 'pageSize', 'bulkOrder']) if (m[k] !== undefined) S[k] = m[k];
+  if (m.listen) Object.assign(S.listen, m.listen);
+  if (m.music) {
+    const curId = curItem()?.id;
+    if (Array.isArray(m.music.list)) M.list = m.music.list;
+    if (m.music.repeat) M.repeat = m.music.repeat;
+    M.shuffle = !!m.music.shuffle;
+    const i = M.list.findIndex(x => x.id === curId);
+    M.cur = i >= 0 ? i : Math.min(M.cur, Math.max(0, M.list.length - 1));
+  }
+  allTags();
+  trackBaseline();                       // 받아온 내용은 '내 수정'으로 치지 않음
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
+  $('#pageSize').value = S.pageSize;
+  renderAll(); renderPlaylist(); renderTagRows();
+}
+
+// ── 서버와 주고받기: 받아서 → 합치고 → 달라졌으면 올리기 ──
+let pushTimer = null;
+function schedulePush(ms = 2500) { clearTimeout(pushTimer); pushTimer = setTimeout(syncNow, ms); }
+async function syncNow() {
+  if (!sb || !sbUser) return;
+  if (SY.busy) { SY.again = true; return; }
+  if (!navigator.onLine) return setSync('offline');
+  SY.busy = true; setSync('busy');
+  try {
+    trackChanges();
+    const { data: row, error } = await sb.from(SB_TABLE).select('data').eq('user_id', sbUser.id).maybeSingle();
+    if (error) throw error;
+    const local = payload(), localJson = JSON.stringify(local);
+    const merged = row?.data ? mergePayload(local, row.data) : local;
+    const mergedJson = JSON.stringify(merged);
+    if (mergedJson !== localJson) applyPayload(merged);
+    if (!row || mergedJson !== JSON.stringify(row.data)) {
+      const { error: e2 } = await sb.from(SB_TABLE).upsert({ user_id: sbUser.id, data: merged, updated_at: new Date().toISOString() });
+      if (e2) throw e2;
+    }
+    SY.dirty = false;
+    S.lastSync = Date.now();
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
+    setSync('ok');
+  } catch (e) {
+    console.warn('sync', e);
+    setSync('err', syncErrMsg(e));
+  } finally {
+    SY.busy = false;
+    if (SY.again) { SY.again = false; schedulePush(500); }
+  }
+}
+function syncErrMsg(e) {
+  const m = String(e?.message || e || '');
+  if (/relation .* does not exist|Could not find the table/i.test(m)) return 'Supabase에 jp_words_data 표가 없어요 (SQL 실행 필요)';
+  if (/JWT|token/i.test(m)) return '로그인이 만료됐어요. 다시 로그인해 주세요';
+  if (/fetch|network/i.test(m)) return '인터넷 연결을 확인해 주세요';
+  return m || '알 수 없는 오류';
+}
+
+// ── 상태 표시 ──
+function setSync(state, msg = '') {
+  SY.state = state; SY.msg = msg;
+  const b = $('#syncBtn');
+  b.hidden = !sbUser;
+  b.dataset.state = state;
+  b.textContent = { ok: '☁️', busy: '⟳', err: '⚠️', offline: '☁️' }[state] || '☁️';
+  b.title = { ok: '동기화됨', busy: '동기화 중…', err: '동기화 오류: ' + msg, offline: '오프라인 · 연결되면 동기화' }[state] || '';
+  renderSyncPane();
+}
+function agoText(t) {
+  if (!t) return '아직 없음';
+  const s = Math.round((Date.now() - t) / 1000);
+  return s < 60 ? '방금' : s < 3600 ? `${Math.floor(s / 60)}분 전` : s < 86400 ? `${Math.floor(s / 3600)}시간 전` : new Date(t).toLocaleString('ko-KR');
+}
+function renderSyncPane() {
+  $('#syncOut').hidden = !!sbUser;
+  $('#syncIn').hidden = !sbUser;
+  if (!sbUser) return;
+  $('#syncWho').textContent = sbUser.email || '';
+  $('#syncInfo').innerHTML = {
+    ok: `✅ 동기화됨 · 마지막 ${agoText(S.lastSync)}`,
+    busy: '⟳ 동기화 중…',
+    err: `⚠️ ${esc(SY.msg)}`,
+    offline: '📴 오프라인이에요. 연결되면 자동으로 동기화해요'
+  }[SY.state] || '';
+}
+
+// ── 로그인 ──
+function authMsg(text, ok) { $('#authMsg').textContent = text; $('#authMsg').className = 'auth-msg ' + (ok ? 'ok' : 'bad'); }
+function authErr(e) {
+  const m = String(e?.message || e);
+  if (/Invalid login credentials/i.test(m)) return '이메일 또는 비밀번호가 맞지 않아요';
+  if (/Email not confirmed/i.test(m)) return '메일함의 확인 링크를 먼저 눌러 주세요';
+  if (/already registered|already been registered/i.test(m)) return '이미 가입된 이메일이에요. 로그인해 주세요';
+  if (/Password should be at least/i.test(m)) return '비밀번호는 6자 이상이어야 해요';
+  if (/Signups not allowed|signup is disabled/i.test(m)) return '이 프로젝트는 새 가입이 꺼져 있어요. 이미 가입된 계정으로 로그인해 주세요';
+  if (/rate limit|too many/i.test(m)) return '요청이 너무 많아요. 잠시 뒤 다시 시도해 주세요';
+  if (/valid email|invalid format/i.test(m)) return '이메일 형식을 확인해 주세요';
+  return m;
+}
+async function doAuth(kind) {
+  if (!sb) return authMsg('동기화 기능을 불러오는 중이에요. 잠시 뒤 다시 시도해 주세요 (인터넷 연결 확인)');
+  const email = $('#authEmail').value.trim(), password = $('#authPw').value;
+  if (!email || !password) return authMsg('이메일과 비밀번호를 입력해 주세요');
+  $$('#authForm button').forEach(b => b.disabled = true);
+  authMsg(kind === 'up' ? '가입하는 중…' : '로그인하는 중…', true);
+  try {
+    if (kind === 'up') {
+      const { data, error } = await sb.auth.signUp({ email, password });
+      if (error) throw error;
+      if (!data.session) authMsg('📧 확인 메일을 보냈어요. 메일의 링크를 누른 뒤 여기서 로그인해 주세요', true);
+    } else {
+      SY.manualLogin = true;
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) { SY.manualLogin = false; throw error; }
+    }
+  } catch (e) { authMsg(authErr(e)); }
+  finally { $$('#authForm button').forEach(b => b.disabled = false); }
+}
+$('#authForm').addEventListener('submit', e => { e.preventDefault(); doAuth(e.submitter?.dataset.kind === 'up' ? 'up' : 'in'); });
+$('#syncNowBtn').addEventListener('click', () => syncNow());
+$('#logoutBtn').addEventListener('click', async () => {
+  if (!confirm('로그아웃할까요?\n(이 기기의 단어는 그대로 남아요)')) return;
+  await sb?.auth.signOut();
+});
+$('#syncBtn').addEventListener('click', () => openSettings('sync'));
+
+function onUser(user) {
+  const was = sbUser?.id;
+  sbUser = user || null;
+  if (sbUser && sbUser.id !== was) {
+    $('#authPw').value = ''; authMsg('', true);
+    if (SY.manualLogin) toast('☁️ 로그인했어요 · 동기화를 시작해요');
+    SY.manualLogin = false;
+    syncNow();
+  }
+  if (!sbUser) { SY.state = 'off'; setSync('off'); }
+  renderSyncPane();
+}
+function initSync() {
+  trackBaseline();
+  renderSyncPane();
+  // 동기화 라이브러리는 따로 받아오므로 준비되면 연결 (오프라인이면 나중에)
+  if (window.supabase?.createClient) connectSync(); else window.__sbReady = connectSync;
+}
+function connectSync() {
+  if (sb || !window.supabase?.createClient) return;
+  sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+  sb.auth.onAuthStateChange((_ev, session) => onUser(session?.user));
+  sb.auth.getSession().then(({ data }) => onUser(data.session?.user));
+  // 다른 기기에서 바꾼 내용 받아오기: 앱으로 돌아올 때 · 인터넷 연결될 때 (30초에 한 번까지)
+  let lastPull = 0;
+  const pull = () => { if (sbUser && Date.now() - lastPull > 30000) { lastPull = Date.now(); syncNow(); } };
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) pull(); else if (SY.dirty) syncNow(); });
+  addEventListener('focus', pull);
+  addEventListener('online', () => { lastPull = 0; pull(); });
+  addEventListener('offline', () => sbUser && setSync('offline'));
+}
+
 /* ─────────────── 시작 ─────────────── */
 function renderAll() {
   renderHome(); renderWords(); renderQuizSetup();
   if (Q && $('#quizResult').style.display !== 'none') renderResultWrong();
 }
 initPlayer();
+initSync();
 let startTab = 'home';
 try { startTab = sessionStorage.getItem('jpTab') || 'home'; } catch {}
 showTab(startTab);

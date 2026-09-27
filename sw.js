@@ -1,5 +1,5 @@
 // 오프라인 지원: 앱 화면은 저장해 두고, 인터넷이 되면 항상 최신 버전으로 갱신
-const CACHE = 'jp-words-v1';
+const CACHE = 'jp-words-v2';
 const APP = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -23,8 +23,8 @@ self.addEventListener('fetch', e => {
     }).catch(() => caches.match('./index.html')));
     return;
   }
-  // 같은 사이트 파일(아이콘 등) · 구글 폰트: 저장본 먼저, 뒤에서 갱신
-  if (url.origin === location.origin || /fonts\.(googleapis|gstatic)\.com$/.test(url.hostname)) {
+  // 같은 사이트 파일(아이콘 등) · 구글 폰트 · 동기화 라이브러리: 저장본 먼저, 뒤에서 갱신
+  if (url.origin === location.origin || /fonts\.(googleapis|gstatic)\.com$|^cdn\.jsdelivr\.net$/.test(url.hostname)) {
     e.respondWith(caches.open(CACHE).then(async c => {
       const hit = await c.match(req);
       const net = fetch(req).then(res => { if (res.ok || res.type === 'opaque') c.put(req, res.clone()); return res; }).catch(() => hit);
