@@ -453,6 +453,9 @@
   #ytWrap iframe { width: 100%; height: 100%; }
   .player .ptitle { cursor: pointer; }
   .player .pbtn:not(.on).opt { opacity: .55; }
+  .player .dict-btn { border-radius: 99px; padding: 0 12px; font-weight: 700; font-size: 12px; border: 1.5px solid var(--accent); background: #fff; color: var(--accent-dark); gap: 3px; }
+  .player .dict-btn.on { background: var(--accent); color: #fff; }
+  .player .psep { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; margin: 0 2px; }
   .player .pbtn .cnt { font-size: 10px; margin-left: 2px; font-weight: 700; }
   @media (max-width: 520px) {
     .player-inner { gap: 5px; padding: 8px 10px; }
@@ -1016,6 +1019,8 @@
 </div>
 <div class="player" id="player">
   <div class="player-inner">
+    <button class="pbtn dict-btn" id="pDictBtn" title="일본어 사전">📖 <span>사전</span></button>
+    <span class="psep"></span>
     <button class="pbtn" id="pPrev" title="이전 곡">⏮</button>
     <button class="pbtn" id="pPlay" title="재생/일시정지">▶</button>
     <button class="pbtn" id="pNext" title="다음 곡">⏭</button>
@@ -1024,7 +1029,6 @@
     <button class="pbtn opt" id="pShuffle" title="섞어 듣기">🔀</button>
     <button class="pbtn opt" id="pRepeat" title="반복">🔁</button>
     <button class="pbtn opt" id="pShow" title="영상 보기">📺</button>
-    <button class="pbtn" id="pDictBtn" title="일본어 사전">📖</button>
     <button class="pbtn" id="pListBtn" title="재생목록">📋<span class="cnt"></span></button>
   </div>
 </div>
