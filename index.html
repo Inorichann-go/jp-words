@@ -2629,24 +2629,37 @@ async function syncNow() {
       const { error: e2 } = await sb.from(SB_TABLE).upsert({ user_id: sbUser.id, data: merged, updated_at: new Date().toISOString() });
       if (e2) throw e2;
     }
-    SY.dirty = false;
+    SY.dirty = false; SY.retried = false;
     S.lastSync = Date.now();
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
     setSync('ok');
   } catch (e) {
     console.warn('sync', e);
-    setSync('err', syncErrMsg(e));
+    // 로그인 토큰 문제면 한 번 새로 받아서 다시 시도
+    if (JWT_ERR.test(errText(e)) && !SY.retried) {
+      SY.retried = true;
+      const { error: re } = await sb.auth.refreshSession().catch(err => ({ error: err }));
+      if (!re) SY.again = true;
+    }
+    if (!SY.again) setSync('err', syncErrMsg(e));
   } finally {
     SY.busy = false;
     if (SY.again) { SY.again = false; schedulePush(500); }
   }
 }
+const JWT_ERR = /jwt|token|401|PGRST30\d|wrong key/i;
+// Supabase 오류 원문 (코드·메시지·힌트)
+function errText(e) {
+  return [e?.code, e?.message || (typeof e === 'string' ? e : ''), e?.details, e?.hint].filter(Boolean).join(' · ') || String(e);
+}
 function syncErrMsg(e) {
-  const m = String(e?.message || e || '');
-  if (/relation .* does not exist|Could not find the table/i.test(m)) return 'Supabase에 jp_words_data 표가 없어요 (SQL 실행 필요)';
-  if (/JWT|token/i.test(m)) return '로그인이 만료됐어요. 다시 로그인해 주세요';
-  if (/fetch|network/i.test(m)) return '인터넷 연결을 확인해 주세요';
-  return m || '알 수 없는 오류';
+  const m = errText(e);
+  const why = /relation .* does not exist|Could not find the table|PGRST205|42P01/i.test(m) ? 'Supabase에 jp_words_data 표가 없어요 (SQL 실행 필요)'
+    : /permission denied|42501|row-level security/i.test(m) ? '표 권한(보안 규칙)이 없어요 (SQL을 다시 실행해 주세요)'
+    : JWT_ERR.test(m) ? '로그인 정보가 거절됐어요. 로그아웃 후 다시 로그인해 주세요'
+    : /fetch|network/i.test(m) ? '인터넷 연결을 확인해 주세요'
+    : '동기화 중 오류가 났어요';
+  return `${why}\n(오류 원문: ${m})`;
 }
 
 // ── 상태 표시 ──
@@ -2672,7 +2685,7 @@ function renderSyncPane() {
   $('#syncInfo').innerHTML = {
     ok: `✅ 동기화됨 · 마지막 ${agoText(S.lastSync)}`,
     busy: '⟳ 동기화 중…',
-    err: `⚠️ ${esc(SY.msg)}`,
+    err: `⚠️ ${esc(SY.msg).replace(/\n/g, '<br><span class="muted" style="font-size:10px; word-break:break-all">') + (SY.msg.includes('\n') ? '</span>' : '')}`,
     offline: '📴 오프라인이에요. 연결되면 자동으로 동기화해요'
   }[SY.state] || '';
 }
