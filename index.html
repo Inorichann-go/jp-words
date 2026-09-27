@@ -74,6 +74,7 @@
     display: inline-flex; align-items: center; justify-content: center; transition: transform .3s;
   }
   .gear:hover { color: var(--accent); border-color: var(--accent); transform: rotate(60deg); }
+  .gear[hidden] { display: none; }
   .tabs { display: flex; gap: 4px; }
   .tab {
     flex: 1; background: none; border: none;
@@ -218,6 +219,9 @@
   }
   .form textarea { resize: vertical; min-height: 40px; font-family: var(--jp); }
   .form input:focus, .form textarea:focus, .toolbar input:focus { outline: 2px solid var(--pink-mid); border-color: transparent; }
+  .f-dict { display: flex; gap: 4px; }
+  .f-dict input { flex: 1; min-width: 0; }
+  .f-dict .ic { width: 30px; height: auto; flex-shrink: 0; }
   .ruby-preview {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     background: var(--accent-light); border-radius: 8px; padding: 6px 10px; font-size: 11px;
@@ -454,6 +458,35 @@
     .player-inner { gap: 5px; padding: 8px 10px; }
     .player .pbtn { min-width: 28px; padding: 0 5px; }
     .player #pShow { display: none; }
+  }
+  /* 사전 */
+  .dict-panel { width: min(460px, calc(100vw - 32px)); max-height: min(78vh, 680px); height: min(78vh, 680px); z-index: 63; }
+  .dict-search { position: relative; margin-bottom: 8px; }
+  .dict-search input { width: 100%; border: 1px solid var(--border); border-radius: 99px; padding: 8px 34px 8px 14px; font-size: 14px; font-family: var(--jp); }
+  .dict-search input::-webkit-search-cancel-button { display: none; }
+  .dict-search input:focus { outline: 2px solid var(--pink-mid); border-color: transparent; }
+  .dict-search .ic { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; font-size: 10px; border: none; }
+  .dict-res { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+  .dict-help { text-align: center; font-size: 12px; color: var(--text2); line-height: 1.9; padding: 20px 8px; }
+  .dict-foot { font-size: 9px; color: var(--text3); margin-top: 6px; text-align: center; }
+  .dr { border: 1px solid var(--border); border-radius: 10px; padding: 7px 10px; background: var(--surface2); cursor: pointer; }
+  .dr:hover { border-color: var(--pink-mid); }
+  .dr.open { background: var(--surface); border-color: var(--accent); }
+  .dr-head { display: flex; align-items: center; gap: 6px; }
+  .dr-word { font-size: 18px; font-weight: 500; line-height: 1.5; }
+  .dr-word rt { font-size: 10px; color: var(--text2); }
+  .dr-acts { margin-left: auto; display: flex; gap: 3px; }
+  .tag.jlpt { background: #e8f0fe; color: #3b6fd6; }
+  .dr-alt { font-size: 10px; }
+  .dr-ko { font-size: 13px; color: var(--text); margin-top: 1px; }
+  .dr-sub { font-size: 10px; color: var(--text3); margin-top: 1px; }
+  .dr-pos { color: var(--accent-dark); }
+  .dk-list { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; border-top: 1px dashed var(--border); padding-top: 8px; }
+  .dk { display: flex; gap: 10px; align-items: center; }
+  .dk-c { font-size: 30px; width: 44px; height: 44px; border-radius: 10px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .dk-info { font-size: 11px; line-height: 1.5; min-width: 0; }
+  @media (max-width: 520px) {
+    .dict-panel { left: 8px; right: 8px; width: auto; height: calc(100vh - var(--player-h) - 24px); max-height: none; }
   }
   /* 재생목록 패널 */
   .pl-panel {
@@ -705,7 +738,7 @@
     </div>
     <form class="form" id="wordForm" autocomplete="off">
         <label>요미가나 <input id="fYomi" class="jp" placeholder="たべる / べん.きょう"></label>
-        <label>단어 * <input id="fWord" class="jp" placeholder="食べる" required></label>
+        <label>단어 * <span class="f-dict"><input id="fWord" class="jp" placeholder="食べる" required><button type="button" class="ic" id="fDictBtn" title="사전에서 찾기">📖</button></span></label>
         <div class="full ruby-preview">
           <span class="muted">미리보기</span>
           <span class="word" id="fPreview">—</span>
@@ -955,6 +988,18 @@
 
 <!-- ═══════════ 하단 음악 바 ═══════════ -->
 <div id="ytWrap" class="mini"><div id="ytPlayer"></div></div>
+<div class="pl-panel dict-panel" id="dictPanel" hidden>
+  <div class="card-h">
+    <h2>📖 일본어 사전</h2>
+    <button class="ic" id="dictClose" title="닫기 (Esc)">✕</button>
+  </div>
+  <div class="dict-search">
+    <input id="dictQ" type="search" placeholder="食べる · たべる · taberu · 먹다 · eat" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button class="ic" id="dictClear" title="지우기" hidden>✕</button>
+  </div>
+  <div class="dict-res" id="dictRes"></div>
+  <div class="dict-foot">사전: JMdict · KANJIDIC2 (EDRDG, CC BY-SA 4.0) · 한국어 뜻은 영어 뜻을 바탕으로 옮긴 것이라 다를 수 있어요</div>
+</div>
 <div class="pl-panel" id="plPanel" hidden>
   <div class="card-h">
     <h2>🎵 재생목록 <span class="sub" id="plCount"></span></h2>
@@ -979,6 +1024,7 @@
     <button class="pbtn opt" id="pShuffle" title="섞어 듣기">🔀</button>
     <button class="pbtn opt" id="pRepeat" title="반복">🔁</button>
     <button class="pbtn opt" id="pShow" title="영상 보기">📺</button>
+    <button class="pbtn" id="pDictBtn" title="일본어 사전">📖</button>
     <button class="pbtn" id="pListBtn" title="재생목록">📋<span class="cnt"></span></button>
   </div>
 </div>
@@ -1429,6 +1475,20 @@ function renderPreview() {
   $('#fPreview').innerHTML = w ? furigana(w, $('#fYomi').value) : '—';
 }
 ['#fYomi', '#fWord'].forEach(s => $(s).addEventListener('input', renderPreview));
+// 단어 칸에서 📖 → 사전에서 찾아 읽기·뜻 채우기
+$('#fDictBtn').addEventListener('click', async () => {
+  const q = $('#fWord').value.trim() || $('#fYomi').value.trim();
+  if (!q) return toast('단어나 요미가나를 먼저 입력해 주세요');
+  try { await loadDict(); } catch { return toast('사전을 불러오지 못했어요'); }
+  const hit = dictSearch(q)[0];
+  if (!hit) return toast('사전에 없는 단어예요');
+  const reading = hit.r.split(/[;；]/)[0].trim();
+  if (!$('#fWord').value.trim() || $('#fWord').value.trim() !== hit.w) $('#fWord').value = hit.w;
+  if (!$('#fYomi').value.trim() && reading !== hit.w) $('#fYomi').value = reading;
+  if (!$('#fMeaning').value.trim()) $('#fMeaning').value = hit.ko || hit.en.split(';')[0];
+  renderPreview();
+  toast(`📖 ${hit.w} (${reading}) — ${hit.ko || hit.en.split(';')[0]}`);
+});
 let listPage = 1;
 ['#search', '#filter', '#sort'].forEach(s => $(s).addEventListener('input', () => { listPage = 1; renderWords(); }));
 $('#pageSize').value = S.pageSize;
@@ -2397,6 +2457,7 @@ function renderPlaylist() {
   }).join('') : '<div class="empty">유튜브 링크를 추가해서 나만의 재생목록을 만들어 보세요</div>';
 }
 function togglePanel(open = $('#plPanel').hidden) {
+  if (open && typeof closeDict === 'function') closeDict();
   $('#plPanel').hidden = !open;
   $('#pListBtn').classList.toggle('on', open);
   if (open) { renderPlaylist(); if (!M.list.length) $('#plUrl').focus(); }
@@ -2519,6 +2580,195 @@ $('#installBtn').addEventListener('click', async () => {
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
+
+/* ─────────────── 📖 일본어 사전 (앱 내장) ───────────────
+   dict.json: v = [단어, 다른표기, 읽기, 품사, JLPT, 한국어 뜻, 영어 뜻], k = [한자, 음독, 훈독, 영어 뜻, 획수, JLPT, 한국어 뜻]
+   처음 열 때 한 번 받아오고 이후엔 오프라인에서도 사용 (서비스워커 캐시) */
+let DICT = null, dictLoading = null, dictOpenIdx = -1;
+const HANGUL_RE = /[가-힯㄰-㆏]/;
+function loadDict() {
+  if (DICT) return Promise.resolve(DICT);
+  if (!dictLoading) dictLoading = fetch('dict.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
+    const kanji = new Map(d.k.map(k => [k[0], { c: k[0], on: k[1], kun: k[2], en: k[3], st: k[4], j: k[5], ko: k[6] }]));
+    const v = d.v.map((x, i) => ({ i, w: x[0], a: x[1], r: x[2], rh: toHira(x[2].split(/[;；]/)[0].trim()), pos: x[3], j: x[4], ko: x[5], en: x[6],
+      alts: x[1] ? x[1].split(/[;；]\s*/) : [], enl: x[6].toLowerCase() }));
+    DICT = { v, kanji, src: d.src };
+    return DICT;
+  }).catch(e => { dictLoading = null; throw e; });
+  return dictLoading;
+}
+// 로마자 → 히라가나 (taberu → たべる)
+const ROMA = { a:'あ',i:'い',u:'う',e:'え',o:'お',ka:'か',ki:'き',ku:'く',ke:'け',ko:'こ',sa:'さ',shi:'し',si:'し',su:'す',se:'せ',so:'そ',
+  ta:'た',chi:'ち',ti:'ち',tsu:'つ',tu:'つ',te:'て',to:'と',na:'な',ni:'に',nu:'ぬ',ne:'ね',no:'の',ha:'は',hi:'ひ',fu:'ふ',hu:'ふ',he:'へ',ho:'ほ',
+  ma:'ま',mi:'み',mu:'む',me:'め',mo:'も',ya:'や',yu:'ゆ',yo:'よ',ra:'ら',ri:'り',ru:'る',re:'れ',ro:'ろ',wa:'わ',wo:'を',
+  ga:'が',gi:'ぎ',gu:'ぐ',ge:'げ',go:'ご',za:'ざ',ji:'じ',zi:'じ',zu:'ず',ze:'ぜ',zo:'ぞ',da:'だ',di:'ぢ',du:'づ',de:'で',do:'ど',
+  ba:'ば',bi:'び',bu:'ぶ',be:'べ',bo:'ぼ',pa:'ぱ',pi:'ぴ',pu:'ぷ',pe:'ぺ',po:'ぽ',
+  kya:'きゃ',kyu:'きゅ',kyo:'きょ',sha:'しゃ',shu:'しゅ',sho:'しょ',sya:'しゃ',syu:'しゅ',syo:'しょ',cha:'ちゃ',chu:'ちゅ',cho:'ちょ',
+  tya:'ちゃ',tyu:'ちゅ',tyo:'ちょ',nya:'にゃ',nyu:'にゅ',nyo:'にょ',hya:'ひゃ',hyu:'ひゅ',hyo:'ひょ',mya:'みゃ',myu:'みゅ',myo:'みょ',
+  rya:'りゃ',ryu:'りゅ',ryo:'りょ',gya:'ぎゃ',gyu:'ぎゅ',gyo:'ぎょ',ja:'じゃ',ju:'じゅ',jo:'じょ',jya:'じゃ',jyu:'じゅ',jyo:'じょ',
+  bya:'びゃ',byu:'びゅ',byo:'びょ',pya:'ぴゃ',pyu:'ぴゅ',pyo:'ぴょ',fa:'ふぁ',fi:'ふぃ',fe:'ふぇ',fo:'ふぉ',she:'しぇ',che:'ちぇ',je:'じぇ',
+  ti_:'てぃ',di_:'でぃ',xtsu:'っ',ltsu:'っ',xa:'ぁ',xi:'ぃ',xu:'ぅ',xe:'ぇ',xo:'ぉ',xya:'ゃ',xyu:'ゅ',xyo:'ょ','-':'ー' };
+function romaToHira(s) {
+  s = s.toLowerCase().replace(/[āâ]/g, 'aa').replace(/[īî]/g, 'ii').replace(/[ūû]/g, 'uu').replace(/[ēê]/g, 'ee').replace(/[ōô]/g, 'ou');
+  let out = '';
+  for (let i = 0; i < s.length;) {
+    const c = s[i];
+    if (c === 'n' && (s[i + 1] === "'" || (s[i + 1] && !/[aiueoy]/.test(s[i + 1])) || i + 1 === s.length)) {
+      if (s[i + 1] === 'n' && /[aiueoy]/.test(s[i + 2] || '')) { out += 'ん'; i += 1; continue; }
+      out += 'ん'; i += s[i + 1] === "'" || s[i + 1] === 'n' ? 2 : 1; continue;
+    }
+    if (/[bcdfghjkmprstvwz]/.test(c) && s[i + 1] === c) { out += 'っ'; i++; continue; }
+    let hit = false;
+    for (const len of [4, 3, 2, 1]) {
+      const k = s.slice(i, i + len);
+      if (ROMA[k]) { out += ROMA[k]; i += len; hit = true; break; }
+    }
+    if (!hit) { out += c; i++; }
+  }
+  return out;
+}
+const isRomaji = s => /^[a-zA-Zāīūēōâîûêô' -]+$/.test(s);
+function dictSearch(q) {
+  q = q.trim(); if (!q || !DICT) return [];
+  const V = DICT.v, res = [];
+  const add = (e, s) => res.push([e, s + (e.j ? +e.j[1] : 0) * 1.5]);   // JLPT 쉬운 급수(N5)일수록 우선
+  if (HANGUL_RE.test(q)) {
+    for (const e of V) {
+      if (!e.ko) continue;
+      const parts = e.ko.split(/,\s*/);
+      if (parts.includes(q)) add(e, 100);
+      else if (parts.some(p => p.startsWith(q))) add(e, 70);
+      else if (e.ko.includes(q)) add(e, 40);
+    }
+  } else {
+    const kana = isRomaji(q) ? romaToHira(q) : toHira(q);
+    const en = isRomaji(q) && q.length >= 2 ? q.toLowerCase() : null;
+    const enRe = en ? new RegExp(`(^|[^a-z])(to )?${en.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`) : null;
+    for (const e of V) {
+      let s = 0;
+      if (e.w === q || e.alts.includes(q) || e.rh === kana) s = 100;
+      else if (e.w.startsWith(q) || e.rh.startsWith(kana) || e.alts.some(a => a.startsWith(q))) s = 70 - Math.min(20, e.w.length);
+      else if (q.length >= 2 && (e.w.includes(q) || (kana.length >= 2 && e.rh.includes(kana)))) s = 35;
+      if (!s && enRe) {
+        const first = e.enl.split(';')[0].trim();
+        if (first === en || first === 'to ' + en) s = 90;
+        else if (enRe.test(e.enl)) s = 30;
+      }
+      if (s) add(e, s);
+    }
+    // 활용형(食べた 등)으로 못 찾으면 끝의 가나를 떼고 다시
+    if (!res.length && q.length > 1 && [...q].some(isKanji)) {
+      let t = q;
+      while (t.length > 1 && !res.length) {
+        t = t.slice(0, -1);
+        for (const e of V) if (e.w.startsWith(t) && e.w.length <= t.length + 3) add(e, 50 - e.w.length);
+      }
+    }
+  }
+  res.sort((a, b) => b[1] - a[1] || a[0].w.length - b[0].w.length);
+  return res.slice(0, 60).map(x => x[0]);
+}
+function myWordFor(e) {
+  return S.words.find(w => w.word === e.w && (!w.yomi || toHira(plainYomi(w.yomi)) === e.rh)) ||
+         S.words.find(w => w.word === e.w);
+}
+function dictRowHtml(e, open) {
+  const mine = myWordFor(e);
+  const reading = e.r.split(/[;；]/)[0].trim();
+  const wordHtmlD = [...e.w].some(isKanji) ? furigana(e.w, reading) : esc(e.w);
+  const kanjiCards = open ? [...new Set([...e.w].filter(isKanji))].map(c => DICT.kanji.get(c)).filter(Boolean).map(k => `
+      <div class="dk">
+        <div class="dk-c jp">${esc(k.c)}</div>
+        <div class="dk-info">
+          <div>${k.ko ? `<b>${esc(k.ko)}</b> · ` : ''}<span class="muted">${esc(k.en)}</span></div>
+          <div class="jp muted">${k.on ? `음 ${esc(k.on)}` : ''}${k.kun ? ` · 훈 ${esc(k.kun)}` : ''}</div>
+          <div class="muted" style="font-size:10px">${k.st ? `${k.st}획` : ''}${k.j ? ` · JLPT ${k.j}` : ''}</div>
+        </div>
+      </div>`).join('') : '';
+  return `<div class="dr ${open ? 'open' : ''}" data-di="${e.i}">
+    <div class="dr-head">
+      <span class="dr-word jp">${wordHtmlD}</span>
+      ${e.j ? `<span class="tag jlpt">${e.j}</span>` : ''}
+      ${mine ? '<span class="tag srs">내 단어장</span>' : ''}
+      <span class="dr-acts">
+        <button class="ic" data-dspeak title="발음 듣기">🔊</button>
+        <button class="ic ${mine ? 'on-mem' : ''}" data-dadd title="${mine ? '이미 단어장에 있어요' : '단어장에 추가'}">${mine ? '✓' : '＋'}</button>
+      </span>
+    </div>
+    ${e.alts.length ? `<div class="dr-alt jp muted">다른 표기: ${esc(e.alts.join(', '))}</div>` : ''}
+    <div class="dr-ko">${mine && mine.meaning ? `<b>${esc(mine.meaning)}</b> <span class="muted" style="font-size:10px">(내 뜻)</span>` : e.ko ? esc(e.ko) : `<span class="muted">${esc(e.en)}</span>`}</div>
+    <div class="dr-sub"><span class="dr-pos">${esc(e.pos)}</span>${e.ko || mine ? ` · <span class="dr-en">${esc(e.en)}</span>` : ''}</div>
+    ${open ? `<div class="dk-list">${kanjiCards || '<div class="muted" style="font-size:11px">한자가 없는 단어예요</div>'}</div>` : ''}
+  </div>`;
+}
+let dictTimer = null, dictResults = [];
+function renderDict() {
+  const q = $('#dictQ').value;
+  $('#dictClear').hidden = !q;
+  if (!DICT) return;
+  if (!q.trim()) {
+    $('#dictRes').innerHTML = `<div class="dict-help">
+      <b>한자 · 히라가나 · 로마자 · 한국어 · 영어</b>로 찾아보세요<br>
+      예) <span class="jp">食べる</span> · <span class="jp">たべる</span> · taberu · 먹다 · eat<br>
+      <span class="muted">결과를 누르면 들어간 한자의 뜻·읽기가 보여요 · ＋ 로 바로 단어장에 추가</span></div>`;
+    return;
+  }
+  dictResults = dictSearch(q);
+  $('#dictRes').innerHTML = dictResults.length
+    ? dictResults.map(e => dictRowHtml(e, e.i === dictOpenIdx)).join('')
+    : `<div class="empty">'${esc(q)}'에 맞는 단어가 없어요</div>`;
+}
+async function openDict(q) {
+  togglePanel(false);
+  $('#dictPanel').hidden = false;
+  $('#pDictBtn').classList.add('on');
+  if (q !== undefined) $('#dictQ').value = q;
+  $('#dictQ').focus();
+  if (!DICT) {
+    $('#dictRes').innerHTML = '<div class="empty">📖 사전을 불러오는 중… (처음 한 번만)</div>';
+    try { await loadDict(); }
+    catch { $('#dictRes').innerHTML = `<div class="empty">사전을 불러오지 못했어요.<br>${location.protocol.startsWith('http') ? '인터넷 연결을 확인해 주세요' : 'https:// 주소로 열어야 사전을 쓸 수 있어요'}</div>`; return; }
+  }
+  renderDict();
+}
+function closeDict() { $('#dictPanel').hidden = true; $('#pDictBtn').classList.remove('on'); }
+$('#pDictBtn').addEventListener('click', () => $('#dictPanel').hidden ? openDict() : closeDict());
+$('#dictClose').addEventListener('click', closeDict);
+$('#dictQ').addEventListener('input', () => { clearTimeout(dictTimer); dictOpenIdx = -1; dictTimer = setTimeout(renderDict, 120); });
+$('#dictQ').addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); closeDict(); } });
+$('#dictClear').addEventListener('click', () => { $('#dictQ').value = ''; dictOpenIdx = -1; renderDict(); $('#dictQ').focus(); });
+$('#dictRes').addEventListener('click', e => {
+  const row = e.target.closest('[data-di]'); if (!row) return;
+  const ent = DICT.v[+row.dataset.di];
+  if (e.target.closest('[data-dspeak]')) return speak(ent.r.split(/[;；]/)[0].trim() || ent.w);
+  if (e.target.closest('[data-dadd]')) {
+    if (myWordFor(ent)) return toast('이미 단어장에 있어요');
+    resetForm(); showModal();
+    const reading = ent.r.split(/[;；]/)[0].trim();
+    $('#fWord').value = ent.w;
+    $('#fYomi').value = reading === ent.w ? '' : reading;
+    $('#fMeaning').value = ent.ko || ent.en.split(';')[0];
+    renderPreview();
+    $('#fMeaning').focus(); $('#fMeaning').select();
+    return;
+  }
+  dictOpenIdx = dictOpenIdx === ent.i ? -1 : ent.i;
+  row.outerHTML = dictRowHtml(ent, dictOpenIdx === ent.i);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#dictPanel').hidden && $('#wordModal').hidden) closeDict(); });
+// 단어 목록 등의 단어를 길게 누르면 사전에서 찾기
+(() => {
+  let t = null;
+  const start = e => {
+    const el = e.target.closest('.witem .word, .fc-word'); if (!el) return;
+    const id = el.closest('[data-id]')?.dataset.id || F?.queue?.[F.i];
+    const w = byId(id); if (!w) return;
+    t = setTimeout(() => { t = null; openDict(w.word); }, 550);
+  };
+  const cancel = () => { if (t) { clearTimeout(t); t = null; } };
+  document.addEventListener('pointerdown', start);
+  ['pointerup', 'pointercancel', 'pointermove', 'scroll'].forEach(ev => document.addEventListener(ev, cancel, true));
+})();
 
 /* ─────────────── ☁️ 클라우드 동기화 (Supabase) ───────────────
    로그인하면 단어·태그·복습 일정·학습 기록·재생목록을 jp_words_data 표(사용자당 1줄)에 저장.
