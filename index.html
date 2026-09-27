@@ -255,6 +255,11 @@
   .side-item.on .n { color: #ffe6ee; }
   .side-item.manage { color: var(--text3); font-size: 11px; margin-top: 4px; border-top: 1px dashed var(--border); border-radius: 0 0 8px 8px; }
   .side-sep { height: 1px; background: var(--border); margin: 4px 6px; }
+  .side-item .fold { width: 14px; text-align: center; font-size: 10px; color: var(--text3); border-radius: 4px; flex-shrink: 0; }
+  .side-item .fold:hover { background: rgba(0,0,0,.06); }
+  .side-item.on .fold { color: #fff; }
+  .side-item.folder { font-weight: 600; }
+  .side-item.in-folder { padding-left: 24px; font-size: 11px; }
   @media (max-width: 720px) {
     /* 좁은 화면: 가로로 스크롤되는 한 줄 탭 */
     .words-layout { grid-template-columns: 1fr; }
@@ -266,6 +271,9 @@
     .side-item { width: auto; flex-shrink: 0; white-space: nowrap; padding: 5px 10px; border-radius: 99px; }
     .side-item .nm { overflow: visible; }
     .side-item.manage { margin-top: 0; border-top: none; border: 1px dashed var(--border); border-radius: 99px; }
+    .side-item.folder { border: 1px solid var(--border); }
+    .side-item.in-folder { padding-left: 10px; background: var(--surface2); }
+    .side-item.in-folder.on { background: var(--accent); }
   }
 
   /* ── 플래시카드 ── */
@@ -390,7 +398,18 @@
   .tag-row input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
   .tag-row .n { font-size: 10px; color: var(--text3); width: 38px; text-align: right; flex-shrink: 0; }
   .tag-row .ic { width: 22px; height: 22px; font-size: 11px; }
-  .tag-row .ic:disabled { opacity: .3; cursor: default; }
+  .tag-row .ic:disabled, .folder-row .ic:disabled { opacity: .3; cursor: default; }
+  .tag-row.in-folder { margin-left: 18px; }
+  .folder-row { display: flex; align-items: center; gap: 4px; padding: 5px 6px; border-radius: 10px; background: var(--accent-light); border: 1px solid var(--border); margin-top: 4px; }
+  .folder-row input { flex: 1; min-width: 0; border: 1px solid transparent; background: transparent; border-radius: 6px; padding: 3px 6px; font-size: 12px; font-weight: 700; }
+  .folder-row input:hover { border-color: var(--border); background: var(--surface); }
+  .folder-row input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+  .folder-row .n { font-size: 10px; color: var(--text3); flex-shrink: 0; white-space: nowrap; }
+  .folder-row .ic { width: 22px; height: 22px; font-size: 11px; }
+  .folder-empty { margin-left: 18px; font-size: 10px; color: var(--text3); padding: 4px 8px; border: 1px dashed var(--border); border-radius: 10px; }
+  .tag-group-title { font-size: 10px; font-weight: 700; color: var(--text3); margin: 8px 2px 0; }
+  .fsel { max-width: 92px; font-size: 11px; border: 1px solid var(--border); border-radius: 6px; padding: 2px 4px; background: var(--surface); flex-shrink: 0; }
+  .tag-add .fsel { max-width: 110px; border-radius: 99px; padding: 4px 8px; }
 
   /* ── 태그 ── */
   .tag { font-size: 10px; background: var(--accent-light); color: var(--accent-dark); padding: 0 7px; border-radius: 99px; line-height: 17px; }
@@ -916,12 +935,18 @@
     <div class="spane" data-spane="tags">
       <form class="tag-add" id="tagAddForm" autocomplete="off">
         <input id="tagAddInput" placeholder="새 태그 이름 (예: JLPT N2)" maxlength="30">
+        <select id="tagAddFolder" class="fsel" title="넣을 폴더" hidden></select>
         <button class="btn primary">추가</button>
+      </form>
+      <form class="tag-add" id="folderAddForm" autocomplete="off">
+        <input id="folderAddInput" placeholder="📁 새 폴더 이름 (예: JLPT)" maxlength="30">
+        <button class="btn">폴더 만들기</button>
       </form>
       <div class="tag-rows" id="tagRows"></div>
       <div class="muted" style="font-size:10px; margin-top:8px; line-height:1.6">
         · 이름을 눌러 바로 고칠 수 있어요 (Enter로 저장). 같은 이름으로 바꾸면 두 태그가 합쳐져요.<br>
         · ↑↓ 로 순서를 바꾸면 단어목록 왼쪽 메뉴에도 그 순서로 보여요.<br>
+        · 📁 폴더를 만든 뒤, 태그 옆 <b>폴더 선택</b>에서 고르면 그 폴더로 들어가요. 단어목록 왼쪽에서도 폴더 밑에 묶여 보여요.<br>
         · 🗑 를 누르면 <b>태그만 지울지</b>, <b>그 태그의 단어까지 모두 지울지</b> 고를 수 있어요.
       </div>
     </div>
@@ -1106,12 +1131,35 @@ function allTags() {
   return S.tags.map(t => [t, m.get(t) || 0]);
 }
 const NO_TAG = '__none__';
-const inTag = (w, tag) => !tag || (tag === NO_TAG ? !w.tags.length : w.tags.includes(tag));
+// 태그 폴더: S.folders = 폴더 이름 순서, S.tagFolder = {태그: 폴더 이름}
+const FOLDER = '__folder__:';
+const isFolderVal = v => typeof v === 'string' && v.startsWith(FOLDER);
+const folderOfVal = v => v.slice(FOLDER.length);
+if (!Array.isArray(S.folders)) S.folders = [];
+if (!S.tagFolder || typeof S.tagFolder !== 'object') S.tagFolder = {};
+if (!S.folderClosed || typeof S.folderClosed !== 'object') S.folderClosed = {};
+function normFolders() {
+  S.folders = [...new Set(S.folders.filter(f => typeof f === 'string' && f))];
+  for (const [t, f] of Object.entries(S.tagFolder)) {
+    if (!S.tags.includes(t) || !f) delete S.tagFolder[t];
+    else if (!S.folders.includes(f)) S.folders.push(f);
+  }
+}
+const folderTags = f => S.tags.filter(t => S.tagFolder[t] === f);
+const wordsInFolder = f => { const ts = new Set(folderTags(f)); return S.words.filter(w => w.tags.some(t => ts.has(t))); };
+const inTag = (w, tag) => !tag || (tag === NO_TAG ? !w.tags.length
+  : isFolderVal(tag) ? w.tags.some(t => S.tagFolder[t] === folderOfVal(tag)) : w.tags.includes(tag));
+const validTagVal = v => !v || v === NO_TAG || (isFolderVal(v) ? S.folders.includes(folderOfVal(v)) : S.tags.includes(v));
+const tagValName = v => v === NO_TAG ? '태그 없음' : isFolderVal(v) ? `📁 ${folderOfVal(v)}` : v;
 function tagOptions(sel, cur, allLabel = '📚 전체 단어') {
-  const tags = allTags();
-  if (cur && !tags.some(([t]) => t === cur)) cur = '';
+  const tags = allTags(); normFolders();
+  const cnt = new Map(tags);
+  if (cur && (cur === NO_TAG || !validTagVal(cur))) cur = '';
+  const opt = (t, pre = '🏷 ') => `<option value="${esc(t)}">${pre}${esc(t)} (${cnt.get(t) || 0})</option>`;
   sel.innerHTML = `<option value="">${allLabel}</option>` +
-    tags.map(([t, n]) => `<option value="${esc(t)}" ${t === cur ? 'selected' : ''}>🏷 ${esc(t)} (${n})</option>`).join('');
+    S.folders.map(f => `<optgroup label="📁 ${esc(f)}"><option value="${esc(FOLDER + f)}">📁 ${esc(f)} 전체 (${wordsInFolder(f).length})</option>` +
+      folderTags(f).map(t => opt(t, '　🏷 ')).join('') + '</optgroup>').join('') +
+    tags.filter(([t]) => !S.tagFolder[t]).map(([t]) => opt(t)).join('');
   sel.value = cur;
   return cur;
 }
@@ -1538,21 +1586,37 @@ function pagerHtml(total, page, pages, size) {
 
 let listTag = '';
 function renderTagSide() {
-  const tags = allTags();
-  if (listTag && listTag !== NO_TAG && !tags.some(([t]) => t === listTag)) listTag = '';
+  const tags = allTags(); normFolders();
+  if (!validTagVal(listTag)) listTag = '';
   const noTag = S.words.filter(w => !w.tags.length).length;
   const item = (val, icon, name, n, extra = '') =>
     `<button class="side-item ${listTag === val ? 'on' : ''} ${extra}" data-side="${esc(val)}" title="${esc(name)}">
       <span>${icon}</span><span class="nm">${esc(name)}</span><span class="n">${n}</span></button>`;
+  const cnt = new Map(tags);
+  const folderHtml = S.folders.map(f => {
+    const ft = folderTags(f), sel = listTag === FOLDER + f || ft.includes(listTag);
+    const open = !S.folderClosed[f] || sel;
+    return `<button class="side-item folder ${listTag === FOLDER + f ? 'on' : ''} ${open ? 'open' : ''}" data-side="${esc(FOLDER + f)}" title="📁 ${esc(f)} (폴더 전체)">
+        <span class="fold" data-fold="${esc(f)}" title="${open ? '접기' : '펼치기'}">${open ? '▾' : '▸'}</span><span>📁</span><span class="nm">${esc(f)}</span><span class="n">${wordsInFolder(f).length}</span></button>` +
+      (open ? ft.map(t => item(t, '🏷', t, cnt.get(t) || 0, 'in-folder')).join('') : '');
+  }).join('');
   $('#tagSide').innerHTML =
     item('', '📚', '전체', S.words.length) +
     (tags.length ? '<div class="side-sep"></div><div class="side-title">태그</div>' : '') +
-    tags.map(([t, n]) => item(t, '🏷', t, n)).join('') +
+    folderHtml +
+    tags.filter(([t]) => !S.tagFolder[t]).map(([t, n]) => item(t, '🏷', t, n)).join('') +
     (tags.length && noTag ? item(NO_TAG, '▫️', '태그 없음', noTag) : '') +
     `<button class="side-item manage" id="sideManage"><span>⚙</span><span class="nm">태그 관리</span></button>`;
 }
 $('#tagSide').addEventListener('click', e => {
   if (e.target.closest('#sideManage')) return openSettings('tags');
+  const fd = e.target.closest('[data-fold]');
+  if (fd) {
+    const f = fd.dataset.fold, open = fd.closest('.side-item').classList.contains('open');
+    S.folderClosed[f] = open;
+    if (open && (listTag !== FOLDER + f && folderTags(f).includes(listTag))) listTag = FOLDER + f;
+    store.save(); return renderTagSide();
+  }
   const b = e.target.closest('[data-side]'); if (!b) return;
   listTag = b.dataset.side; listPage = 1;
   renderWords();
@@ -1624,7 +1688,7 @@ function addSamples() {
   store.save(); renderAll(); toast('예시 단어를 추가했어요');
 }
 $('#exportBtn').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify({ words: S.words, goal: S.goal, tags: S.tags, reviewLog: S.reviewLog, quizLog: S.quizLog }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ words: S.words, goal: S.goal, tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, reviewLog: S.reviewLog, quizLog: S.quizLog }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `일본어단어장_${dkey()}.json`;
@@ -1652,6 +1716,8 @@ $('#importFile').addEventListener('change', async e => {
     if (data.reviewLog) S.reviewLog = replace ? data.reviewLog : { ...data.reviewLog, ...S.reviewLog };
     if (data.quizLog) S.quizLog = replace ? data.quizLog : { ...data.quizLog, ...S.quizLog };
     if (Array.isArray(data.tags)) S.tags = replace ? [...data.tags] : [...new Set([...S.tags, ...data.tags])];
+    if (Array.isArray(data.folders)) S.folders = replace ? [...data.folders] : [...new Set([...S.folders, ...data.folders])];
+    if (data.tagFolder && typeof data.tagFolder === 'object') S.tagFolder = replace ? { ...data.tagFolder } : { ...data.tagFolder, ...S.tagFolder };
     S.today = null; S.starPick = null;
     store.save(); renderAll(); toast(`${clean.length}개 단어를 불러왔어요`);
   } catch { toast('파일 형식이 올바르지 않아요'); }
@@ -2029,55 +2095,141 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#setti
 $$('.stab').forEach(b => b.addEventListener('click', () => openSettings(b.dataset.stab)));
 
 function renderTagRows() {
-  const tags = allTags();
-  $('#tagRows').innerHTML = tags.length ? tags.map(([t, n], i) => `
-    <div class="tag-row" data-t="${esc(t)}">
+  const tags = allTags(); normFolders();
+  const cnt = new Map(tags);
+  const fsel = t => `<select class="fsel" data-move-folder title="폴더 옮기기">
+      <option value="">폴더 없음</option>${S.folders.map(f => `<option value="${esc(f)}" ${S.tagFolder[t] === f ? 'selected' : ''}>📁 ${esc(f)}</option>`).join('')}
+    </select>`;
+  const tagRow = (t, grp, i) => `
+    <div class="tag-row ${S.tagFolder[t] ? 'in-folder' : ''}" data-t="${esc(t)}">
       <span>🏷</span>
       <input value="${esc(t)}" data-rename maxlength="30">
-      <span class="n">${n}개</span>
+      <span class="n">${cnt.get(t) || 0}개</span>
+      ${S.folders.length ? fsel(t) : ''}
       <button class="ic" data-mv="-1" title="위로" ${i === 0 ? 'disabled' : ''}>↑</button>
-      <button class="ic" data-mv="1" title="아래로" ${i === tags.length - 1 ? 'disabled' : ''}>↓</button>
+      <button class="ic" data-mv="1" title="아래로" ${i === grp.length - 1 ? 'disabled' : ''}>↓</button>
       <button class="ic" data-del-tag title="삭제" style="color:var(--danger)">🗑</button>
-    </div>`).join('') : '<div class="empty">아직 태그가 없어요. 위에서 추가해 보세요</div>';
+    </div>`;
+  const loose = S.tags.filter(t => !S.tagFolder[t]);
+  const html = S.folders.map((f, fi) => {
+    const ft = folderTags(f);
+    return `<div class="folder-row" data-f="${esc(f)}">
+        <span>📁</span>
+        <input value="${esc(f)}" data-rename-folder maxlength="30">
+        <span class="n">태그 ${ft.length} · 단어 ${wordsInFolder(f).length}</span>
+        <button class="ic" data-fmv="-1" title="위로" ${fi === 0 ? 'disabled' : ''}>↑</button>
+        <button class="ic" data-fmv="1" title="아래로" ${fi === S.folders.length - 1 ? 'disabled' : ''}>↓</button>
+        <button class="ic" data-del-folder title="폴더 삭제" style="color:var(--danger)">🗑</button>
+      </div>` + (ft.length ? ft.map((t, i) => tagRow(t, ft, i)).join('')
+        : '<div class="folder-empty">비어 있어요 · 태그 옆 폴더 선택에서 이 폴더를 고르면 들어가요</div>');
+  }).join('') +
+    (S.folders.length && loose.length ? '<div class="tag-group-title">폴더 밖 태그</div>' : '') +
+    loose.map((t, i) => tagRow(t, loose, i)).join('');
+  $('#tagRows').innerHTML = html || '<div class="empty">아직 태그가 없어요. 위에서 추가해 보세요</div>';
+  $('#tagAddFolder').innerHTML = '<option value="">폴더 없음</option>' +
+    S.folders.map(f => `<option value="${esc(f)}">📁 ${esc(f)}</option>`).join('');
+  $('#tagAddFolder').hidden = !S.folders.length;
 }
 function afterTagChange() { store.save(); renderTagRows(); renderAll(); }
+const cleanName = v => v.replace(/[,，、]/g, ' ').trim();
 $('#tagAddForm').addEventListener('submit', e => {
   e.preventDefault();
-  const t = $('#tagAddInput').value.replace(/[,，、]/g, ' ').trim();
+  const t = cleanName($('#tagAddInput').value);
   if (!t) return;
   if (S.tags.includes(t)) return toast('이미 있는 태그예요');
   S.tags.push(t);
+  const f = $('#tagAddFolder').value;
+  if (f) S.tagFolder[t] = f;
   $('#tagAddInput').value = '';
   afterTagChange();
   toast(`'${t}' 태그를 추가했어요`);
 });
-function renameTag(from, to) {
-  to = to.replace(/[,，、]/g, ' ').trim();
-  if (!to || to === from) return false;
-  if (S.tags.includes(to) && !confirm(`'${to}' 태그가 이미 있어요. 두 태그를 합칠까요?`)) return false;
-  S.words.forEach(w => { if (w.tags.includes(from)) w.tags = [...new Set(w.tags.map(x => x === from ? to : x))]; });
-  S.tags = S.tags.includes(to) ? S.tags.filter(x => x !== from) : S.tags.map(x => x === from ? to : x);
+$('#folderAddForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const f = cleanName($('#folderAddInput').value);
+  if (!f) return;
+  if (S.folders.includes(f)) return toast('이미 있는 폴더예요');
+  S.folders.push(f);
+  $('#folderAddInput').value = '';
+  afterTagChange();
+  toast(`'${f}' 폴더를 만들었어요 · 태그 옆에서 폴더를 골라 넣어보세요`);
+});
+function replaceTagVal(from, to) {
   if (listTag === from) listTag = to;
   if (S.homeTag === from) S.homeTag = to;
   if (quizTag === from) quizTag = to;
+}
+function renameTag(from, to) {
+  to = cleanName(to);
+  if (!to || to === from) return false;
+  if (S.tags.includes(to) && !confirm(`'${to}' 태그가 이미 있어요. 두 태그를 합칠까요?`)) return false;
+  S.words.forEach(w => { if (w.tags.includes(from)) w.tags = [...new Set(w.tags.map(x => x === from ? to : x))]; });
+  if (!S.tags.includes(to) && S.tagFolder[from]) S.tagFolder[to] = S.tagFolder[from];
+  delete S.tagFolder[from];
+  S.tags = S.tags.includes(to) ? S.tags.filter(x => x !== from) : S.tags.map(x => x === from ? to : x);
+  replaceTagVal(from, to);
+  return true;
+}
+function renameFolder(from, to) {
+  to = cleanName(to);
+  if (!to || to === from) return false;
+  if (S.folders.includes(to) && !confirm(`'${to}' 폴더가 이미 있어요. 두 폴더를 합칠까요?`)) return false;
+  for (const t of Object.keys(S.tagFolder)) if (S.tagFolder[t] === from) S.tagFolder[t] = to;
+  S.folders = S.folders.includes(to) ? S.folders.filter(x => x !== from) : S.folders.map(x => x === from ? to : x);
+  if (S.folderClosed[from]) { S.folderClosed[to] = true; delete S.folderClosed[from]; }
+  replaceTagVal(FOLDER + from, FOLDER + to);
   return true;
 }
 $('#tagRows').addEventListener('keydown', e => {
-  if (e.target.matches('[data-rename]') && e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
-  if (e.target.matches('[data-rename]') && e.key === 'Escape') { e.stopPropagation(); e.target.value = e.target.closest('.tag-row').dataset.t; e.target.blur(); }
+  const inp = e.target.closest('[data-rename],[data-rename-folder]'); if (!inp) return;
+  if (e.key === 'Enter') { e.preventDefault(); inp.blur(); }
+  if (e.key === 'Escape') {
+    e.stopPropagation();
+    inp.value = inp.matches('[data-rename]') ? inp.closest('.tag-row').dataset.t : inp.closest('.folder-row').dataset.f;
+    inp.blur();
+  }
 });
 $('#tagRows').addEventListener('focusout', e => {
-  if (!e.target.matches('[data-rename]')) return;
-  const from = e.target.closest('.tag-row').dataset.t;
-  if (renameTag(from, e.target.value)) { afterTagChange(); toast('태그 이름을 바꿨어요'); }
-  else e.target.value = from;
+  if (e.target.matches('[data-rename]')) {
+    const from = e.target.closest('.tag-row').dataset.t;
+    if (renameTag(from, e.target.value)) { afterTagChange(); toast('태그 이름을 바꿨어요'); }
+    else e.target.value = from;
+  } else if (e.target.matches('[data-rename-folder]')) {
+    const from = e.target.closest('.folder-row').dataset.f;
+    if (renameFolder(from, e.target.value)) { afterTagChange(); toast('폴더 이름을 바꿨어요'); }
+    else e.target.value = from;
+  }
+});
+$('#tagRows').addEventListener('change', e => {
+  if (!e.target.matches('[data-move-folder]')) return;
+  const t = e.target.closest('.tag-row').dataset.t, f = e.target.value;
+  if (f) S.tagFolder[t] = f; else delete S.tagFolder[t];
+  // 폴더 안에서는 맨 뒤로
+  S.tags = [...S.tags.filter(x => x !== t), t];
+  afterTagChange();
+  toast(f ? `'${t}' → 📁 ${f}` : `'${t}' 태그를 폴더에서 뺐어요`);
 });
 $('#tagRows').addEventListener('click', e => {
+  const frow = e.target.closest('.folder-row');
+  if (frow) {
+    const f = frow.dataset.f, i = S.folders.indexOf(f);
+    const mv = e.target.closest('[data-fmv]');
+    if (mv && !mv.disabled) {
+      const j = i + +mv.dataset.fmv;
+      [S.folders[i], S.folders[j]] = [S.folders[j], S.folders[i]];
+      return afterTagChange();
+    }
+    if (e.target.closest('[data-del-folder]')) askDeleteFolder(f);
+    return;
+  }
   const row = e.target.closest('.tag-row'); if (!row) return;
-  const t = row.dataset.t, i = S.tags.indexOf(t);
+  const t = row.dataset.t;
   const mv = e.target.closest('[data-mv]');
   if (mv && !mv.disabled) {
-    const j = i + +mv.dataset.mv;
+    // 같은 폴더(또는 폴더 밖) 안에서 이웃 태그와 자리 바꾸기
+    const grp = S.tags.filter(x => (S.tagFolder[x] || '') === (S.tagFolder[t] || ''));
+    const other = grp[grp.indexOf(t) + +mv.dataset.mv]; if (!other) return;
+    const i = S.tags.indexOf(t), j = S.tags.indexOf(other);
     [S.tags[i], S.tags[j]] = [S.tags[j], S.tags[i]];
     return afterTagChange();
   }
@@ -2133,18 +2285,48 @@ async function askDeleteTag(t) {
   if (v === 'all') del = removeWords(w => w.tags.includes(t));
   S.words.forEach(w => { w.tags = w.tags.filter(x => x !== t); });
   S.tags = S.tags.filter(x => x !== t);
-  if (listTag === t) listTag = '';
-  if (S.homeTag === t) S.homeTag = '';
-  if (quizTag === t) quizTag = '';
+  delete S.tagFolder[t];
+  replaceTagVal(t, '');
   afterTagChange();
   toast(v === 'all' ? `'${t}' 태그와 단어 ${del}개를 삭제했어요` : `'${t}' 태그를 삭제했어요`);
+}
+async function askDeleteFolder(f) {
+  const ft = folderTags(f), words = wordsInFolder(f), n = words.length;
+  const outside = words.filter(w => w.tags.some(t => S.tagFolder[t] !== f)).length;
+  const choices = [{ v: 'keep', label: '📁 폴더만 삭제 (태그·단어는 남기기)', cls: '' }];
+  if (ft.length) choices.push({ v: 'tags', label: `🏷 폴더와 태그 ${ft.length}개 삭제 (단어는 남기기)`, cls: 'danger' });
+  if (n) choices.push({ v: 'all', label: `🗑 폴더·태그·단어 ${n}개 모두 삭제`, cls: 'solid-danger' });
+  const v = await ask({
+    title: `'${f}' 폴더를 삭제할까요?`,
+    html: ft.length
+      ? `이 폴더에 태그 <b>${ft.length}개</b>(${ft.map(esc).join(', ')}), 단어 <b>${n}개</b>가 있어요.<br>폴더만 지우면 태그는 폴더 밖으로 나와요.`
+        + (outside ? `<br><span class="muted" style="font-size:11px">· 단어까지 지우면 다른 태그도 붙어 있는 단어 ${outside}개도 함께 지워져요.</span>` : '')
+        + (n ? `<div class="warn">단어를 지우면 되돌릴 수 없어요. 필요하면 설정 › 데이터에서 먼저 백업하세요.</div>` + syncWarn() : '')
+      : '빈 폴더예요.',
+    choices
+  });
+  if (!v) return;
+  let del = 0;
+  if (v === 'all') del = removeWords(w => w.tags.some(t => S.tagFolder[t] === f));
+  if (v === 'all' || v === 'tags') {
+    const ts = new Set(ft);
+    S.words.forEach(w => { w.tags = w.tags.filter(x => !ts.has(x)); });
+    S.tags = S.tags.filter(x => !ts.has(x));
+    ft.forEach(t => replaceTagVal(t, ''));
+  }
+  ft.forEach(t => delete S.tagFolder[t]);
+  S.folders = S.folders.filter(x => x !== f);
+  delete S.folderClosed[f];
+  replaceTagVal(FOLDER + f, '');
+  afterTagChange();
+  toast(v === 'all' ? `'${f}' 폴더와 단어 ${del}개를 삭제했어요` : v === 'tags' ? `'${f}' 폴더와 태그를 삭제했어요` : `'${f}' 폴더를 삭제했어요`);
 }
 $('#resetWords').addEventListener('click', async () => {
   const total = S.words.length;
   if (!total) return toast('지울 단어가 없어요');
-  const tagSel = listTag && listTag !== NO_TAG ? listTag : listTag === NO_TAG ? NO_TAG : '';
+  const tagSel = listTag || '';
   const inSel = tagSel ? S.words.filter(w => inTag(w, tagSel)).length : 0;
-  const tagName = tagSel === NO_TAG ? '태그 없음' : tagSel;
+  const tagName = tagValName(tagSel);
   const choices = [];
   if (tagSel && inSel) choices.push({ v: 'tag', label: `🏷 '${esc(tagName)}' 단어 ${inSel}개만 삭제`, cls: 'danger' });
   choices.push({ v: 'all', label: `🗑 전체 단어 ${total}개 모두 삭제`, cls: 'solid-danger' });
@@ -2160,8 +2342,15 @@ $('#resetWords').addEventListener('click', async () => {
   const keepTags = $('#askKeepTags').checked;
   const del = v === 'all' ? removeWords(() => true) : removeWords(w => inTag(w, tagSel));
   if (!keepTags) {
-    if (v === 'all') { S.tags = []; listTag = ''; S.homeTag = ''; quizTag = ''; }
-    else if (tagSel !== NO_TAG) { S.tags = S.tags.filter(x => x !== tagSel); S.words.forEach(w => { w.tags = w.tags.filter(x => x !== tagSel); }); listTag = ''; }
+    if (v === 'all') { S.tags = []; S.folders = []; S.tagFolder = {}; listTag = ''; S.homeTag = ''; quizTag = ''; }
+    else if (tagSel !== NO_TAG) {
+      const f = isFolderVal(tagSel) ? folderOfVal(tagSel) : null;
+      const ts = new Set(f ? folderTags(f) : [tagSel]);
+      S.tags = S.tags.filter(x => !ts.has(x)); S.words.forEach(w => { w.tags = w.tags.filter(x => !ts.has(x)); });
+      ts.forEach(t => { delete S.tagFolder[t]; replaceTagVal(t, ''); });
+      if (f) { S.folders = S.folders.filter(x => x !== f); replaceTagVal(tagSel, ''); }
+      listTag = '';
+    }
   }
   if (v === 'tag' && listTag === tagSel && keepTags && tagSel === NO_TAG) listTag = '';
   store.save(); renderTagRows(); renderAll();
@@ -2883,7 +3072,7 @@ let sb = null, sbUser = null;
 // ── 변경 추적: 저장할 때마다 바뀐 단어에 수정 시각을 찍고, 사라진 단어는 삭제 기록 ──
 function wordSig(w) { const { mt, ...rest } = w; return JSON.stringify(rest); }
 function metaOf() {
-  return { tags: S.tags, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder,
+  return { tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder,
     music: { list: S.music.list, repeat: S.music.repeat, shuffle: S.music.shuffle } };
 }
 const logsSig = () => JSON.stringify([S.reviewLog, S.quizLog]);
@@ -2942,6 +3131,8 @@ function applyPayload(P) {
   S.deleted = P.deleted; S.reviewLog = P.reviewLog; S.quizLog = P.quizLog; S.metaMt = P.metaMt;
   const m = P.meta || {};
   if (Array.isArray(m.tags)) S.tags = m.tags;
+  if (Array.isArray(m.folders)) S.folders = m.folders;
+  if (m.tagFolder && typeof m.tagFolder === 'object') S.tagFolder = m.tagFolder;
   for (const k of ['goal', 'autoSpeak', 'pageSize', 'bulkOrder']) if (m[k] !== undefined) S[k] = m[k];
   if (m.listen) Object.assign(S.listen, m.listen);
   if (m.music) {
