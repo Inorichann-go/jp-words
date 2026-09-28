@@ -3223,7 +3223,7 @@ document.addEventListener('keydown', e => {
 /* ─────────────── 유튜브 음악 바 (재생목록 · 이어 듣기) ───────────────
    S.music = { list: [{id, url, title}], cur, repeat: 'all'|'one'|'off', shuffle, vol,
                resume: {itemId, idx, t, title, playing} }  */
-let yt = null, ytReady = false, playing = false, pendingPlay = null, errStreak = 0;
+let yt = null, ytReady = false, playing = false, pendingPlay = null, errStreak = 0, ytCur = {};
 const M = S.music;
 // 예전 버전(링크 1개) → 재생목록으로 옮기기
 if (!Array.isArray(M.list)) {
@@ -3268,16 +3268,27 @@ function playItem(i, { resume = null, autoplay = true } = {}) {
   if (ytBlockedHere) return showYTError(153);
   if (!ytReady) { pendingPlay = { i, opts: { resume, autoplay } }; loadYTApi(); return; }
   const info = parseYT(item.url); if (!info) return showYTError(2);
+  // 이어 듣기: 같은 곡이면 마지막 위치(재생목록이면 몇 번째 곡인지까지)부터
+  const r = resume && resume.itemId === item.id ? resume : null;
+  const startIdx = r && info.list ? (r.idx || 0) : 0;
+  ytCur = { item, info, seekTo: r && r.t > 3 ? Math.floor(r.t) : 0 };
+
+  // 이미 만들어 둔 플레이어가 있으면 그대로 두고 곡만 바꿈.
+  // (iframe을 새로 만들면 크롬이 다른 탭에 가 있을 때 자동재생을 막아서 다음 곡으로 안 넘어감)
+  if (yt?.loadVideoById && autoplay) {
+    try {
+      if (info.list) yt.loadPlaylist({ list: info.list, listType: 'playlist', index: startIdx, startSeconds: 0 });
+      else { yt.loadVideoById({ videoId: info.vid, startSeconds: ytCur.seekTo }); ytCur.seekTo = 0; }
+      yt.setVolume(M.vol);
+      return;
+    } catch {}
+  }
   if (yt) { try { yt.destroy(); } catch {} yt = null; }
 
   const vars = { autoplay: autoplay ? 1 : 0, playsinline: 1, rel: 0, enablejsapi: 1 };
   if (info.list) { vars.listType = 'playlist'; vars.list = info.list; }
   if (location.origin.startsWith('http')) vars.origin = location.origin;
-  // 이어 듣기: 같은 곡이면 마지막 위치(재생목록이면 몇 번째 곡인지까지)부터
-  const r = resume && resume.itemId === item.id ? resume : null;
-  let seekTo = r && r.t > 3 ? Math.floor(r.t) : 0;
-  const startIdx = r && info.list ? (r.idx || 0) : 0;
-  if (seekTo && !info.list) { vars.start = seekTo; seekTo = 0; }
+  if (ytCur.seekTo && !info.list) { vars.start = ytCur.seekTo; ytCur.seekTo = 0; }
   if (startIdx) vars.index = startIdx;
 
   // iframe을 직접 만들어 referrerpolicy를 명시 (유튜브가 Referer를 요구함)
@@ -3301,12 +3312,12 @@ function playItem(i, { resume = null, autoplay = true } = {}) {
         $('#pPlay').textContent = playing ? '❚❚' : '▶';
         if (playing) {
           errStreak = 0;
-          if (seekTo) { e.target.seekTo(seekTo, true); seekTo = 0; }
+          if (ytCur.seekTo) { e.target.seekTo(ytCur.seekTo, true); ytCur.seekTo = 0; }
           const t = e.target.getVideoData?.()?.title;
-          if (t && !item.title) { item.title = t; store.save(); renderPlaylist(); }
+          if (t && !ytCur.item.title) { ytCur.item.title = t; store.save(); renderPlaylist(); }
         }
         if (e.data === S_.PLAYING || e.data === S_.PAUSED) saveResume();
-        if (e.data === S_.ENDED) onEnded(info);
+        if (e.data === S_.ENDED) onEnded(ytCur.info);
         updateTitle();
       },
       onError: e => {
