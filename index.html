@@ -759,6 +759,13 @@
 
   /* 주간 플래너 */
   .wk-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  @media (min-width: 561px) { .wk-grid { grid-auto-rows: 1fr; } }   /* 윗줄·아랫줄 칸 높이 같게 */
+  /* 월간 칸 속 할 일 (작은 글씨) */
+  .mtd { display: block; position: relative; font-size: 9.5px; line-height: 1.35; padding-left: 11px; margin-top: 1px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mtd::before { content: ''; position: absolute; left: 1px; top: 2.5px; width: 7px; height: 7px; border: 1.2px solid var(--pink-mid); border-radius: 2px; box-sizing: border-box; }
+  .mtd.done { color: var(--text3); text-decoration: line-through; }
+  .mtd.done::before { background: var(--accent); border-color: var(--accent); }
+  @media (max-width: 520px) { .mtd { font-size: 8.5px; padding-left: 9px; } .mtd::before { width: 6px; height: 6px; } }
   @media (max-width: 1100px) { .wk-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 560px) { .wk-grid { grid-template-columns: 1fr; } }
   .wk-day { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 11px; box-shadow: var(--shadow); min-height: 150px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
@@ -4509,10 +4516,11 @@ function monthHtml() {
   const weeks = Math.ceil((first.getDay() + new Date(y, m + 1, 0).getDate()) / 7), today = dkey();
   let cells = DOW.map((d, i) => `<div class="dow ${i === 0 ? 'sun' : i === 6 ? 'sat' : ''}">${d}</div>`).join('');
   for (let i = 0; i < weeks * 7; i++) {
-    const d = calAdd(start, i), dt = pd(d), evs = eventsOn(d), max = 3, wd = dt.getDay();
+    const d = calAdd(start, i), dt = pd(d), evs = eventsOn(d), max = 3, wd = dt.getDay(), tds = todosOf(d), tmax = 3;
     cells += `<div class="mcell${dt.getMonth() !== m ? ' out' : ''}${d === today ? ' today' : ''}${d === C.sel ? ' sel' : ''}${wd === 0 ? ' sun' : wd === 6 ? ' sat' : ''}" data-day="${d}">
       <span class="dn">${dt.getDate()}</span>${memoOf(d)?.mood ? `<span class="mood-dot" style="--c:${moodOf(memoOf(d).mood).c}" title="기분: ${moodOf(memoOf(d).mood).l}"></span>` : ''}${memoOf(d)?.text ? '<span class="memo-dot" title="메모 있음"></span>' : ''}
-      ${evs.slice(0, max).map(evChip).join('')}${evs.length > max ? `<div class="more">+${evs.length - max}개</div>` : ''}</div>`;
+      ${evs.slice(0, max).map(evChip).join('')}${evs.length > max ? `<div class="more">+${evs.length - max}개</div>` : ''}
+      ${tds.slice(0, tmax).map(t => `<span class="mtd${t.done ? ' done' : ''}" title="${esc(t.text)}">${esc(t.text)}</span>`).join('')}${tds.length > tmax ? `<div class="more">할 일 +${tds.length - tmax}</div>` : ''}</div>`;
   }
   return calBar(`${y}년 ${m + 1}월`) + `<div class="cal-wrap"><div class="mgrid">${cells}</div>${dayPanel(C.sel)}</div>`;
 }
