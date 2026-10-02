@@ -1,0 +1,3255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>입덕티켓</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap');
+
+:root{
+  --ink:#fdf1f5;
+  --surface:#ffffff;
+  --surface-raised:#ffe0ec;
+  --line: rgba(198,54,110,0.18);
+  --text:#3d1128;
+  --muted:#a15c82;
+  --flutter:#ff4f81;
+  --flutter-deep:#e02f68;
+  --moon:#c93b82;
+  --gold:#c9861f;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--ink);color:var(--text);font-family:'Noto Sans KR',sans-serif;}
+.serif{font-family:'Noto Serif KR',serif;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+::selection{background:var(--flutter);color:#fff;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;min-width:0;}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:var(--surface-raised);border-radius:4px;}
+
+#app{max-width:1100px;margin:0 auto;padding:28px 20px 80px;}
+.login-wrap{min-height:80vh;display:flex;align-items:center;justify-content:center;}
+.login-card{width:min(360px,90vw);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:32px 28px;}
+
+/* header */
+.hdr{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--gold);padding-bottom:16px;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+.hdr h1{font-size:30px;font-weight:700;margin:0;letter-spacing:.5px;}
+.hdr .tag{color:var(--muted);font-size:13px;margin-top:6px;}
+.hdr-actions{display:flex;gap:8px;}
+.tab-bar{display:flex;gap:6px;margin-bottom:20px;border-bottom:1px solid var(--line);}
+.tab-btn{background:transparent;border:none;padding:10px 18px;font-size:14px;font-weight:700;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;}
+.tab-btn.active{color:var(--flutter-deep);border-bottom-color:var(--flutter);}
+.btn{background:var(--surface-raised);border:1px solid var(--line);color:var(--text);padding:9px 16px;border-radius:20px;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:transform .12s, border-color .12s;}
+.btn:hover{border-color:var(--moon);}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--flutter);color:#2b0714;border-color:var(--flutter);}
+.btn-primary:hover{background:var(--flutter-deep);border-color:var(--flutter-deep);}
+.btn-ghost{background:transparent;}
+.btn-danger{color:#c22349;border-color:rgba(211,47,90,.4);}
+
+/* toolbar */
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center;}
+.toolbar input[type=text], .toolbar select{background:var(--surface);border:1px solid var(--line);color:var(--text);padding:9px 12px;border-radius:10px;font-size:13px;}
+.toolbar input[type=text]{flex:1;min-width:160px;}
+.chips{display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
+.filter-cat-group{width:100%;}
+.filter-cat-toggle{background:var(--surface-raised);border:1px solid var(--line);color:var(--muted);font-size:12px;padding:6px 12px;border-radius:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+.filter-cat-toggle.open{border-color:var(--moon);color:var(--moon);}
+.filter-cat-count{font-size:10px;color:var(--muted);background:var(--surface);padding:1px 6px;border-radius:8px;}
+.filter-cat-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;padding-left:6px;}
+.chip{border:1px solid var(--line);padding:5px 12px;border-radius:14px;font-size:12px;color:var(--muted);background:var(--surface);}
+.chip.active{border-color:var(--gold);color:var(--gold);}
+.empty{text-align:center;padding:70px 20px;color:var(--muted);}
+.empty .big{font-size:40px;margin-bottom:10px;}
+
+/* grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:22px;}
+
+/* ticket card */
+.ticket{background:var(--surface);border-radius:14px;border:1px solid var(--line);overflow:visible;position:relative;transition:transform .15s, border-color .15s;cursor:pointer;}
+.ticket-fave{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold);}
+.ticket-fave-badge{position:absolute;top:-9px;right:10px;background:var(--gold);color:#3d1128;font-size:10px;font-weight:700;padding:3px 9px;border-radius:8px;z-index:2;}
+.rewatch-stepper{display:flex;align-items:center;gap:12px;}
+.rewatch-stepper span{font-size:14px;font-weight:700;min-width:36px;text-align:center;}
+.ticket:hover{transform:translateY(-3px);border-color:var(--moon);}
+.ticket-top{display:flex;gap:12px;padding:14px 14px 14px;}
+.ticket-poster-wrap{width:76px;height:104px;flex-shrink:0;border-radius:10px;overflow:hidden;background:var(--surface-raised);display:flex;align-items:center;justify-content:center;}
+.ticket-poster-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+.ticket-info{flex:1;min-width:0;}
+.ticket-serial{font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;}
+.ticket-emoji{font-size:26px;}
+.ticket-title{font-size:16px;font-weight:700;line-height:1.3;margin:0 0 3px;}
+.ticket-orig{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.ticket-meta{font-size:11px;color:var(--muted);}
+.ticket-status{display:inline-block;margin-top:6px;font-size:11px;padding:3px 10px;border-radius:10px;background:rgba(201,59,130,.12);color:var(--moon);}
+.ticket-divider{position:relative;border-top:2px dashed rgba(198,54,110,.25);margin:0 14px;}
+.ticket-divider::before,.ticket-divider::after{content:"";position:absolute;top:-9px;width:18px;height:18px;border-radius:50%;background:var(--ink);}
+.ticket-divider::before{left:-23px;}
+.ticket-divider::after{right:-23px;}
+.ticket-bottom{padding:12px 16px 16px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.ticket-kw-list{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default;}
+.stars{font-size:13px;}
+.ship-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px;}
+.ship-tag{font-size:11px;background:rgba(255,79,129,.14);color:var(--flutter-deep);padding:2px 8px;border-radius:8px;}
+
+/* simple card view */
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;}
+.data-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface);}
+.data-table th{background:var(--surface-raised);color:var(--moon);text-align:left;padding:9px 12px;font-weight:700;white-space:nowrap;border:1px solid var(--line);}
+.data-table td{padding:9px 12px;border:1px solid var(--line);vertical-align:middle;white-space:nowrap;}
+.data-table td.wrap{white-space:normal;}
+.data-table tbody tr{cursor:pointer;}
+.data-table tbody tr:hover td{background:var(--surface-raised);}
+.data-table .stars{font-size:12px;}
+.table-thumb{width:26px;height:26px;object-fit:cover;border-radius:5px;vertical-align:middle;margin-right:2px;}
+
+/* overlay / panel */
+.overlay{position:fixed;inset:0;background:rgba(10,8,16,.7);display:flex;justify-content:flex-end;z-index:50;}
+.lightbox{z-index:200;background:rgba(10,8,16,.88);cursor:zoom-out;}
+.lightbox img{max-width:92vw;max-height:92vh;object-fit:contain;border-radius:8px;cursor:default;}
+.overlay.center{justify-content:center;align-items:center;}
+.panel{background:var(--ink);width:min(560px,100%);height:100%;overflow-y:auto;overflow-x:hidden;padding:26px 26px 100px;border-left:1px solid var(--line);}
+.modal{background:var(--ink);width:min(560px,92vw);max-height:88vh;overflow-y:auto;border-radius:16px;padding:26px;border:1px solid var(--line);}
+.modal-form{background:var(--ink);width:min(760px,94vw);max-height:90vh;overflow-y:auto;border-radius:16px;padding:24px 30px;border:1px solid var(--line);}
+.modal-form .field{margin-bottom:12px;}
+.modal-form .field label{font-size:11px;margin-bottom:4px;}
+.modal-form .field input[type=text],.modal-form .field input[type=number],.modal-form .field input[type=date],.modal-form .field select{padding:8px 10px;font-size:14px;}
+.modal-form .field textarea{padding:8px 10px;font-size:13px;min-height:70px;}
+.modal-form .review-textarea{min-height:120px;}
+.modal-form .row2{gap:10px;}
+.modal-form .row3{gap:8px;}
+.modal-form .subhdr{margin:16px 0 8px;font-size:13px;}
+.modal-form .dyn-row{margin-bottom:6px;}
+.modal-form .cast-input-row{padding-bottom:8px;margin-bottom:6px;}
+.modal-form .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.modal-form .cast-locked-name{font-size:13px;padding:8px 10px;}
+.modal-form .cast-memo{font-size:12px;padding:7px 9px;}
+.modal-form .kw-toggle-pill{font-size:12px;padding:5px 11px;}
+.modal-form .kw-pick label{font-size:12px;padding:4px 9px;}
+.modal-form .poster-upload.portrait{width:120px;height:160px;}
+.panel-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;}
+.form-header-sticky{position:sticky;top:0;background:var(--ink);z-index:5;padding:4px 0 14px;margin-bottom:8px;border-bottom:1px solid var(--line);}
+.panel-hdr h2{font-size:20px;margin:0;}
+.iconbtn{background:transparent;border:none;color:var(--muted);font-size:20px;line-height:1;}
+.iconbtn:hover{color:var(--text);}
+
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;}
+.field input[type=text],.field input[type=number],.field input[type=password],.field input[type=date],.field select,.field textarea{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);padding:11px 12px;border-radius:10px;font-size:16px;}
+.field textarea{min-height:90px;resize:vertical;line-height:1.6;}
+.review-textarea{font-size:13px !important;min-height:140px;line-height:1.6;}
+.review-preview-box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;min-height:40px;}
+.review-preview-box:hover{border-color:var(--moon);}
+.review-preview-text{font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;}
+.review-preview-empty{font-size:13px;color:var(--muted);}
+.review-editor-textarea{width:100%;min-height:340px;background:var(--surface);border:1px solid var(--line);color:var(--text);padding:14px;border-radius:10px;font-size:14px;line-height:1.7;resize:vertical;margin-bottom:16px;}
+.poster-upload{width:100%;height:170px;border-radius:12px;overflow:hidden;background:var(--surface-raised);display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.poster-upload.portrait{width:150px;height:200px;}
+.poster-preview{width:100%;height:100%;object-fit:cover;cursor:zoom-in;}
+.poster-placeholder{font-size:48px;}
+.poster-actions{display:flex;gap:8px;margin-bottom:6px;}
+.poster-url-row{display:flex;gap:8px;margin-bottom:16px;}
+.poster-url-row input{flex:1;background:var(--surface);border:1px solid var(--line);color:var(--text);padding:9px 10px;border-radius:8px;font-size:13px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-width:0;}
+.row3{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;min-width:0;}
+
+.subhdr{font-size:14px;font-weight:700;color:var(--moon);margin:22px 0 10px;display:flex;justify-content:space-between;align-items:center;}
+.dyn-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;min-width:0;}
+.dyn-row input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);color:var(--text);padding:9px 10px;border-radius:8px;font-size:15px;}
+.cast-locked-name{flex:1;min-width:0;background:var(--surface-raised);border:1px solid var(--line);color:var(--text);padding:9px 10px;border-radius:8px;font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cast-picker-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;font-size:14px;}
+.cast-picker-row:hover{background:var(--surface-raised);}
+.cast-picker-row.picked{background:rgba(255,79,129,.12);}
+.cast-picker-row .table-thumb{width:24px;height:24px;}
+.cast-picker-row .chk{margin-left:auto;color:var(--flutter);font-weight:700;}
+.cast-input-row{padding-bottom:10px;margin-bottom:8px;border-bottom:1px dashed var(--line);}
+.cast-input-row:last-child{border-bottom:none;}
+.cast-memo{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);padding:8px 10px;border-radius:8px;font-size:14px;}
+.rowbtn{background:transparent;border:1px solid var(--line);color:var(--muted);width:30px;height:30px;border-radius:8px;flex-shrink:0;}
+.rowbtn:hover{color:#c22349;border-color:rgba(211,47,90,.4);}
+.addrow{font-size:13px;color:var(--moon);background:transparent;border:1px dashed var(--moon);padding:6px 12px;border-radius:8px;}
+
+.star-group{display:inline-flex;gap:2px;}
+.star{position:relative;display:inline-block;width:1em;height:1em;color:var(--muted);}
+.star .sf{position:absolute;left:0;top:0;overflow:hidden;white-space:nowrap;color:var(--gold);}
+.starpick .star-group{font-size:28px;}
+.starpick .star{cursor:pointer;}
+.heat-group .sf{color:#ff5b3d;}
+.rating-label{margin-left:10px;font-size:13px;color:var(--muted);vertical-align:middle;}
+
+.gear-wrap{position:relative;}
+.gear-btn{font-size:17px;padding:9px 12px;}
+.gear-menu{display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--line);border-radius:12px;min-width:150px;box-shadow:0 8px 22px rgba(61,17,40,.14);overflow:hidden;z-index:60;}
+.gear-menu.open{display:block;}
+.gear-menu button{display:block;width:100%;text-align:left;background:transparent;border:none;padding:11px 14px;font-size:14px;color:var(--text);}
+.gear-menu button:hover{background:var(--surface-raised);}
+.gear-menu-label{font-size:11px;color:var(--muted);padding:10px 14px 4px;}
+.gear-menu-divider{height:1px;background:var(--line);margin:4px 0;}
+.gear-view-opt{display:flex;align-items:center;justify-content:space-between;}
+.gear-view-opt .chk{opacity:0;color:var(--flutter);}
+.gear-view-opt.active .chk{opacity:1;}
+
+.kw-pick{display:flex;flex-wrap:wrap;gap:6px;}
+.kw-pick label{display:flex;align-items:center;gap:5px;font-size:13px;padding:5px 10px;border-radius:12px;border:1px solid var(--line);cursor:pointer;color:var(--muted);}
+.kw-pick input{margin:0;}
+.kw-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+.kw-cat-row{margin-bottom:14px;}
+.kw-cat-label{font-size:12px;font-weight:700;color:var(--moon);margin-bottom:6px;}
+.kw-cat-pills{display:flex;flex-wrap:wrap;gap:6px;}
+.kw-toggle-pill{font-size:13px;padding:6px 13px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;}
+.kw-toggle-pill.selected{background:var(--flutter);border-color:var(--flutter);color:#2b0714;font-weight:700;}
+
+.kw-mgr-cat{margin-bottom:20px;}
+.kw-mgr-cat-header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;}
+.kw-cat-toggle{background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;flex-shrink:0;width:16px;}
+.kw-cat-count{font-size:11px;color:var(--muted);flex-shrink:0;}
+.kw-mgr-cat-name{flex:1;font-size:14px;font-weight:700;color:var(--moon);background:transparent;border:none;border-bottom:1px dashed var(--line);padding:2px 0;}
+.kw-mgr-pills{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.kw-mgr-pill{display:flex;align-items:center;gap:2px;background:var(--surface-raised);border-radius:14px;padding:3px 4px 3px 10px;font-size:12px;}
+.kw-mgr-pill input{border:none;background:transparent;color:var(--text);font-size:13px;padding:3px 0;}
+.kw-mgr-pill-usage{font-size:10px;color:var(--muted);padding:0 3px;}
+.kw-mgr-pill-del{width:18px;height:18px;border-radius:50%;border:none;background:transparent;color:var(--muted);font-size:11px;cursor:pointer;flex-shrink:0;}
+.kw-mgr-pill-del:hover{color:#c22349;}
+.kw-mgr-add-pill{display:flex;align-items:center;gap:4px;background:transparent;border:1px dashed var(--moon);border-radius:14px;padding:3px 4px 3px 10px;}
+.kw-mgr-add-pill input{border:none;background:transparent;color:var(--text);font-size:13px;}
+.kw-mgr-add-btn{width:20px;height:20px;border-radius:50%;border:none;background:var(--moon);color:#fff;font-size:12px;cursor:pointer;flex-shrink:0;}
+.kw-cat-add-row{display:flex;gap:8px;margin-top:6px;}
+.kw-cat-add-row input{flex:1;background:var(--surface);border:1px solid var(--line);color:var(--text);padding:9px 10px;border-radius:8px;font-size:13px;}
+
+.spoiler-toggle{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-top:-6px;margin-bottom:16px;}
+
+.formfoot{display:flex;gap:10px;margin-top:26px;}
+
+/* detail */
+.d-emoji{font-size:44px;}
+.person-card{display:flex;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;height:132px;}
+.person-card-wrecked{opacity:.55;filter:grayscale(1);}
+.person-card-wrecked:hover{opacity:.8;}
+.cp-wrecked-divider{grid-column:1/-1;font-size:12px;color:var(--muted);border-top:1px dashed var(--line);padding-top:14px;margin-top:8px;}
+.simple-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;transition:transform .15s,border-color .15s;}
+.simple-card:hover{transform:translateY(-3px);border-color:var(--moon);}
+.stat-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:10px;margin-bottom:22px;}
+.stat-summary-card{background:var(--surface-raised);border-radius:12px;padding:14px 8px;text-align:center;}
+.stat-summary-num{font-size:22px;font-weight:700;color:var(--flutter-deep);font-family:'Noto Serif KR',serif;}
+.stat-summary-label{font-size:11px;color:var(--muted);margin-top:4px;}
+.stat-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;}
+.stat-bar-label{width:60px;flex-shrink:0;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.stat-bar-track{flex:1;height:8px;background:var(--surface-raised);border-radius:4px;overflow:hidden;}
+.stat-bar-fill{height:100%;background:var(--flutter);border-radius:4px;}
+.stat-bar-count{width:24px;text-align:right;color:var(--muted);flex-shrink:0;}
+.planner-grid{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px;max-height:56vh;}
+.planner-col{flex:1 0 100px;min-width:100px;display:flex;flex-direction:column;}
+.planner-day-header{text-align:center;font-size:12px;font-weight:700;padding:8px 4px;border-radius:14px;background:var(--surface-raised);color:var(--muted);margin-bottom:8px;}
+.planner-col-today .planner-day-header{background:var(--flutter);color:#2b0714;}
+.planner-day-body{display:flex;flex-direction:column;gap:6px;flex:1;border-top:2px dashed var(--line);padding-top:8px;overflow-y:auto;}
+.planner-col-today .planner-day-body{border-top:2px solid var(--flutter);}
+.planner-item{background:var(--surface-raised);border-radius:8px;padding:8px 6px;font-size:12px;line-height:1.35;cursor:pointer;text-align:center;word-break:keep-all;}
+.planner-item:hover{background:rgba(183,156,255,.2);}
+.planner-col-today .planner-item{background:rgba(255,79,129,.16);border:1px solid var(--flutter);font-weight:700;color:var(--text);}
+.airing-mini-row{display:flex;flex-wrap:wrap;gap:6px;}
+.airing-mini-chip{font-size:12px;background:var(--surface-raised);color:var(--text);padding:5px 11px;border-radius:12px;cursor:pointer;}
+.airing-mini-chip:hover{background:rgba(183,156,255,.2);}
+.person-card:hover{transform:translateY(-3px);border-color:var(--moon);}
+.person-card-imgwrap{width:110px;flex-shrink:0;background:var(--surface-raised);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.person-card-imgwrap img{width:100%;height:100%;object-fit:cover;display:block;}
+.person-card-placeholder{font-size:32px;}
+.person-card-body{flex:1;min-width:0;padding:14px 16px;display:flex;flex-direction:column;justify-content:center;gap:5px;overflow:hidden;}
+.person-card-name{font-size:16px;font-weight:700;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.person-card-cp{font-size:11px;font-weight:700;color:var(--flutter-deep);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.person-card-meta{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.profile-hero{display:flex;gap:16px;margin-bottom:16px;align-items:flex-start;}
+.profile-hero-imgwrap{width:130px;height:170px;flex-shrink:0;border-radius:14px;overflow:hidden;background:var(--surface-raised);display:flex;align-items:center;justify-content:center;}
+.profile-hero-imgwrap img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in;}
+.profile-hero-body{flex:1;min-width:0;padding-top:6px;}
+.profile-hero-body .d-title{margin-top:0;}
+.d-title{font-size:24px;font-weight:700;margin:8px 0 2px;}
+.d-orig{color:var(--muted);font-size:13px;margin-bottom:10px;}
+.d-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.badge{font-size:12px;padding:4px 12px;border-radius:12px;background:var(--surface-raised);color:var(--text);}
+.sec-title{font-size:13px;font-weight:700;color:var(--moon);margin:22px 0 8px;}
+.cast-row{display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--line);}
+.cast-role{color:var(--muted);}
+.cast-card{background:var(--surface-raised);border-radius:10px;padding:10px 12px;margin-bottom:8px;}
+.cast-card:last-child{margin-bottom:0;}
+.cast-field{display:flex;gap:8px;font-size:13px;padding:2px 0;}
+.cast-field-label{width:34px;flex-shrink:0;font-size:11px;color:var(--muted);padding-top:1px;}
+.cast-field-value{flex:1;}
+.cast-field-value.actor-name{font-weight:700;}
+.cast-field.memo-field{margin-top:4px;font-size:12px;color:var(--muted);}
+.kwpills{display:flex;flex-wrap:wrap;gap:6px;}
+.kwpill{font-size:12px;padding:4px 10px;border-radius:10px;background:var(--surface-raised);color:var(--moon);}
+.ost-row{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--line);}
+.spoiler-box{position:relative;background:var(--surface);border-radius:10px;padding:14px;font-size:13px;line-height:1.7;white-space:pre-wrap;}
+.spoiler-blur{filter:blur(7px);user-select:none;pointer-events:none;}
+.spoiler-cover{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(253,241,245,.6);border-radius:10px;}
+.reveal-btn{background:var(--flutter);color:#2b0714;border:none;padding:8px 16px;border-radius:16px;font-size:12px;font-weight:700;}
+
+/* keyword / cp manager */
+.kw-manage-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);}
+.kw-manage-row input[type=text]{flex:1;background:var(--surface);border:1px solid var(--line);color:var(--text);padding:7px 10px;border-radius:8px;font-size:13px;}
+.kw-usage{font-size:11px;color:var(--muted);min-width:44px;text-align:right;}
+.mini-color{width:20px;height:20px;border:none;background:none;padding:0;border-radius:50%;overflow:hidden;flex-shrink:0;}
+.cp-hl{margin-right:4px;}
+.cp-highlight-picker{display:flex;gap:4px;flex-wrap:wrap;}
+.cp-highlight-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.cp-highlight-btn.active{border-color:var(--flutter);background:rgba(255,79,129,.15);}
+.cp-list-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);}
+.cp-list-label{flex:1;font-size:13px;}
+.cp-manage-item{padding:10px 0;border-bottom:1px solid var(--line);}
+.cp-manage-line1{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.cp-manage-line1 input[type=text]{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);color:var(--text);padding:7px 8px;border-radius:8px;font-size:13px;}
+.cp-manage-line2{display:flex;align-items:center;gap:8px;}
+.cp-manage-line2 input[type=text]{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);color:var(--text);padding:7px 8px;border-radius:8px;font-size:13px;}
+.cp-x{color:var(--muted);font-size:13px;flex-shrink:0;}
+.cp-detail-toggle{flex-shrink:0;background:transparent;border:1px dashed var(--moon);color:var(--moon);font-size:11px;padding:5px 10px;border-radius:8px;}
+.cp-detail-toggle:hover{background:var(--surface-raised);}
+.cp-actor-detail{margin-top:10px;display:flex;flex-direction:column;gap:10px;}
+.cp-actor-detail-block{background:var(--surface-raised);border-radius:10px;padding:10px 12px;}
+.cp-actor-detail-title{font-size:12px;font-weight:700;color:var(--moon);margin-bottom:8px;}
+.cp-actor-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;}
+.cp-actor-detail-block input,.cp-actor-detail-block textarea{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);padding:6px 8px;border-radius:6px;font-size:12px;}
+.cp-actor-detail-block textarea{min-height:40px;resize:vertical;}
+.cp-actor-detail-empty{font-size:12px;color:var(--muted);}
+
+.loading{text-align:center;padding:80px 20px;color:var(--muted);}
+@media(max-width:600px){.row2{grid-template-columns:1fr;} .panel{padding:20px 16px 100px;} .row4{grid-template-columns:1fr 1fr;} .modal-form{padding:20px 16px;}}
+
+/* ── 종합 앱(단어장)과 같은 디자인으로 맞추기 ── */
+:root{
+  --ink:#fff4f7; --surface:#ffffff; --surface-raised:#ffe6ee; --line:#fad6e2;
+  --text:#4a3a40; --muted:#8f7a84; --flutter:#e8739a; --flutter-deep:#d4577f; --moon:#d4577f; --gold:#e8a33d;
+  --shadow:0 2px 10px rgba(232,115,154,.08);
+}
+body{font-family:'Noto Sans KR','Noto Sans JP',sans-serif;font-size:12px;line-height:1.5;background:var(--ink);}
+.serif,.stat-summary-num{font-family:'Noto Sans KR','Noto Sans JP',sans-serif !important;}
+#app{max-width:1100px;padding:14px 16px 28px;}
+.hdr{border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:12px;align-items:center;}
+.hdr h1{font-size:18px;color:var(--flutter-deep);letter-spacing:0;}
+.hdr .tag{font-size:11px;margin-top:2px;}
+.tab-bar{gap:4px;margin-bottom:14px;border-bottom:1px solid var(--line);}
+.tab-btn{flex:1;max-width:160px;padding:9px 0 10px;font-size:14px;color:#b8a5ad;border-bottom:3px solid transparent;}
+.tab-btn.active{color:var(--flutter);border-bottom-color:var(--flutter);}
+.btn{padding:5px 12px;font-size:12px;border-radius:99px;background:var(--surface);border:1px solid var(--line);}
+.btn:hover{background:#fffafc;border-color:var(--flutter);}
+.btn-primary,.btn-primary:hover{color:#fff;background:var(--flutter);border-color:var(--flutter);}
+.btn-primary:hover{background:var(--flutter-deep);border-color:var(--flutter-deep);}
+.btn-danger{color:#e35d6a;border-color:rgba(227,93,106,.4);}
+.gear-btn{font-size:14px;padding:5px 10px;}
+.toolbar input[type=text],.toolbar select{padding:6px 10px;font-size:12px;border-radius:99px;}
+.chip{font-size:11px;padding:3px 10px;border-radius:99px;}
+.chip.active{border-color:var(--flutter);color:#fff;background:var(--flutter);}
+.ticket,.simple-card,.person-card,.table-wrap{box-shadow:var(--shadow);}
+.ticket-title{font-size:14px;}
+.ticket-fave-badge{color:#fff;}
+.overlay{background:rgba(74,58,64,.38);}
+.modal,.modal-form,.panel{background:var(--surface);}
+.form-header-sticky{background:var(--surface);}
+.panel-hdr h2{font-size:16px;color:var(--text);}
+.field label{font-size:11px;}
+.field input[type=text],.field input[type=number],.field input[type=password],.field input[type=date],.field select,.field textarea{padding:8px 10px;font-size:14px;border-radius:8px;}
+.kw-toggle-pill.selected,.reveal-btn,.planner-col-today .planner-day-header{color:#fff;}
+.data-table{font-size:12px;}
+.data-table th{color:var(--flutter-deep);}
+.d-title{font-size:20px;}
+.empty{padding:50px 20px;}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">불러오는 중…</div></div>
+
+<script>
+const COUNTRY_EMOJI={"태국":"🇹🇭","한국":"🇰🇷","중국":"🇨🇳","일본":"🇯🇵","필리핀":"🇵🇭","대만":"🇹🇼","베트남":"🇻🇳"};
+const STATUS_OPTIONS=["시청예정","방영예정","방영중","시청중","완결","보류","시청포기"];
+const CP_HIGHLIGHTS=["⭐","💖","👑","✅","🔥"];
+const MASTER_PASSWORD="050705";
+const DEFAULT_KEYWORD_CATEGORIES=[
+  {id:"gc1",name:"장르"},
+  {id:"gc2",name:"관계"},
+  {id:"gc3",name:"소재"},
+  {id:"gc4",name:"인물(공)"},
+  {id:"gc5",name:"인물(수)"},
+  {id:"gc6",name:"기타"}
+];
+const DEFAULT_KEYWORDS=[
+  {id:"k1",label:"복수극",categoryId:"gc1"},
+  {id:"k2",label:"오피스물",categoryId:"gc3"},
+  {id:"k3",label:"대학물",categoryId:"gc3"},
+  {id:"k4",label:"츤데레",categoryId:"gc6"}
+];
+const DEFAULT_OTT_LIST=[
+  {id:"ott1",label:"Viki"},
+  {id:"ott2",label:"iQIYI"},
+  {id:"ott3",label:"WeTV"},
+  {id:"ott4",label:"YouTube"},
+  {id:"ott5",label:"Viu"},
+  {id:"ott6",label:"GagaOOLala"},
+  {id:"ott7",label:"Netflix"}
+];
+
+const App={
+  state:{
+    dramas:[],
+    keywords:[],
+    keywordCategories:[],
+    cps:[],
+    actors:[],
+    studios:[],
+    osts:[],
+    ostGenres:[],
+    ottList:[],
+    suppressAiringPopupThisSession:false,
+    view:'list',
+    editingId:null,
+    viewingId:null,
+    draft:null,
+    filterKeywords:[],
+    mgrKind:null,
+    reopenFormAfterManager:false,
+    viewMode:'ticket',
+    revealSpoiler:{},
+    collapsedKwCats:{},
+    expandedFilterCats:{},
+    activeTab:'review',
+    sortBy:'newest',
+    minRating:0,
+    actorViewMode:'card',
+    cpViewMode:'card',
+    ostViewMode:'card'
+  },
+
+  uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); },
+  esc(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); },
+
+  STORAGE_PREFIX:'seolremnote_',
+  async storageGet(key){
+    if(typeof window.storage!=='undefined' && window.storage){
+      try{
+        const r=await window.storage.get(key);
+        return r ? r.value : null;
+      }catch(e){ /* key not found or API unavailable — fall through */ }
+    }
+    try{ return localStorage.getItem(this.STORAGE_PREFIX+key); }catch(e){ return null; }
+  },
+  async storageSet(key,val){
+    let ok=false;
+    if(typeof window.storage!=='undefined' && window.storage){
+      try{ await window.storage.set(key,val); ok=true; }catch(e){ ok=false; }
+    }
+    try{ localStorage.setItem(this.STORAGE_PREFIX+key,val); ok=true; }catch(e){}
+    return ok;
+  },
+
+  async init(){
+    const d=await this.storageGet('dramas');
+    this.state.dramas = d ? JSON.parse(d) : [];
+    const k=await this.storageGet('keywords');
+    this.state.keywords = k ? JSON.parse(k) : DEFAULT_KEYWORDS;
+    const kc=await this.storageGet('keywordCategories');
+    this.state.keywordCategories = kc ? JSON.parse(kc) : DEFAULT_KEYWORD_CATEGORIES;
+    const c=await this.storageGet('cps');
+    this.state.cps = c ? JSON.parse(c) : [];
+    const a=await this.storageGet('actors');
+    this.state.actors = a ? JSON.parse(a) : [];
+    const st=await this.storageGet('studios');
+    this.state.studios = st ? JSON.parse(st) : [];
+    const os=await this.storageGet('osts');
+    this.state.osts = os ? JSON.parse(os) : [];
+    const og=await this.storageGet('ostGenres');
+    this.state.ostGenres = og ? JSON.parse(og) : [];
+    const otl=await this.storageGet('ottList');
+    this.state.ottList = otl ? JSON.parse(otl) : DEFAULT_OTT_LIST;
+    const v=await this.storageGet('viewMode');
+    this.state.viewMode = (v==='ticket'||v==='table') ? v : 'ticket';
+    const av=await this.storageGet('actorViewMode');
+    this.state.actorViewMode = (av==='table') ? 'table' : 'card';
+    const cv=await this.storageGet('cpViewMode');
+    this.state.cpViewMode = (cv==='table') ? 'table' : 'card';
+    const ov=await this.storageGet('ostViewMode');
+    this.state.ostViewMode = (ov==='table') ? 'table' : 'card';
+    this.migrateShips();
+    this.migrateCps();
+    this.migrateStudios();
+    this.migrateKeywordCategories();
+    this.migrateActors();
+    this.migrateCpExtra();
+    this.migrateCastActorIds();
+    this.migrateOsts();
+    this.migrateOstGenres();
+    this.migrateRelated();
+    this.renderLogin();
+  },
+
+  renderLogin(){
+    const app=document.getElementById('app');
+    app.innerHTML=`
+      <div class="login-wrap">
+        <div class="login-card">
+          <h1 class="serif" style="text-align:center;margin:0 0 4px;">입덕티켓</h1>
+          <div class="tag" style="text-align:center;margin-bottom:24px;">비밀번호를 입력해주세요</div>
+          <div class="field"><label>비밀번호</label><input type="password" id="loginPw" placeholder="비밀번호" onkeydown="if(event.key==='Enter'){App.attemptLogin();}"></div>
+          <div id="loginError" style="color:#c22349;font-size:13px;margin-bottom:10px;display:none;"></div>
+          <button class="btn btn-primary" style="width:100%;" onclick="App.attemptLogin()">접속</button>
+        </div>
+      </div>`;
+    const pwEl=document.getElementById('loginPw');
+    if(pwEl) pwEl.focus();
+  },
+  attemptLogin(){
+    const pw=document.getElementById('loginPw').value||'';
+    const errEl=document.getElementById('loginError');
+    if(pw!==MASTER_PASSWORD){
+      errEl.textContent='비밀번호가 올바르지 않아요.';
+      errEl.style.display='block';
+      return;
+    }
+    this.renderMain();
+    this.checkTodayAiring();
+  },
+
+  checkTodayAiring(){
+    if(this.state.suppressAiringPopupThisSession) return;
+    const airing=this.state.dramas.filter(d=>d.status==='방영중');
+    if(!airing.length) return;
+    this.renderTodayAiringPopup(airing);
+  },
+  renderTodayAiringPopup(airing){
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='airingPopupOverlay';
+    const dayLabels=['월','화','수','목','금','토','일'];
+    const today=dayLabels[(new Date().getDay()+6)%7];
+    const noDay=airing.filter(d=>!(d.airDays||[]).length);
+    const colHTML=(label,items,isToday)=>`
+      <div class="planner-col ${isToday?'planner-col-today':''}">
+        <div class="planner-day-header">${label}</div>
+        <div class="planner-day-body">
+          ${items.map(d=>`<div class="planner-item" onclick="App.closeTodayAiringPopup(); App.switchTab('review'); App.openDetail('${d.id}')">${this.esc(d.title)}</div>`).join('')}
+        </div>
+      </div>`;
+    const columns = dayLabels.map(day=>colHTML(day, airing.filter(d=>(d.airDays||[]).includes(day)), day===today)).join('')
+      + (noDay.length ? colHTML('요일 미정', noDay, false) : '');
+
+    const upcoming=this.state.dramas.filter(d=>d.status==='방영예정').sort((a,b)=>(a.airDate||'9999').localeCompare(b.airDate||'9999'));
+    const watching=this.state.dramas.filter(d=>d.status==='시청중');
+    const miniRow=(title,list,dateMode)=> !list.length ? '' : `
+      <div class="sec-title" style="font-size:12px;margin:14px 0 6px;">${title}</div>
+      <div class="airing-mini-row">
+        ${list.map(d=>`<span class="airing-mini-chip" onclick="App.closeTodayAiringPopup(); App.switchTab('review'); App.openDetail('${d.id}')">${this.esc(d.title)}${dateMode?` <span style="opacity:.7;">· ${this.formatKoreanDate(d.airDate)}</span>`:''}</span>`).join('')}
+      </div>`;
+
+    overlay.innerHTML=`
+      <div class="modal" style="width:min(880px,96vw);">
+        <div class="panel-hdr">
+          <h2 class="serif">📺 방영중인 작품</h2>
+          <button class="iconbtn" onclick="App.closeTodayAiringPopup()">✕</button>
+        </div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">오늘은 ${today}요일이에요. 오늘 방영하는 요일 칸이 강조돼요.</div>
+        <div class="planner-grid">${columns}</div>
+        ${miniRow('🔜 방영예정', upcoming, true)}
+        ${miniRow('▶️ 시청중', watching, false)}
+        <div class="spoiler-toggle" style="margin-top:14px;"><input type="checkbox" id="suppressAiringChk"> 이번 실행에서는 다시 보지 않기</div>
+        <div class="formfoot"><button class="btn btn-primary" style="flex:1" onclick="App.closeTodayAiringPopup()">확인</button></div>
+      </div>`;
+    document.getElementById('app').appendChild(overlay);
+  },
+  closeTodayAiringPopup(){
+    const chk=document.getElementById('suppressAiringChk');
+    if(chk && chk.checked) this.state.suppressAiringPopupThisSession=true;
+    const ov=document.getElementById('airingPopupOverlay');
+    if(ov) ov.remove();
+  },
+
+  pickWeightedRandomDrama(){
+    const pool=this.state.dramas;
+    if(!pool.length) return null;
+    const weighted=pool.map(d=>({d, weight:1+(d.myRating||0)*2}));
+    const total=weighted.reduce((s,w)=>s+w.weight,0);
+    let r=Math.random()*total;
+    for(const w of weighted){
+      r-=w.weight;
+      if(r<=0) return w.d;
+    }
+    return weighted[weighted.length-1].d;
+  },
+  openRandomPick(){
+    if(!this.state.dramas.length){ alert('먼저 작품을 등록해주세요.'); return; }
+    this.renderRandomPick();
+  },
+  closeRandomPick(){ const ov=document.getElementById('randomPickOverlay'); if(ov) ov.remove(); },
+  renderRandomPick(){
+    const d=this.pickWeightedRandomDrama();
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='randomPickOverlay';
+    overlay.innerHTML=`
+      <div class="modal" style="text-align:center;">
+        <div class="panel-hdr">
+          <h2 class="serif">🎲 오늘 뭐볼까</h2>
+          <button class="iconbtn" onclick="App.closeRandomPick()">✕</button>
+        </div>
+        ${d.poster?`<img src="${d.poster}" style="width:140px;height:190px;object-fit:cover;border-radius:14px;margin:0 auto 14px;display:block;">`:`<div style="font-size:48px;margin-bottom:10px;">${this.countryEmoji(d.country)}</div>`}
+        <div class="d-title serif" style="text-align:center;">${this.esc(d.title)}</div>
+        <div class="d-badges" style="justify-content:center;">
+          <span class="badge">${d.status}</span>
+          <span class="badge stars">${this.starsHTML(d.myRating,false)}</span>
+        </div>
+        <div class="formfoot">
+          <button class="btn" style="flex:1" onclick="App.closeRandomPick(); App.renderRandomPick();">다시 뽑기</button>
+          <button class="btn btn-primary" style="flex:1" onclick="App.closeRandomPick(); App.openDetail('${d.id}')">이거 볼래</button>
+        </div>
+      </div>`;
+    document.getElementById('app').appendChild(overlay);
+  },
+
+  migrateRelated(){
+    let changed=false;
+    this.state.dramas.forEach(d=>{
+      if(Array.isArray(d.relatedIds) && !d.relatedWorks){
+        d.relatedWorks = d.relatedIds.map(id=>({id, label:''}));
+        delete d.relatedIds;
+        changed=true;
+      }
+      if(!d.relatedWorks) d.relatedWorks=[];
+      if(!d.airDays) d.airDays=[];
+      if(!d.ottIds) d.ottIds=[];
+      if(d.airDate===undefined) d.airDate='';
+      if(d.rewatchCount===undefined) d.rewatchCount=0;
+    });
+    if(changed) this.persistDramas();
+  },
+
+  findOrCreateOstEntry(title,artist){
+    title=(title||'').trim(); artist=(artist||'').trim();
+    if(!title && !artist) return null;
+    let o=this.state.osts.find(x=>x.title===title && x.artist===artist);
+    if(!o){
+      o={id:this.uid(), title, artist, genreIds:[], memo:''};
+      this.state.osts.push(o);
+      this.persistOsts();
+    }
+    return o;
+  },
+  ostById(id){ return this.state.osts.find(o=>o.id===id) || null; },
+  migrateOsts(){
+    let changed=false;
+    this.state.dramas.forEach(d=>{
+      if(Array.isArray(d.ost) && !d.ostIds){
+        d.ostIds = d.ost.map(o=>{
+          const entry=this.findOrCreateOstEntry(o.title, o.artist);
+          return entry ? entry.id : null;
+        }).filter(Boolean);
+        delete d.ost;
+        changed=true;
+      }
+      if(!d.ostIds) d.ostIds=[];
+    });
+    if(changed) this.persistDramas();
+  },
+  migrateOstGenres(){
+    let changed=false;
+    this.state.osts.forEach(o=>{
+      if(o.genreIds===undefined){ o.genreIds=[]; changed=true; }
+      if(o.mvLink===undefined){ o.mvLink=''; changed=true; }
+    });
+    if(changed) this.persistOsts();
+  },
+
+  findOrCreateStudio(label){
+    label=(label||'').trim();
+    if(!label) return null;
+    let s=this.state.studios.find(x=>x.label===label);
+    if(!s){
+      s={id:this.uid(), label};
+      this.state.studios.push(s);
+      this.persistStudios();
+    }
+    return s;
+  },
+  studioById(id){ return this.state.studios.find(s=>s.id===id) || null; },
+  migrateStudios(){
+    let changed=false;
+    this.state.dramas.forEach(d=>{
+      if(d.production!==undefined && !d.productionId){
+        const label=(d.production||'').trim();
+        d.productionId = label ? this.findOrCreateStudio(label).id : null;
+        delete d.production;
+        changed=true;
+      }
+      if(d.productionId===undefined) d.productionId=null;
+    });
+    if(changed) this.persistDramas();
+  },
+
+  migrateKeywordCategories(){
+    let changed=false;
+    this.state.keywords.forEach(k=>{
+      if(k.categoryId===undefined){ k.categoryId=null; changed=true; }
+    });
+    if(changed) this.persistKeywords();
+  },
+
+  findOrCreateActor(name){
+    name=(name||'').trim().replace(/\s+/g,' ');
+    if(!name) return null;
+    const norm=s=>(s||'').trim().replace(/\s+/g,' ');
+    let a=this.state.actors.find(x=>norm(x.name)===name);
+    if(!a){
+      a={id:this.uid(), name, image:null, realName:'', altName:'', birthdate:'', nationality:'', studioId:null, realityList:[], discography:[], memo:''};
+      this.state.actors.push(a);
+      this.persistActors();
+    }
+    return a;
+  },
+  actorById(id){ return this.state.actors.find(a=>a.id===id) || null; },
+  migrateActors(){
+    let changed=false;
+    this.state.actors.forEach(a=>{
+      if(a.age!==undefined){ delete a.age; changed=true; }
+      if(a.agency!==undefined){
+        const label=(a.agency||'').trim();
+        a.studioId = label ? this.findOrCreateStudio(label).id : null;
+        delete a.agency;
+        changed=true;
+      }
+      if(a.studioId===undefined){ a.studioId=null; changed=true; }
+      if(a.birthdate===undefined){ a.birthdate=''; changed=true; }
+      if(a.nationality===undefined){ a.nationality=''; changed=true; }
+      if(a.image===undefined){ a.image=null; changed=true; }
+      if(a.realityList===undefined){ a.realityList=[]; changed=true; }
+      if(a.discography===undefined){ a.discography=[]; changed=true; }
+    });
+    if(changed) this.persistActors();
+  },
+  migrateCpExtra(){
+    let changed=false;
+    this.state.cps.forEach(c=>{
+      if(c.image===undefined){ c.image=null; changed=true; }
+      if(c.activePeriod===undefined){ c.activePeriod=''; changed=true; }
+      if(c.fandom===undefined){ c.fandom=''; changed=true; }
+      if(c.studioId===undefined){ c.studioId=null; changed=true; }
+      if(c.wrecked===undefined){ c.wrecked=false; changed=true; }
+      if(c.realityList===undefined){ c.realityList=[]; changed=true; }
+      if(c.discography===undefined){ c.discography=[]; changed=true; }
+    });
+    if(changed) this.persistCps();
+  },
+  migrateCastActorIds(){
+    let changed=false;
+    this.state.dramas.forEach(d=>{
+      (d.cast||[]).forEach(c=>{
+        if(c.actorId===undefined){
+          const match=this.state.actors.find(a=>a.name===(c.actor||'').trim());
+          c.actorId = match ? match.id : null;
+          changed=true;
+        }
+      });
+    });
+    if(changed) this.persistDramas();
+  },
+
+  cpLabel(c){
+    const nick=(c.nickname||'').trim();
+    if(nick) return nick;
+    const g=this.actorById(c.gongActorId);
+    const s=this.actorById(c.suActorId);
+    const gn=g?g.name:'', sn=s?s.name:'';
+    if(gn && sn) return gn+' x '+sn;
+    return gn || sn || 'CP';
+  },
+
+  migrateShips(){
+    let changed=false;
+    this.state.dramas.forEach(d=>{
+      if(Array.isArray(d.ships) && d.ships.length && !d.cpIds){
+        d.cpIds = d.ships.map(label=>{
+          label=(label||'').trim();
+          if(!label) return null;
+          const actor=this.findOrCreateActor(label);
+          let existing=this.state.cps.find(c=>c.gongActorId===actor.id || c.suActorId===actor.id);
+          if(!existing){ existing={id:this.uid(),gongActorId:actor.id,suActorId:null,nickname:'',highlight:''}; this.state.cps.push(existing); }
+          return existing.id;
+        }).filter(Boolean);
+        delete d.ships;
+        changed=true;
+      }
+      if(!d.cpIds) d.cpIds=[];
+    });
+    if(changed){ this.persistDramas(); this.persistCps(); }
+  },
+
+  migrateCps(){
+    let changed=false;
+    this.state.cps.forEach(c=>{
+      if(c.gongActorId===undefined || c.suActorId===undefined){
+        let gongName='', suName='';
+        if(c.gong!==undefined || c.su!==undefined){
+          gongName=(c.gong||'').trim(); suName=(c.su||'').trim();
+        }else if(c.label!==undefined){
+          const parts=(c.label||'').split(/x|X|✕|×/).map(s=>s.trim()).filter(Boolean);
+          gongName=parts[0]||''; suName=parts[1]||'';
+        }
+        c.gongActorId = gongName ? this.findOrCreateActor(gongName).id : null;
+        c.suActorId = suName ? this.findOrCreateActor(suName).id : null;
+        delete c.gong; delete c.su; delete c.label;
+        changed=true;
+      }
+      if(c.nickname===undefined){ c.nickname=''; changed=true; }
+    });
+    if(changed) this.persistCps();
+  },
+
+  persistDramas(){ this.storageSet('dramas', JSON.stringify(this.state.dramas)); },
+  persistKeywords(){ this.storageSet('keywords', JSON.stringify(this.state.keywords)); },
+  persistCps(){ this.storageSet('cps', JSON.stringify(this.state.cps)); },
+  persistActors(){ this.storageSet('actors', JSON.stringify(this.state.actors)); },
+  persistStudios(){ this.storageSet('studios', JSON.stringify(this.state.studios)); },
+  persistKeywordCategories(){ this.storageSet('keywordCategories', JSON.stringify(this.state.keywordCategories)); },
+  persistOsts(){ this.storageSet('osts', JSON.stringify(this.state.osts)); },
+  persistOstGenres(){ this.storageSet('ostGenres', JSON.stringify(this.state.ostGenres)); },
+  persistOttList(){ this.storageSet('ottList', JSON.stringify(this.state.ottList)); },
+
+  countryEmoji(c){ return COUNTRY_EMOJI[c] || '🎬'; },
+  formatKoreanDate(dateStr){
+    if(!dateStr) return '미정';
+    const parts=dateStr.split('-');
+    if(parts.length!==3) return this.esc(dateStr);
+    const [y,m,d]=parts;
+    return `${y}년 ${Number(m)}월 ${Number(d)}일`;
+  },
+
+  starsHTML(rating, interactive, field){
+    field = field || 'myRating';
+    rating = rating || 0;
+    const kindClass = field==='heat' ? ' heat-group' : '';
+    let html = `<span class="star-group${kindClass}">`;
+    for(let n=1; n<=5; n++){
+      const fill = Math.max(0, Math.min(1, rating - (n-1)));
+      const pct = Math.round(fill*100);
+      const click = interactive ? ` onclick="App.starClick(event,${n},'${field}')"` : '';
+      html += `<span class="star"${click}>★<span class="sf" style="width:${pct}%">★</span></span>`;
+    }
+    html += '</span>';
+    return html;
+  },
+  starClick(e, n, field){
+    field = field || 'myRating';
+    const rect = e.currentTarget.getBoundingClientRect();
+    const frac = (e.clientX - rect.left) / rect.width;
+    this.state.draft[field] = frac < 0.5 ? n - 0.5 : n;
+    this.updateStarpick(field);
+  },
+  toggleAirDaysSection(){
+    const el=document.getElementById('airDaysSection');
+    if(el) el.style.display = this.state.draft.status==='방영중' ? '' : 'none';
+  },
+  toggleAirDateSection(){
+    const el=document.getElementById('airDateSection');
+    if(el) el.style.display = this.state.draft.status==='방영예정' ? '' : 'none';
+  },
+  toggleAirDay(day){
+    if(!this.state.draft.airDays) this.state.draft.airDays=[];
+    const idx=this.state.draft.airDays.indexOf(day);
+    if(idx>-1) this.state.draft.airDays.splice(idx,1);
+    else this.state.draft.airDays.push(day);
+  },
+  changeRewatch(delta){
+    const cur=this.state.draft.rewatchCount||0;
+    this.state.draft.rewatchCount=Math.max(0, cur+delta);
+    const el=document.getElementById('rewatchCount');
+    if(el) el.textContent=this.state.draft.rewatchCount+'회';
+  },
+  toggleDraftOtt(id){
+    if(!this.state.draft.ottIds) this.state.draft.ottIds=[];
+    const idx=this.state.draft.ottIds.indexOf(id);
+    if(idx>-1) this.state.draft.ottIds.splice(idx,1);
+    else this.state.draft.ottIds.push(id);
+  },
+  updateStarpick(field){
+    field = field || 'myRating';
+    const elId = field==='heat' ? 'heatPick' : 'starpick';
+    const lblId = field==='heat' ? 'heatLabel' : 'ratingLabel';
+    const el = document.getElementById(elId);
+    if(el) el.innerHTML = this.starsHTML(this.state.draft[field], true, field);
+    const lbl = document.getElementById(lblId);
+    if(lbl) lbl.textContent = this.state.draft[field] + ' / 5';
+  },
+
+  /* ---------- LIST VIEW ---------- */
+  renderMain(){
+    if(this.state.activeTab==='actors') this.renderActorsTab();
+    else if(this.state.activeTab==='cps') this.renderCpsTab();
+    else if(this.state.activeTab==='osts') this.renderOstsTab();
+    else this.renderList();
+  },
+  switchTab(tab){
+    this.state.activeTab=tab;
+    this.renderMain();
+  },
+  tabBarHTML(){
+    const t=this.state.activeTab;
+    return `
+      <div class="tab-bar">
+        <button class="tab-btn ${t==='review'?'active':''}" onclick="App.switchTab('review')">리뷰</button>
+        <button class="tab-btn ${t==='actors'?'active':''}" onclick="App.switchTab('actors')">배우</button>
+        <button class="tab-btn ${t==='cps'?'active':''}" onclick="App.switchTab('cps')">CP</button>
+        <button class="tab-btn ${t==='osts'?'active':''}" onclick="App.switchTab('osts')">OST</button>
+      </div>`;
+  },
+
+  renderList(){
+    this.state.view='list';
+    const s=this.state;
+    const countries=[...new Set(s.dramas.map(d=>d.country).filter(Boolean))];
+    const app=document.getElementById('app');
+    app.innerHTML = `
+      <div class="hdr">
+        <div>
+          <h1 class="serif">입덕티켓</h1>
+          <div class="tag">내가 본 BL 드라마, 관람권처럼 모아두는 곳 — 총 ${s.dramas.length}편</div>
+        </div>
+        <div class="hdr-actions">
+          <button class="btn" onclick="App.openRandomPick()">🎲 오늘 뭐볼까</button>
+          <button class="btn btn-primary" onclick="App.openForm()">+ 티켓 발행</button>
+          <div class="gear-wrap" id="gearWrap">
+            <button class="btn gear-btn" onclick="App.toggleGearMenu(event)" aria-label="설정">⚙</button>
+            <div class="gear-menu" id="gearMenu">
+              <div class="gear-menu-label">보기 방식</div>
+              <button class="gear-view-opt ${s.viewMode!=='table'?'active':''}" data-mode="ticket" onclick="App.setViewMode('ticket')">티켓형<span class="chk">✓</span></button>
+              <button class="gear-view-opt ${s.viewMode==='table'?'active':''}" data-mode="table" onclick="App.setViewMode('table')">표형식<span class="chk">✓</span></button>
+              <div class="gear-menu-divider"></div>
+              <button onclick="App.closeGearMenu(); App.openManager('keyword');">키워드 관리</button>
+              <button onclick="App.closeGearMenu(); App.openManager('studio');">제작사 관리</button>
+              <button onclick="App.closeGearMenu(); App.openManager('ott');">OTT 관리</button>
+              <div class="gear-menu-divider"></div>
+              <button onclick="App.closeGearMenu(); App.openStats();">통계 보기</button>
+              <div class="gear-menu-divider"></div>
+              <button onclick="App.closeGearMenu(); App.exportBackup();">데이터 내보내기 (백업)</button>
+              <button onclick="App.closeGearMenu(); App.openImportBackup();">데이터 가져오기 (복원)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${this.tabBarHTML()}
+      <div class="toolbar">
+        <input type="text" id="searchInput" placeholder="제목으로 검색" oninput="App.state.search=this.value; App.updateGrid();">
+        <select id="countrySel" onchange="App.state.filterCountry=this.value; App.updateGrid();">
+          <option value="">국가 전체</option>
+          ${countries.map(c=>`<option value="${this.esc(c)}">${this.esc(c)}</option>`).join('')}
+        </select>
+        <select id="statusSel" onchange="App.state.filterStatus=this.value; App.updateGrid();">
+          <option value="">상태 전체</option>
+          ${STATUS_OPTIONS.map(st=>`<option value="${st}">${st}</option>`).join('')}
+        </select>
+        <select id="sortSel" onchange="App.state.sortBy=this.value; App.updateGrid();">
+          <option value="newest">최신 등록순</option>
+          <option value="oldest">오래된 등록순</option>
+          <option value="ratingHigh">별점 높은순</option>
+          <option value="ratingLow">별점 낮은순</option>
+          <option value="title">가나다순</option>
+          <option value="year">연도순</option>
+        </select>
+        <select id="minRatingSel" onchange="App.state.minRating=Number(this.value); App.updateGrid();">
+          <option value="0">별점 전체</option>
+          <option value="3">★3 이상</option>
+          <option value="4">★4 이상</option>
+          <option value="5">★5만</option>
+        </select>
+      </div>
+      <div class="chips" id="kwChips"></div>
+      <div style="height:14px;"></div>
+      <div class="grid" id="dramaGrid"></div>
+    `;
+    this.renderChips();
+    this.updateGrid();
+  },
+
+  toggleGearMenu(e){
+    e.stopPropagation();
+    const m=document.getElementById('gearMenu');
+    if(m) m.classList.toggle('open');
+  },
+  closeGearMenu(){
+    const m=document.getElementById('gearMenu');
+    if(m) m.classList.remove('open');
+  },
+  persistViewMode(){ this.storageSet('viewMode', this.state.viewMode); },
+  setViewMode(mode){
+    this.state.viewMode=mode;
+    this.persistViewMode();
+    document.querySelectorAll('#gearMenu .gear-view-opt').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.mode===mode);
+    });
+    this.closeGearMenu();
+    this.updateGrid();
+  },
+
+  renderChips(){
+    const box=document.getElementById('kwChips');
+    if(!box) return;
+    const cats=this.state.keywordCategories;
+    const byCat=id=>this.state.keywords.filter(k=>k.categoryId===id);
+    const uncategorized=this.state.keywords.filter(k=>!k.categoryId || !cats.find(c=>c.id===k.categoryId));
+    const groupHTML=(id,name,items)=>{
+      if(!items.length) return '';
+      const open=!!(this.state.expandedFilterCats && this.state.expandedFilterCats[id]);
+      return `
+        <div class="filter-cat-group">
+          <button class="filter-cat-toggle ${open?'open':''}" onclick="App.toggleFilterCat('${id}')">${this.esc(name)}<span class="filter-cat-count">${items.length}</span><span class="chev">${open?'▾':'▸'}</span></button>
+          <div class="filter-cat-chips" style="${open?'':'display:none;'}">
+            ${items.map(k=>`<button class="chip ${this.state.filterKeywords.includes(k.id)?'active':''}" onclick="App.toggleKwFilter('${k.id}')">${this.esc(k.label)}</button>`).join('')}
+          </div>
+        </div>`;
+    };
+    let html=cats.map(cat=>groupHTML(cat.id, cat.name, byCat(cat.id))).join('');
+    html += groupHTML('__uncat','기타',uncategorized);
+    box.innerHTML = html;
+  },
+  toggleFilterCat(id){
+    if(!this.state.expandedFilterCats) this.state.expandedFilterCats={};
+    this.state.expandedFilterCats[id] = !this.state.expandedFilterCats[id];
+    this.renderChips();
+  },
+  toggleKwFilter(id){
+    const idx=this.state.filterKeywords.indexOf(id);
+    if(idx>-1) this.state.filterKeywords.splice(idx,1);
+    else this.state.filterKeywords.push(id);
+    this.renderChips();
+    this.updateGrid();
+  },
+
+  filteredDramas(){
+    const s=this.state;
+    const norm=str=>(str||'').toLowerCase().replace(/\s+/g,'');
+    const q=norm(s.search);
+    const country=s.filterCountry||'';
+    const status=s.filterStatus||'';
+    const minRating=s.minRating||0;
+    const cpMap=Object.fromEntries(this.state.cps.map(c=>[c.id,c]));
+    let list = s.dramas.filter(d=>{
+      if(q){
+        const castNames=(d.cast||[]).map(c=>c.actor||'').join(' ');
+        const cpNames=(d.cpIds||[]).map(id=>cpMap[id]).filter(Boolean).map(c=>this.cpLabel(c)).join(' ');
+        const haystack = norm(d.title)+norm(d.originalTitle)+norm(d.synopsis)+norm(castNames)+norm(cpNames);
+        if(!haystack.includes(q)) return false;
+      }
+      if(country && d.country!==country) return false;
+      if(status && d.status!==status) return false;
+      if(minRating && (d.myRating||0) < minRating) return false;
+      if(s.filterKeywords.length && !s.filterKeywords.every(fk=>(d.keywordIds||[]).includes(fk))) return false;
+      return true;
+    });
+    const sortBy=s.sortBy||'newest';
+    const sorters={
+      newest:(a,b)=>(b.dateAdded||'').localeCompare(a.dateAdded||''),
+      oldest:(a,b)=>(a.dateAdded||'').localeCompare(b.dateAdded||''),
+      ratingHigh:(a,b)=>(b.myRating||0)-(a.myRating||0),
+      ratingLow:(a,b)=>(a.myRating||0)-(b.myRating||0),
+      title:(a,b)=>a.title.localeCompare(b.title,'ko'),
+      year:(a,b)=>(b.year||'').localeCompare(a.year||'')
+    };
+    return list.sort(sorters[sortBy] || sorters.newest);
+  },
+
+  updateGrid(){
+    const grid=document.getElementById('dramaGrid');
+    if(!grid) return;
+    const list=this.filteredDramas();
+    if(list.length===0){
+      grid.outerHTML = `<div class="empty" id="dramaGrid"><div class="big">🎫</div>첫 관람권을 발행해보세요.<br>본 드라마를 기록하면 여기 티켓으로 쌓여요.</div>`;
+      return;
+    }
+    const mode=this.state.viewMode;
+    if(mode==='table'){
+      grid.className='table-wrap';
+      grid.innerHTML=this.tableViewHTML(list);
+    }else{
+      grid.className='grid';
+      grid.innerHTML = list.map(d=>this.ticketCardHTML(d)).join('');
+    }
+  },
+
+  tableViewHTML(list){
+    const kwMap=Object.fromEntries(this.state.keywords.map(k=>[k.id,k]));
+    const cpMap=Object.fromEntries(this.state.cps.map(c=>[c.id,c]));
+    const rows = list.map(d=>{
+      const kws=(d.keywordIds||[]).map(id=>kwMap[id]).filter(Boolean).map(k=>k.label).join(', ');
+      const cps=(d.cpIds||[]).map(id=>cpMap[id]).filter(Boolean).map(c=>(c.highlight?c.highlight+' ':'')+this.cpLabel(c)).join(', ');
+      return `
+      <tr onclick="App.openDetail('${d.id}')">
+        <td>${d.poster?`<img src="${d.poster}" class="table-thumb">`:this.countryEmoji(d.country)} ${this.esc(d.title)}${d.myRating===5?' ⭐':''}</td>
+        <td>${this.esc(d.country||'')}</td>
+        <td>${d.status}</td>
+        <td><span class="stars">${this.starsHTML(d.myRating,false)}</span></td>
+        <td><span class="stars">${d.heat?this.starsHTML(d.heat,false,'heat'):'-'}</span></td>
+        <td class="wrap">${this.esc(cps)||'-'}</td>
+        <td class="wrap">${this.esc(kws)||'-'}</td>
+      </tr>`;
+    }).join('');
+    return `
+      <table class="data-table">
+        <thead><tr><th>제목</th><th>국가</th><th>상태</th><th>별점</th><th>수위</th><th>CP</th><th>키워드</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  },
+
+  openStats(){ this.renderStats(); },
+  closeStats(){ const ov=document.getElementById('statsOverlay'); if(ov) ov.remove(); },
+  renderStats(){
+    const dramas=this.state.dramas;
+    const total=dramas.length;
+    const now=new Date();
+    const thisMonthKey = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+    const thisMonthCount = dramas.filter(d=>(d.dateAdded||'').slice(0,7)===thisMonthKey).length;
+    const thisYearCount = dramas.filter(d=>(d.dateAdded||'').slice(0,4)===String(now.getFullYear())).length;
+
+    const countryCount={};
+    dramas.forEach(d=>{ const c=d.country||'미상'; countryCount[c]=(countryCount[c]||0)+1; });
+    const countryList=Object.entries(countryCount).sort((a,b)=>b[1]-a[1]);
+
+    const statusCount={};
+    dramas.forEach(d=>{ statusCount[d.status]=(statusCount[d.status]||0)+1; });
+
+    const ratedDramas=dramas.filter(d=>d.myRating);
+    const avgRating = ratedDramas.length ? (ratedDramas.reduce((s,d)=>s+d.myRating,0)/ratedDramas.length) : 0;
+
+    const actorCount={};
+    dramas.forEach(d=>{ (d.cast||[]).forEach(c=>{ if(c.actorId) actorCount[c.actorId]=(actorCount[c.actorId]||0)+1; }); });
+    const topActors=Object.entries(actorCount).sort((a,b)=>b[1]-a[1]).slice(0,5)
+      .map(([id,count])=>({actor:this.actorById(id), count})).filter(x=>x.actor);
+
+    const cpCount={};
+    dramas.forEach(d=>{ (d.cpIds||[]).forEach(id=>{ cpCount[id]=(cpCount[id]||0)+1; }); });
+    const topCps=Object.entries(cpCount).sort((a,b)=>b[1]-a[1]).slice(0,5)
+      .map(([id,count])=>({cp:this.state.cps.find(c=>c.id===id), count})).filter(x=>x.cp);
+
+    const barRow=(label,count,max)=>{
+      const pct = max? Math.round(count/max*100) : 0;
+      return `<div class="stat-bar-row">
+        <span class="stat-bar-label">${this.esc(label)}</span>
+        <div class="stat-bar-track"><div class="stat-bar-fill" style="width:${pct}%"></div></div>
+        <span class="stat-bar-count">${count}</span>
+      </div>`;
+    };
+    const countryMax = countryList.length? countryList[0][1] : 0;
+    const statusMax = Math.max(0, ...Object.values(statusCount), 1);
+
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='statsOverlay';
+    overlay.innerHTML=`
+      <div class="modal">
+        <div class="panel-hdr">
+          <h2 class="serif">통계</h2>
+          <button class="iconbtn" onclick="App.closeStats()">✕</button>
+        </div>
+        <div class="stat-summary-grid">
+          <div class="stat-summary-card"><div class="stat-summary-num">${total}</div><div class="stat-summary-label">전체 등록</div></div>
+          <div class="stat-summary-card"><div class="stat-summary-num">${thisMonthCount}</div><div class="stat-summary-label">이번 달</div></div>
+          <div class="stat-summary-card"><div class="stat-summary-num">${thisYearCount}</div><div class="stat-summary-label">올해</div></div>
+          <div class="stat-summary-card"><div class="stat-summary-num">${avgRating?avgRating.toFixed(1):'-'}</div><div class="stat-summary-label">평균 별점</div></div>
+        </div>
+        <div class="sec-title">국가별 분포</div>
+        ${countryList.length? countryList.map(([c,n])=>barRow(c,n,countryMax)).join('') : `<div style="color:var(--muted);font-size:13px;">데이터가 없어요.</div>`}
+        <div class="sec-title">상태별 분포</div>
+        ${STATUS_OPTIONS.map(st=>barRow(st, statusCount[st]||0, statusMax)).join('')}
+        ${topActors.length? `
+        <div class="sec-title">가장 많이 본 배우</div>
+        ${topActors.map((x,i)=>`<div class="ost-row"><span>${i+1}. ${this.esc(x.actor.name)}</span><span class="cast-role">${x.count}편</span></div>`).join('')}` : ''}
+        ${topCps.length? `
+        <div class="sec-title">가장 많이 본 CP</div>
+        ${topCps.map((x,i)=>`<div class="ost-row"><span>${i+1}. ${x.cp.highlight?this.esc(x.cp.highlight)+' ':''}${this.esc(this.cpLabel(x.cp))}</span><span class="cast-role">${x.count}편</span></div>`).join('')}` : ''}
+      </div>
+    `;
+    document.getElementById('app').appendChild(overlay);
+  },
+
+  exportBackup(){
+    const payload={
+      _app:'입덕티켓', _version:1, exportedAt:new Date().toISOString(),
+      dramas:this.state.dramas,
+      keywords:this.state.keywords,
+      keywordCategories:this.state.keywordCategories,
+      cps:this.state.cps,
+      actors:this.state.actors,
+      studios:this.state.studios,
+      osts:this.state.osts,
+      ostGenres:this.state.ostGenres
+    };
+    const blob=new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    const dateStr=new Date().toISOString().slice(0,10);
+    a.download=`입덕티켓_백업_${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  },
+  openImportBackup(){
+    const input=document.createElement('input');
+    input.type='file';
+    input.accept='application/json';
+    input.onchange=(e)=>{ const file=e.target.files[0]; if(file) this.importBackupFile(file); };
+    input.click();
+  },
+  importBackupFile(file){
+    const reader=new FileReader();
+    reader.onload=()=>{
+      let data;
+      try{ data=JSON.parse(reader.result); }catch(e){ alert('올바른 백업 파일이 아니에요.'); return; }
+      if(!data || !Array.isArray(data.dramas)){ alert('올바른 백업 파일이 아니에요.'); return; }
+      if(!confirm('지금 가지고 있는 모든 데이터가 이 백업 파일 내용으로 덮어씌워져요. 계속할까요?')) return;
+      this.state.dramas=data.dramas||[];
+      this.state.keywords=data.keywords||[];
+      this.state.keywordCategories=data.keywordCategories||[];
+      this.state.cps=data.cps||[];
+      this.state.actors=data.actors||[];
+      this.state.studios=data.studios||[];
+      this.state.osts=data.osts||[];
+      this.state.ostGenres=data.ostGenres||[];
+      this.persistDramas(); this.persistKeywords(); this.persistKeywordCategories();
+      this.persistCps(); this.persistActors(); this.persistStudios();
+      this.persistOsts(); this.persistOstGenres();
+      alert('복원 완료했어요!');
+      this.switchTab('review');
+    };
+    reader.readAsText(file);
+  },
+
+  ticketCardHTML(d){
+    const kwMap=Object.fromEntries(this.state.keywords.map(k=>[k.id,k]));
+    const allKws=(d.keywordIds||[]).map(id=>kwMap[id]).filter(Boolean);
+    const kws=allKws.slice(0,3);
+    const cpMap=Object.fromEntries(this.state.cps.map(c=>[c.id,c]));
+    const cps=(d.cpIds||[]).map(id=>cpMap[id]).filter(Boolean);
+    return `
+      <div class="ticket ${d.myRating===5?'ticket-fave':''}" onclick="App.openDetail('${d.id}')">
+        ${d.myRating===5?'<div class="ticket-fave-badge">⭐ 최애</div>':''}
+        <div class="ticket-top">
+          <div class="ticket-poster-wrap">
+            ${d.poster ? `<img src="${d.poster}">` : `<div class="ticket-emoji">${this.countryEmoji(d.country)}</div>`}
+          </div>
+          <div class="ticket-info">
+            <div class="ticket-serial mono">${this.esc(d.country||'')}</div>
+            <div class="ticket-title serif">${this.esc(d.title)}</div>
+            ${d.originalTitle?`<div class="ticket-orig">${this.esc(d.originalTitle)}</div>`:''}
+            <div class="ticket-meta">${d.year?this.esc(d.year)+' · ':''}${d.episodes?d.episodes+'부작':''}</div>
+            <span class="ticket-status">${d.status}</span>${(d.relatedWorks&&d.relatedWorks.length)?' <span title="관련 작품 있음">🔗</span>':''}
+            ${cps.length?`<div class="ship-tags">${cps.slice(0,2).map(c=>`<span class="ship-tag">${c.highlight?this.esc(c.highlight)+' ':''}${this.esc(this.cpLabel(c))}${c.wrecked?' ⚓💔':''}</span>`).join('')}</div>`:''}
+          </div>
+        </div>
+        <div class="ticket-divider"></div>
+        <div class="ticket-bottom">
+          <span class="stars">${this.starsHTML(d.myRating, false)}</span>
+          <span class="ticket-kw-list" title="${this.esc(allKws.map(k=>k.label).join(', '))}">${kws.map(k=>this.esc(k.label)).join(', ')}</span>
+        </div>
+      </div>`;
+  },
+
+  /* ---------- FORM (add/edit) ---------- */
+  openForm(existing){
+    this.state.view='form';
+    this.state.editingId = existing ? existing.id : null;
+    this.state.draft = existing ? JSON.parse(JSON.stringify(existing)) : {
+      id:null,country:'',title:'',originalTitle:'',year:'',episodes:'',productionId:null,poster:null,relatedWorks:[],ottIds:[],airDate:'',rewatchCount:0,
+      status:'시청예정',myRating:0,heat:0,airDays:[],
+      cast:[{actor:'',role:'',memo:'',actorId:null}],
+      cpIds:[],
+      keywordIds:[],
+      synopsis:'',hasSpoiler:true,
+      ostIds:[]
+    };
+    this.renderForm();
+  },
+  closeForm(){ this.state.draft=null; this.renderList(); },
+  closeFormKeepDraft(){
+    const ov=document.getElementById('formOverlay');
+    if(ov) ov.remove();
+    this.state.reopenFormAfterManager=true;
+  },
+
+  openImageLightbox(url){
+    if(!url) return;
+    const overlay=document.createElement('div');
+    overlay.className='overlay center lightbox';
+    overlay.id='imageLightbox';
+    overlay.addEventListener('click', ()=>this.closeImageLightbox());
+    const img=document.createElement('img');
+    img.src=url;
+    img.addEventListener('click', e=>e.stopPropagation());
+    overlay.appendChild(img);
+    document.body.appendChild(overlay);
+  },
+  closeImageLightbox(){
+    const ov=document.getElementById('imageLightbox');
+    if(ov) ov.remove();
+  },
+  compressImageFile(file, maxDim, quality){
+    return new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onerror=()=>reject(new Error('read fail'));
+      reader.onload=()=>{
+        const img=new Image();
+        img.onerror=()=>reject(new Error('img fail'));
+        img.onload=()=>{
+          let w=img.width, h=img.height;
+          if(w>=h && w>maxDim){ h=Math.round(h*maxDim/w); w=maxDim; }
+          else if(h>w && h>maxDim){ w=Math.round(w*maxDim/h); h=maxDim; }
+          const canvas=document.createElement('canvas');
+          canvas.width=w; canvas.height=h;
+          const ctx=canvas.getContext('2d');
+          ctx.drawImage(img,0,0,w,h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src=reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  },
+  async handlePosterUpload(e){
+    const file=e.target.files[0];
+    if(!file) return;
+    let dataUrl;
+    try{
+      dataUrl=await this.compressImageFile(file, 500, 0.75);
+    }catch(err){
+      alert('이미지를 불러오지 못했어요.');
+      return;
+    }
+    this.state.draft.poster=dataUrl;
+    const ov=document.getElementById('formOverlay');
+    if(ov) ov.remove();
+    this.renderForm();
+  },
+  clearPoster(){
+    this.state.draft.poster=null;
+    const ov=document.getElementById('formOverlay');
+    if(ov) ov.remove();
+    this.renderForm();
+  },
+  applyPosterUrl(){
+    const input=document.getElementById('posterUrlInput');
+    const url=input.value.trim();
+    if(!url) return;
+    this.state.draft.poster=url;
+    const ov=document.getElementById('formOverlay');
+    if(ov) ov.remove();
+    this.renderForm();
+  },
+
+  reviewPreviewHTML(d){
+    const text=(d.synopsis||'').trim();
+    const preview=text ? (text.length>80 ? text.slice(0,80)+'…' : text) : '';
+    return `
+      <div class="review-preview-box" onclick="App.openReviewEditor()">
+        ${text ? `<div class="review-preview-text">${this.esc(preview)}</div>` : `<div class="review-preview-empty">아직 작성한 리뷰가 없어요. 눌러서 작성해보세요.</div>`}
+        ${d.hasSpoiler && text ? `<span class="badge" style="margin-top:6px;display:inline-block;">스포일러 포함</span>` : ''}
+      </div>
+      <button type="button" class="btn" style="margin-top:8px;" onclick="App.openReviewEditor()">${text?'리뷰 수정':'리뷰 작성'}</button>
+    `;
+  },
+  refreshReviewPreview(){
+    const box=document.getElementById('reviewPreview');
+    if(box) box.innerHTML=this.reviewPreviewHTML(this.state.draft);
+  },
+  openReviewEditor(){
+    this.renderReviewEditor();
+  },
+  closeReviewEditor(){
+    const ov=document.getElementById('reviewEditorOverlay');
+    if(ov) ov.remove();
+    this.refreshReviewPreview();
+  },
+  renderReviewEditor(){
+    const d=this.state.draft;
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='reviewEditorOverlay';
+    overlay.innerHTML=`
+      <div class="modal" style="width:min(640px,94vw);">
+        <div class="panel-hdr">
+          <h2 class="serif">리뷰 작성</h2>
+          <button class="iconbtn" onclick="App.closeReviewEditor()">✕</button>
+        </div>
+        <div class="spoiler-toggle"><input type="checkbox" id="spoilerChk" ${d.hasSpoiler?'checked':''} onchange="App.state.draft.hasSpoiler=this.checked"> 이 내용에 스포일러 포함 (상세보기에서 블러 처리)</div>
+        <textarea class="review-editor-textarea" placeholder="자유롭게 리뷰를 남겨보세요" oninput="App.state.draft.synopsis=this.value">${this.esc(d.synopsis)}</textarea>
+        <div class="formfoot">
+          <button class="btn btn-primary" style="flex:1" onclick="App.closeReviewEditor()">완료</button>
+        </div>
+      </div>`;
+    document.getElementById('app').appendChild(overlay);
+    const ta=overlay.querySelector('.review-editor-textarea');
+    if(ta) ta.focus();
+  },
+
+  renderForm(){
+    const d=this.state.draft;
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='formOverlay';
+    overlay.innerHTML=`
+      <div class="modal-form">
+        <div class="panel-hdr form-header-sticky">
+          <h2 class="serif">${this.state.editingId?'티켓 수정':'티켓 발행'}</h2>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn btn-primary" onclick="App.saveDrama()">${this.state.editingId?'수정 완료':'티켓 발행'}</button>
+            <button class="iconbtn" onclick="App.closeForm()">✕</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>포스터 이미지 (선택)</label>
+          <div class="poster-upload portrait" id="posterUpload">
+            ${d.poster ? `<img src="${d.poster}" class="poster-preview" onclick="event.stopPropagation();App.openImageLightbox('${d.poster}')">` : `<div class="poster-placeholder">${this.countryEmoji(d.country)}</div>`}
+          </div>
+          <div class="poster-actions">
+            <label class="btn" style="cursor:pointer;">
+              이미지 선택
+              <input type="file" accept="image/*" style="display:none;" onchange="App.handlePosterUpload(event)">
+            </label>
+            ${d.poster?`<button type="button" class="btn btn-ghost" onclick="App.clearPoster()">제거</button>`:''}
+          </div>
+          <div class="poster-url-row">
+            <input type="text" id="posterUrlInput" placeholder="또는 이미지 URL 붙여넣기" value="${(d.poster && !d.poster.startsWith('data:')) ? this.esc(d.poster) : ''}" onkeydown="if(event.key==='Enter'){event.preventDefault();App.applyPosterUrl();}">
+            <button type="button" class="btn" onclick="App.applyPosterUrl()">적용</button>
+          </div>
+        </div>
+
+        <div class="row4">
+          <div class="field"><label>국가</label><input type="text" list="countryList" value="${this.esc(d.country)}" oninput="App.state.draft.country=this.value"></div>
+          <div class="field"><label>연도</label><input type="text" value="${this.esc(d.year)}" oninput="App.state.draft.year=this.value"></div>
+          <div class="field"><label>회차</label><input type="text" value="${this.esc(d.episodes)}" oninput="App.state.draft.episodes=this.value" placeholder="예: 12"></div>
+          <div class="field"><label>시청 상태</label>
+            <select onchange="App.state.draft.status=this.value; App.toggleAirDaysSection(); App.toggleAirDateSection();">
+              ${STATUS_OPTIONS.map(st=>`<option value="${st}" ${d.status===st?'selected':''}>${st}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <datalist id="countryList">${Object.keys(COUNTRY_EMOJI).map(c=>`<option value="${c}">`).join('')}</datalist>
+
+        <div class="field" id="airDateSection" style="display:${d.status==='방영예정'?'':'none'};">
+          <label>방영예정일 (미입력 시 미정)</label>
+          <input type="date" value="${this.esc(d.airDate)}" oninput="App.state.draft.airDate=this.value">
+        </div>
+
+        <div class="row2">
+          <div class="field"><label>제목</label><input type="text" value="${this.esc(d.title)}" oninput="App.state.draft.title=this.value" placeholder="드라마 제목"></div>
+          <div class="field"><label>원제 (선택)</label><input type="text" value="${this.esc(d.originalTitle)}" oninput="App.state.draft.originalTitle=this.value"></div>
+        </div>
+        <div class="field">
+          <label style="display:flex;justify-content:space-between;align-items:center;">제작사 <button type="button" class="addrow" style="padding:2px 8px;font-size:11px;margin:0;" onclick="App.closeFormKeepDraft(); App.openManager('studio');">+ 관리</button></label>
+          <select onchange="App.state.draft.productionId=this.value||null;">
+            <option value="">선택 안 함</option>
+            ${this.state.studios.map(s=>`<option value="${s.id}" ${d.productionId===s.id?'selected':''}>${this.esc(s.label)}</option>`).join('')}
+          </select>
+        </div>
+
+        <div class="field" id="airDaysSection" style="display:${d.status==='방영중'?'':'none'};">
+          <label>방영 요일</label>
+          <div class="kw-pick">
+            ${['월','화','수','목','금','토','일'].map(day=>`<label><input type="checkbox" ${(d.airDays||[]).includes(day)?'checked':''} onchange="App.toggleAirDay('${day}')">${day}</label>`).join('')}
+          </div>
+        </div>
+
+        <div class="field">
+          <label style="display:flex;justify-content:space-between;align-items:center;">시청 OTT <button type="button" class="addrow" style="padding:2px 8px;font-size:11px;margin:0;" onclick="App.closeFormKeepDraft(); App.openManager('ott');">+ 관리</button></label>
+          <div class="kw-pick">
+            ${this.state.ottList.map(o=>`<label><input type="checkbox" ${(d.ottIds||[]).includes(o.id)?'checked':''} onchange="App.toggleDraftOtt('${o.id}')">${this.esc(o.label)}</label>`).join('') || '<span style="color:var(--muted);font-size:12px;">등록된 OTT가 없어요.</span>'}
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field"><label>내 별점</label>
+            <div class="starpick" id="starpick">${this.starsHTML(d.myRating, true, 'myRating')}</div>
+            <span class="rating-label" id="ratingLabel">${d.myRating} / 5</span>
+          </div>
+          <div class="field"><label>수위</label>
+            <div class="starpick" id="heatPick">${this.starsHTML(d.heat, true, 'heat')}</div>
+            <span class="rating-label" id="heatLabel">${d.heat||0} / 5</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>재시청 횟수</label>
+          <div class="rewatch-stepper">
+            <button type="button" class="rowbtn" onclick="App.changeRewatch(-1)">－</button>
+            <span id="rewatchCount">${d.rewatchCount||0}회</span>
+            <button type="button" class="rowbtn" onclick="App.changeRewatch(1)">＋</button>
+          </div>
+        </div>
+
+        <div class="subhdr"><span>출연진</span><button class="addrow" onclick="App.openCastActorPicker()">+ 배우 선택</button></div>
+        <div id="castRows">${this.castRowsHTML(d.cast)}</div>
+
+        <div class="subhdr"><span>커플링 / CP</span><button class="addrow" onclick="App.closeFormKeepDraft(); App.openCpFullForm();">+ CP 관리로</button></div>
+        <div class="kw-pick" id="cpPick">
+          ${this.state.cps.map(c=>`
+            <label><input type="checkbox" ${d.cpIds.includes(c.id)?'checked':''} onchange="App.toggleDraftCp('${c.id}')">${c.highlight?`<span class="cp-hl">${c.highlight}</span>`:''}${this.esc(this.cpLabel(c))}</label>
+          `).join('') || '<span style="color:var(--muted);font-size:12px;">CP 설정(⚙)에서 먼저 CP를 추가해보세요.</span>'}
+        </div>
+
+        <div class="subhdr"><span>키워드</span><button class="addrow" onclick="App.closeFormKeepDraft(); App.openManager('keyword');">+ 키워드 관리로</button></div>
+        <div id="kwFormPick">${this.keywordPickerHTML(d.keywordIds)}</div>
+
+        <div class="subhdr" style="margin-top:22px;">리뷰</div>
+        <div id="reviewPreview">${this.reviewPreviewHTML(d)}</div>
+
+        <div class="subhdr"><span>OST</span><button class="addrow" onclick="App.openOstPicker()">+ OST 선택</button></div>
+        <div id="ostRows">${this.ostRowsHTML(d.ostIds)}</div>
+
+        <div class="subhdr"><span>관련 작품 (속편·스페셜 등)</span><button class="addrow" onclick="App.openRelatedPicker()">+ 작품 연결</button></div>
+        <div id="relatedRows">${this.relatedRowsHTML(d.relatedWorks)}</div>
+
+        <div class="formfoot">
+          <button class="btn btn-ghost" style="flex:1" onclick="App.closeForm()">취소</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('app').appendChild(overlay);
+  },
+
+  castRowsHTML(cast){
+    const real=cast.filter(c=>c.actorId || c.actor);
+    if(!real.length) return `<div style="color:var(--muted);font-size:12px;padding:6px 0;">아직 선택된 배우가 없어요. "+ 배우 선택"으로 등록된 배우 중에서 골라주세요.</div>`;
+    return real.map((c)=>{
+      const i=cast.indexOf(c);
+      return `
+      <div class="cast-input-row">
+        <div class="dyn-row" style="margin-bottom:6px;">
+          <span class="cast-locked-name">${this.esc(c.actor)}</span>
+          <input type="text" placeholder="배역" value="${this.esc(c.role)}" oninput="App.state.draft.cast[${i}].role=this.value">
+          <button class="rowbtn" onclick="App.removeRow('cast',${i})">✕</button>
+        </div>
+        <input type="text" class="cast-memo" placeholder="메모 (선택)" value="${this.esc(c.memo)}" oninput="App.state.draft.cast[${i}].memo=this.value">
+      </div>`;
+    }).join('');
+  },
+  openCastActorPicker(){
+    this.state.castPickerSearch='';
+    this.renderCastActorPicker();
+  },
+  closeCastActorPicker(){ const ov=document.getElementById('castActorPickerOverlay'); if(ov) ov.remove(); },
+  castActorPickerListHTML(){
+    const q=(this.state.castPickerSearch||'').toLowerCase().replace(/\s+/g,'');
+    const list=this.state.actors.filter(a=>!q || a.name.toLowerCase().replace(/\s+/g,'').includes(q)).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+    if(!list.length) return `<div style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center;">일치하는 배우가 없어요.</div>`;
+    const selectedIds=this.state.draft.cast.map(c=>c.actorId).filter(Boolean);
+    return list.map(a=>`
+      <div class="cast-picker-row ${selectedIds.includes(a.id)?'picked':''}" onclick="App.pickActorForCast('${a.id}')">
+        ${a.image?`<img src="${a.image}" class="table-thumb">`:'🎭'}
+        <span>${this.esc(a.name)}</span>
+        ${selectedIds.includes(a.id)?'<span class="chk">✓</span>':''}
+      </div>`).join('');
+  },
+  refreshCastActorPickerList(){
+    const box=document.getElementById('castActorPickerList');
+    if(box) box.innerHTML=this.castActorPickerListHTML();
+  },
+  renderCastActorPicker(){
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='castActorPickerOverlay';
+    overlay.innerHTML=`
+      <div class="modal">
+        <div class="panel-hdr">
+          <h2 class="serif">배우 선택</h2>
+          <button class="iconbtn" onclick="App.closeCastActorPicker()">✕</button>
+        </div>
+        <input type="text" placeholder="배우 이름 검색" value="${this.esc(this.state.castPickerSearch)}" oninput="App.state.castPickerSearch=this.value; App.refreshCastActorPickerList();" style="width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:10px;font-size:15px;margin-bottom:12px;">
+        <div id="castActorPickerList" style="max-height:320px;overflow-y:auto;">${this.castActorPickerListHTML()}</div>
+        <div class="formfoot">
+          <button class="btn btn-ghost" style="flex:1" onclick="App.closeCastActorPicker(); App.state.reopenFormAfterActorCreate=true; App.switchTab('actors'); App.openActorForm();">+ 새 배우 등록하러 가기</button>
+          <button class="btn btn-primary" onclick="App.closeCastActorPicker()">완료</button>
+        </div>
+      </div>`;
+    document.getElementById('app').appendChild(overlay);
+  },
+  pickActorForCast(actorId){
+    const actor=this.actorById(actorId);
+    if(!actor) return;
+    const already=this.state.draft.cast.some(c=>c.actorId===actorId);
+    if(already){
+      this.state.draft.cast=this.state.draft.cast.filter(c=>c.actorId!==actorId);
+      if(!this.state.draft.cast.length) this.state.draft.cast.push({actor:'',role:'',memo:'',actorId:null});
+    }else{
+      if(this.state.draft.cast.length===1 && !this.state.draft.cast[0].actor && !this.state.draft.cast[0].actorId){
+        this.state.draft.cast.pop();
+      }
+      this.state.draft.cast.push({actor:actor.name, role:'', memo:'', actorId:actor.id});
+    }
+    this.refreshCastActorPickerList();
+    this.refreshCastRows();
+  },
+
+  ostRowsHTML(ostIds){
+    const items=(ostIds||[]).map(id=>this.ostById(id)).filter(Boolean);
+    if(!items.length) return `<div style="color:var(--muted);font-size:12px;padding:6px 0;">아직 선택된 OST가 없어요.</div>`;
+    return items.map(o=>`
+      <div class="dyn-row">
+        <span class="cast-locked-name">${this.esc(o.title)}${o.artist?` · ${this.esc(o.artist)}`:''}</span>
+        <button class="rowbtn" onclick="App.removeOstFromDrama('${o.id}')">✕</button>
+      </div>`).join('');
+  },
+  removeOstFromDrama(ostId){
+    this.state.draft.ostIds=(this.state.draft.ostIds||[]).filter(id=>id!==ostId);
+    this.refreshOstRows();
+  },
+  refreshOstRows(){
+    const box=document.getElementById('ostRows');
+    if(box) box.innerHTML=this.ostRowsHTML(this.state.draft.ostIds);
+  },
+  openOstPicker(){
+    this.state.ostPickerSearch='';
+    this.renderOstPicker();
+  },
+  closeOstPicker(){ const ov=document.getElementById('ostPickerOverlay'); if(ov) ov.remove(); },
+  ostPickerListHTML(){
+    const q=(this.state.ostPickerSearch||'').toLowerCase().replace(/\s+/g,'');
+    const list=this.state.osts.filter(o=>!q || (o.title+o.artist).toLowerCase().replace(/\s+/g,'').includes(q)).sort((a,b)=>a.title.localeCompare(b.title,'ko'));
+    if(!list.length) return `<div style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center;">일치하는 OST가 없어요.</div>`;
+    const selectedIds=this.state.draft.ostIds||[];
+    return list.map(o=>`
+      <div class="cast-picker-row ${selectedIds.includes(o.id)?'picked':''}" onclick="App.pickOstForDrama('${o.id}')">
+        <span>${this.esc(o.title)}${o.artist?` <span style="color:var(--muted);">· ${this.esc(o.artist)}</span>`:''}</span>
+        ${selectedIds.includes(o.id)?'<span class="chk">✓</span>':''}
+      </div>`).join('');
+  },
+  refreshOstPickerList(){
+    const box=document.getElementById('ostPickerList');
+    if(box) box.innerHTML=this.ostPickerListHTML();
+  },
+  renderOstPicker(){
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='ostPickerOverlay';
+    overlay.innerHTML=`
+      <div class="modal">
+        <div class="panel-hdr">
+          <h2 class="serif">OST 선택</h2>
+          <button class="iconbtn" onclick="App.closeOstPicker()">✕</button>
+        </div>
+        <input type="text" placeholder="곡명/아티스트 검색" value="${this.esc(this.state.ostPickerSearch)}" oninput="App.state.ostPickerSearch=this.value; App.refreshOstPickerList();" style="width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:10px;font-size:15px;margin-bottom:12px;">
+        <div id="ostPickerList" style="max-height:320px;overflow-y:auto;">${this.ostPickerListHTML()}</div>
+        <div class="formfoot">
+          <button class="btn btn-ghost" style="flex:1" onclick="App.closeOstPicker(); App.state.reopenFormAfterOstCreate=true; App.switchTab('osts'); App.openOstForm();">+ 새 OST 등록하러 가기</button>
+          <button class="btn btn-primary" onclick="App.closeOstPicker()">완료</button>
+        </div>
+      </div>`;
+    document.getElementById('app').appendChild(overlay);
+  },
+  pickOstForDrama(ostId){
+    if(!this.state.draft.ostIds) this.state.draft.ostIds=[];
+    const idx=this.state.draft.ostIds.indexOf(ostId);
+    if(idx>-1) this.state.draft.ostIds.splice(idx,1);
+    else this.state.draft.ostIds.push(ostId);
+    this.refreshOstPickerList();
+    this.refreshOstRows();
+  },
+
+  relatedRowsHTML(relatedWorks){
+    const items=(relatedWorks||[]).map(rw=>({dr:this.state.dramas.find(d=>d.id===rw.id), label:rw.label})).filter(x=>x.dr);
+    if(!items.length) return `<div style="color:var(--muted);font-size:12px;padding:6px 0;">아직 연결된 작품이 없어요.</div>`;
+    return items.map(({dr,label})=>`
+      <div class="cast-input-row">
+        <div class="dyn-row" style="margin-bottom:6px;">
+          <span class="cast-locked-name">${this.esc(dr.title)}</span>
+          <button class="rowbtn" onclick="App.removeRelatedFromDrama('${dr.id}')">✕</button>
+        </div>
+        <input type="text" class="cast-memo" list="relationLabelSuggestions" placeholder="관계 라벨 (예: 시즌2, 스페셜, 본편)" value="${this.esc(label)}" oninput="App.updateRelatedLabel('${dr.id}', this.value)">
+      </div>`).join('') + `<datalist id="relationLabelSuggestions"><option value="본편"><option value="시즌2"><option value="스페셜"><option value="외전"><option value="프리퀄"><option value="스핀오프"></datalist>`;
+  },
+  updateRelatedLabel(id, val){
+    const rw=(this.state.draft.relatedWorks||[]).find(x=>x.id===id);
+    if(rw) rw.label=val;
+  },
+  removeRelatedFromDrama(id){
+    this.state.draft.relatedWorks=(this.state.draft.relatedWorks||[]).filter(x=>x.id!==id);
+    this.refreshRelatedRows();
+  },
+  refreshRelatedRows(){
+    const box=document.getElementById('relatedRows');
+    if(box) box.innerHTML=this.relatedRowsHTML(this.state.draft.relatedWorks);
+  },
+  openRelatedPicker(){
+    this.state.relatedPickerSearch='';
+    this.renderRelatedPicker();
+  },
+  closeRelatedPicker(){ const ov=document.getElementById('relatedPickerOverlay'); if(ov) ov.remove(); },
+  relatedPickerListHTML(){
+    const q=(this.state.relatedPickerSearch||'').toLowerCase().replace(/\s+/g,'');
+    const list=this.state.dramas.filter(dr=>dr.id!==this.state.editingId && (!q || dr.title.toLowerCase().replace(/\s+/g,'').includes(q))).sort((a,b)=>a.title.localeCompare(b.title,'ko'));
+    if(!list.length) return `<div style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center;">일치하는 작품이 없어요.</div>`;
+    const selectedIds=(this.state.draft.relatedWorks||[]).map(rw=>rw.id);
+    return list.map(dr=>`
+      <div class="cast-picker-row ${selectedIds.includes(dr.id)?'picked':''}" onclick="App.toggleRelatedDrama('${dr.id}')">
+        ${dr.poster?`<img src="${dr.poster}" class="table-thumb">`:this.countryEmoji(dr.country)}
+        <span>${this.esc(dr.title)}</span>
+        ${selectedIds.includes(dr.id)?'<span class="chk">✓</span>':''}
+      </div>`).join('');
+  },
+  refreshRelatedPickerList(){
+    const box=document.getElementById('relatedPickerList');
+    if(box) box.innerHTML=this.relatedPickerListHTML();
+  },
+  renderRelatedPicker(){
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='relatedPickerOverlay';
+    overlay.innerHTML=`
+      <div class="modal">
+        <div class="panel-hdr">
+          <h2 class="serif">작품 연결</h2>
+          <button class="iconbtn" onclick="App.closeRelatedPicker()">✕</button>
+        </div>
+        <input type="text" placeholder="작품 제목 검색" value="${this.esc(this.state.relatedPickerSearch)}" oninput="App.state.relatedPickerSearch=this.value; App.refreshRelatedPickerList();" style="width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:10px;font-size:15px;margin-bottom:12px;">
+        <div id="relatedPickerList" style="max-height:320px;overflow-y:auto;">${this.relatedPickerListHTML()}</div>
+        <div class="formfoot">
+          <button class="btn btn-primary" style="flex:1" onclick="App.closeRelatedPicker()">완료</button>
+        </div>
+      </div>`;
+    document.getElementById('app').appendChild(overlay);
+  },
+  toggleRelatedDrama(id){
+    if(!this.state.draft.relatedWorks) this.state.draft.relatedWorks=[];
+    const idx=this.state.draft.relatedWorks.findIndex(rw=>rw.id===id);
+    if(idx>-1){
+      this.state.draft.relatedWorks.splice(idx,1);
+    }else{
+      this.state.draft.relatedWorks.push({id, label:''});
+      this.copyCastAndKeywordsFromDrama(id);
+    }
+    this.refreshRelatedPickerList();
+    this.refreshRelatedRows();
+  },
+  copyCastAndKeywordsFromDrama(sourceId){
+    const src=this.state.dramas.find(d=>d.id===sourceId);
+    if(!src) return;
+    const draft=this.state.draft;
+    (src.cast||[]).forEach(c=>{
+      const already = draft.cast.some(x=> (c.actorId && x.actorId===c.actorId) || (!c.actorId && x.actor && x.actor===c.actor));
+      if(already) return;
+      if(draft.cast.length===1 && !draft.cast[0].actor && !draft.cast[0].actorId){
+        draft.cast.pop();
+      }
+      draft.cast.push({actor:c.actor, role:c.role||'', memo:c.memo||'', actorId:c.actorId||null});
+    });
+    (src.keywordIds||[]).forEach(kid=>{
+      if(!draft.keywordIds.includes(kid)) draft.keywordIds.push(kid);
+    });
+    this.refreshCastRows();
+    const kwBox=document.getElementById('kwFormPick');
+    if(kwBox) kwBox.innerHTML=this.keywordPickerHTML(draft.keywordIds);
+  },
+
+  refreshCastRows(){
+    const box=document.getElementById('castRows');
+    if(box) box.innerHTML = this.castRowsHTML(this.state.draft.cast);
+  },
+
+  addRow(field){
+    const blank = field==='cast'?{actor:'',role:'',memo:'',actorId:null}: field==='ost'?{title:'',artist:''}: '';
+    this.state.draft[field].push(blank);
+    document.getElementById('formOverlay').remove();
+    this.renderForm();
+  },
+  removeRow(field,i){
+    this.state.draft[field].splice(i,1);
+    if(this.state.draft[field].length===0){
+      this.state.draft[field].push(field==='cast'?{actor:'',role:'',memo:'',actorId:null}: field==='ost'?{title:'',artist:''}: '');
+    }
+    document.getElementById('formOverlay').remove();
+    this.renderForm();
+  },
+  keywordPickerHTML(selectedIds){
+    const cats=this.state.keywordCategories;
+    const byCat=id=>this.state.keywords.filter(k=>k.categoryId===id);
+    const uncategorized=this.state.keywords.filter(k=>!k.categoryId || !cats.find(c=>c.id===k.categoryId));
+    const pillsHTML=items=>items.map(k=>`<button type="button" class="kw-toggle-pill ${selectedIds.includes(k.id)?'selected':''}" onclick="App.toggleDraftKw('${k.id}')">${this.esc(k.label)}</button>`).join('');
+    let html=cats.map(cat=>{
+      const items=byCat(cat.id);
+      if(!items.length) return '';
+      return `<div class="kw-cat-row"><div class="kw-cat-label">${this.esc(cat.name)}</div><div class="kw-cat-pills">${pillsHTML(items)}</div></div>`;
+    }).join('');
+    if(uncategorized.length){
+      html += `<div class="kw-cat-row"><div class="kw-cat-label">기타</div><div class="kw-cat-pills">${pillsHTML(uncategorized)}</div></div>`;
+    }
+    return html || '<span style="color:var(--muted);font-size:12px;">키워드 관리에서 먼저 추가해보세요.</span>';
+  },
+  toggleDraftKw(id){
+    const arr=this.state.draft.keywordIds;
+    const idx=arr.indexOf(id);
+    if(idx>-1) arr.splice(idx,1); else arr.push(id);
+    const box=document.getElementById('kwFormPick');
+    if(box) box.innerHTML=this.keywordPickerHTML(arr);
+  },
+  toggleDraftCp(id){
+    const arr=this.state.draft.cpIds;
+    const idx=arr.indexOf(id);
+    if(idx>-1){
+      arr.splice(idx,1);
+    }else{
+      arr.push(id);
+      this.autoAddCastFromCp(id);
+    }
+  },
+  autoAddCastFromCp(cpId){
+    const cp=this.state.cps.find(c=>c.id===cpId);
+    if(!cp) return;
+    [cp.gongActorId, cp.suActorId].forEach(actorId=>{
+      const actor=this.actorById(actorId);
+      if(!actor || !actor.name) return;
+      const already = this.state.draft.cast.some(c=>c.actor===actor.name);
+      if(already) return;
+      if(this.state.draft.cast.length===1 && !this.state.draft.cast[0].actor && !this.state.draft.cast[0].role){
+        this.state.draft.cast.pop();
+      }
+      this.state.draft.cast.push({actor:actor.name, role:'', memo:'', actorId:actor.id});
+    });
+    this.refreshCastRows();
+  },
+
+  saveDrama(){
+    const d=this.state.draft;
+    if(!d.title || !d.title.trim()){ alert('제목을 입력해주세요.'); return; }
+    d.cast = d.cast.filter(c=>c.actor||c.role);
+    if(this.state.editingId){
+      const idx=this.state.dramas.findIndex(x=>x.id===this.state.editingId);
+      d.id=this.state.editingId;
+      this.state.dramas[idx]=d;
+    }else{
+      d.id=this.uid();
+      d.dateAdded=new Date().toISOString();
+      this.state.dramas.push(d);
+    }
+    this.state.dramas.forEach(other=>{
+      if(other.id===d.id) return;
+      if(!other.relatedWorks) other.relatedWorks=[];
+      const shouldHave=(d.relatedWorks||[]).some(rw=>rw.id===other.id);
+      const has=other.relatedWorks.some(rw=>rw.id===d.id);
+      if(shouldHave && !has){ other.relatedWorks.push({id:d.id, label:''}); }
+      else if(!shouldHave && has){ other.relatedWorks=other.relatedWorks.filter(rw=>rw.id!==d.id); }
+    });
+    this.persistDramas();
+    document.getElementById('formOverlay').remove();
+    this.renderList();
+    this.checkTodayAiring();
+  },
+
+  /* ---------- DETAIL ---------- */
+  openDetail(id){
+    this.state.viewingId=id;
+    this.renderDetail();
+  },
+  closeDetail(){
+    const ov=document.getElementById('detailOverlay');
+    if(ov) ov.remove();
+    if(this.state.viewingId) delete this.state.revealSpoiler[this.state.viewingId];
+  },
+  deleteDrama(id){
+    if(!confirm('이 티켓을 삭제할까요? 되돌릴 수 없어요.')) return;
+    this.state.dramas = this.state.dramas.filter(d=>d.id!==id);
+    this.state.dramas.forEach(d=>{ d.relatedWorks=(d.relatedWorks||[]).filter(rw=>rw.id!==id); });
+    this.persistDramas();
+    this.closeDetail();
+    this.renderList();
+  },
+
+  renderDetail(){
+    const d=this.state.dramas.find(x=>x.id===this.state.viewingId);
+    if(!d) return;
+    const kwMap=Object.fromEntries(this.state.keywords.map(k=>[k.id,k]));
+    const kws=(d.keywordIds||[]).map(id=>kwMap[id]).filter(Boolean);
+    const cpMap=Object.fromEntries(this.state.cps.map(c=>[c.id,c]));
+    const cps=(d.cpIds||[]).map(id=>cpMap[id]).filter(Boolean);
+    const revealed = !!this.state.revealSpoiler[d.id];
+    const hasText = d.synopsis;
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='detailOverlay';
+    overlay.innerHTML=`
+      <div class="modal">
+        <div class="panel-hdr">
+          <div></div>
+          <button class="iconbtn" onclick="App.closeDetail()">✕</button>
+        </div>
+        <div class="profile-hero">
+          <div class="profile-hero-imgwrap">${d.poster ? `<img src="${d.poster}" onclick="App.openImageLightbox('${d.poster}')">` : `<div class="d-emoji">${this.countryEmoji(d.country)}</div>`}</div>
+          <div class="profile-hero-body">
+            <div class="d-title serif">${this.esc(d.title)}</div>
+            ${d.originalTitle?`<div class="d-orig">${this.esc(d.originalTitle)}</div>`:''}
+            <div class="d-badges">
+              <span class="badge">${this.esc(d.country||'국가 미상')}</span>
+              <span class="badge">${d.status}</span>
+              ${d.status==='방영중' && (d.airDays||[]).length?`<span class="badge">매주 ${d.airDays.join(',')}요일</span>`:''}
+              ${d.status==='방영예정'?`<span class="badge">방영예정일: ${this.formatKoreanDate(d.airDate)}</span>`:''}
+              ${d.rewatchCount?`<span class="badge">🔁 재시청 ${d.rewatchCount}회</span>`:''}
+              ${(d.ottIds||[]).map(id=>this.state.ottList.find(o=>o.id===id)).filter(Boolean).map(o=>`<span class="badge">${this.esc(o.label)}</span>`).join('')}
+              ${d.year?`<span class="badge">${this.esc(d.year)}</span>`:''}
+              ${d.episodes?`<span class="badge">${this.esc(d.episodes)}부작</span>`:''}
+              ${this.studioById(d.productionId)?`<span class="badge">${this.esc(this.studioById(d.productionId).label)}</span>`:''}
+              <span class="badge stars">${this.starsHTML(d.myRating, false)}</span>
+              ${d.heat?`<span class="badge stars">수위 ${this.starsHTML(d.heat, false, 'heat')}</span>`:''}
+            </div>
+          </div>
+        </div>
+
+        ${cps.length?`
+        <div class="sec-title">커플링 / CP</div>
+        <div class="ship-tags">${cps.map(c=>`<span class="ship-tag" style="cursor:pointer;" onclick="App.closeDetail(); App.openCpProfile('${c.id}')">${c.highlight?this.esc(c.highlight)+' ':''}${this.esc(this.cpLabel(c))}${c.wrecked?' ⚓💔':''}</span>`).join('')}</div>`:''}
+
+        ${d.cast&&d.cast.length?`
+        <div class="sec-title">출연진</div>
+        ${d.cast.map(c=>`
+          <div class="cast-card">
+            <div class="cast-field"><span class="cast-field-label">배우</span><span class="cast-field-value actor-name" ${c.actorId?`style="cursor:pointer;" onclick="App.closeDetail(); App.openActorDetail('${c.actorId}')"`:''}>${this.esc(c.actor)||'-'}</span></div>
+            <div class="cast-field"><span class="cast-field-label">배역</span><span class="cast-field-value">${this.esc(c.role)||'-'}</span></div>
+            ${c.memo?`<div class="cast-field memo-field"><span class="cast-field-label">메모</span><span class="cast-field-value">${this.esc(c.memo)}</span></div>`:''}
+          </div>
+        `).join('')}`:''}
+
+        ${kws.length?`
+        <div class="sec-title">키워드</div>
+        <div class="kwpills">${kws.map(k=>`<span class="kwpill">${this.esc(k.label)}</span>`).join('')}</div>`:''}
+
+        ${hasText?`
+        <div class="sec-title">리뷰${d.hasSpoiler?' <span style="color:var(--flutter);font-weight:400;">(스포일러 주의)</span>':''}</div>
+        <div class="spoiler-box">
+          <div class="${d.hasSpoiler && !revealed?'spoiler-blur':''}">${this.esc(d.synopsis)}</div>
+          ${d.hasSpoiler && !revealed?`<div class="spoiler-cover"><button class="reveal-btn" onclick="App.revealSpoiler('${d.id}')">스포일러 보기</button></div>`:''}
+        </div>`:''}
+
+        ${(d.ostIds||[]).length?`
+        <div class="sec-title">OST</div>
+        ${d.ostIds.map(id=>this.ostById(id)).filter(Boolean).map(o=>`<div class="ost-row" style="cursor:pointer;" onclick="App.closeDetail(); App.openOstDetail('${o.id}')"><span>${this.esc(o.title)}</span><span class="cast-role">${this.esc(o.artist)}</span></div>`).join('')}`:''}
+
+        ${(d.relatedWorks||[]).length?`
+        <div class="sec-title">🔗 관련 작품</div>
+        <div class="kwpills">${d.relatedWorks.map(rw=>({dr:this.state.dramas.find(x=>x.id===rw.id), label:rw.label})).filter(x=>x.dr).map(({dr,label})=>`<span class="kwpill" style="cursor:pointer;" onclick="App.closeDetail(); App.openDetail('${dr.id}')">${this.esc(dr.title)}${label?` <span style="opacity:.7;">(${this.esc(label)})</span>`:''}</span>`).join('')}</div>`:''}
+
+        <div class="formfoot" style="justify-content:flex-end;">
+          <button class="btn" onclick="App.closeDetail(); App.openForm(App.state.dramas.find(x=>x.id==='${d.id}'));">수정</button>
+          <button class="btn btn-danger" onclick="App.deleteDrama('${d.id}')">삭제</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('app').appendChild(overlay);
+  },
+  revealSpoiler(id){
+    this.state.revealSpoiler[id]=true;
+    const ov=document.getElementById('detailOverlay');
+    if(ov) ov.remove();
+    this.renderDetail();
+  },
+
+  /* ---------- TAG MANAGER (키워드 / CP 공용) ---------- */
+  mgrArr(kind){
+    if(kind==='keyword') return this.state.keywords;
+    if(kind==='studio') return this.state.studios;
+    if(kind==='ostGenre') return this.state.ostGenres;
+    if(kind==='ott') return this.state.ottList;
+    return this.state.cps;
+  },
+  mgrPersist(kind){
+    if(kind==='keyword') return this.persistKeywords();
+    if(kind==='studio') return this.persistStudios();
+    if(kind==='ostGenre') return this.persistOstGenres();
+    if(kind==='ott') return this.persistOttList();
+    return this.persistCps();
+  },
+  mgrTitle(kind){
+    if(kind==='keyword') return '키워드 관리';
+    if(kind==='studio') return '제작사 관리';
+    if(kind==='ostGenre') return 'OST 장르 관리';
+    if(kind==='ott') return 'OTT 관리';
+    return 'CP 설정';
+  },
+  mgrPlaceholder(kind){
+    if(kind==='keyword') return '새 키워드 (예: 짝사랑물)';
+    if(kind==='studio') return '새 제작사 (예: GMMTV)';
+    if(kind==='ostGenre') return '새 장르 (예: 발라드)';
+    if(kind==='ott') return '새 OTT (예: Disney+)';
+    return '새 CP (예: 민준x태오)';
+  },
+  mgrUsage(kind,id){
+    if(kind==='keyword') return this.state.dramas.filter(d=>(d.keywordIds||[]).includes(id)).length;
+    if(kind==='studio') return this.state.dramas.filter(d=>d.productionId===id).length;
+    if(kind==='ostGenre') return this.state.osts.filter(o=>(o.genreIds||[]).includes(id)).length;
+    if(kind==='ott') return this.state.dramas.filter(d=>(d.ottIds||[]).includes(id)).length;
+    return this.state.dramas.filter(d=>(d.cpIds||[]).includes(id)).length;
+  },
+  mgrRemoveRefs(kind,id){
+    if(kind==='ostGenre'){
+      this.state.osts.forEach(o=>{ o.genreIds=(o.genreIds||[]).filter(x=>x!==id); });
+      return;
+    }
+    this.state.dramas.forEach(d=>{
+      if(kind==='keyword') d.keywordIds=(d.keywordIds||[]).filter(x=>x!==id);
+      else if(kind==='studio'){ if(d.productionId===id) d.productionId=null; }
+      else if(kind==='ott') d.ottIds=(d.ottIds||[]).filter(x=>x!==id);
+      else d.cpIds=(d.cpIds||[]).filter(x=>x!==id);
+    });
+  },
+
+  openManager(kind){
+    this.state.mgrKind=kind;
+    this.renderManager();
+  },
+  closeManager(){
+    const ov=document.getElementById('mgrOverlay');
+    if(ov) ov.remove();
+    this.state.mgrKind=null;
+    this.renderChips();
+    this.updateGrid();
+    if(this.state.reopenFormAfterManager){
+      this.state.reopenFormAfterManager=false;
+      this.renderForm();
+    }
+    if(this.state.reopenActorFormAfterManager){
+      this.state.reopenActorFormAfterManager=false;
+      this.renderActorForm();
+    }
+    if(this.state.reopenCpFullFormAfterManager){
+      this.state.reopenCpFullFormAfterManager=false;
+      this.renderCpFullForm();
+    }
+    if(this.state.reopenOstFormAfterManager){
+      this.state.reopenOstFormAfterManager=false;
+      this.renderOstForm();
+    }
+  },
+  renderManager(){
+    const kind=this.state.mgrKind;
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='mgrOverlay';
+    if(kind==='keyword'){
+      overlay.innerHTML=`
+        <div class="modal">
+          <div class="panel-hdr">
+            <h2 class="serif">키워드 관리</h2>
+            <button class="iconbtn" onclick="App.closeManager()">✕</button>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin:-8px 0 12px;">카테고리별로 정리해서 관리해요. 이름을 눌러 바로 수정하고, ✕로 삭제할 수 있어요.</div>
+          <div id="mgrList">${this.keywordCategoriesHTML()}</div>
+          <div class="kw-cat-add-row">
+            <input type="text" id="newKwCategory" placeholder="새 카테고리 (예: 장르)" onkeydown="if(event.key==='Enter'){event.preventDefault();App.addKeywordCategory();}">
+            <button class="btn" onclick="App.addKeywordCategory()">카테고리 추가</button>
+          </div>
+        </div>
+      `;
+      document.getElementById('app').appendChild(overlay);
+      return;
+    }
+    const arr=this.mgrArr(kind);
+    const rows = kind==='cp' ? (
+      arr.map(item=>{
+        return `
+        <div class="cp-list-row">
+          ${item.highlight?`<span class="cp-hl">${item.highlight}</span>`:''}
+          <span class="cp-list-label">${this.esc(this.cpLabel(item))}${item.wrecked?' ⚓💔':''}</span>
+          <span class="kw-usage">${this.mgrUsage(kind,item.id)}편</span>
+          <button class="rowbtn" onclick="App.openCpFullForm('${item.id}')" aria-label="수정">✎</button>
+          <button class="rowbtn" onclick="App.mgrDelete('${item.id}')" aria-label="삭제">✕</button>
+        </div>
+      `;}).join('') || `<div style="color:var(--muted);font-size:13px;padding:12px 0;">아직 등록된 CP가 없어요.</div>`
+    ) : (
+      arr.map(item=>`
+        <div class="kw-manage-row">
+          <input type="text" value="${this.esc(item.label)}" oninput="App.mgrUpdateLabel('${item.id}',this.value)" onblur="App.mgrPersist(App.state.mgrKind)">
+          <span class="kw-usage">${this.mgrUsage(kind,item.id)}편</span>
+          <button class="rowbtn" onclick="App.mgrDelete('${item.id}')">✕</button>
+        </div>
+      `).join('') || `<div style="color:var(--muted);font-size:13px;padding:12px 0;">아직 없어요.</div>`
+    );
+    const addRow = kind==='cp' ? `
+        <div class="cp-manage-item" style="border-bottom:none;">
+          <div class="cp-manage-line1">
+            <input type="text" id="newCpGong" placeholder="공 배우">
+            <span class="cp-x">x</span>
+            <input type="text" id="newCpSu" placeholder="수 배우">
+          </div>
+          <div class="cp-manage-line2" style="margin-bottom:8px;">
+            <input type="text" id="newCpNick" placeholder="별명 (예: 오미확)">
+            <button class="btn btn-primary" onclick="App.mgrAdd()">추가</button>
+          </div>
+          <div class="cp-highlight-picker" id="newCpHighlightPicker">
+            ${CP_HIGHLIGHTS.map(e=>`<button type="button" class="cp-highlight-btn" data-emoji="${e}" onclick="App.pickNewCpHighlight('${e}')">${e}</button>`).join('')}
+          </div>
+          <input type="hidden" id="newCpHighlight" value="">
+          <div style="font-size:11px;color:var(--muted);margin-top:8px;">본명·생년월일·소속사 같은 상세정보는 CP 탭에서 더 자세히 채울 수 있어요.</div>
+        </div>` : `
+        <div class="dyn-row" style="margin-top:16px;">
+          <input type="text" id="newMgrLabel" placeholder="${this.mgrPlaceholder(kind)}">
+          <button class="btn btn-primary" onclick="App.mgrAdd()">추가</button>
+        </div>`;
+    overlay.innerHTML=`
+      <div class="modal">
+        <div class="panel-hdr">
+          <h2 class="serif">${this.mgrTitle(kind)}</h2>
+          <button class="iconbtn" onclick="App.closeManager()">✕</button>
+        </div>
+        ${kind!=='cp' ? `<div style="font-size:12px;color:var(--muted);margin:-8px 0 12px;">이름 칸을 눌러 바로 수정할 수 있어요. 여러 작품에 걸려 있어도 이름만 바뀌고 연결은 그대로 유지돼요.</div>` : ''}
+        <div id="mgrList">${rows}</div>
+        ${addRow}
+      </div>
+    `;
+    document.getElementById('app').appendChild(overlay);
+  },
+  mgrUpdateLabel(id,val){
+    const item=this.mgrArr(this.state.mgrKind).find(x=>x.id===id);
+    if(item) item.label=val;
+  },
+
+  /* ---------- 키워드 카테고리 관리 ---------- */
+  keywordCategoriesHTML(){
+    const cats=this.state.keywordCategories;
+    const byCat=id=>this.state.keywords.filter(k=>k.categoryId===id);
+    const uncategorized=this.state.keywords.filter(k=>!k.categoryId || !cats.find(c=>c.id===k.categoryId));
+    let html=cats.map(cat=>{
+      const items=byCat(cat.id);
+      const collapsed=!!this.state.collapsedKwCats[cat.id];
+      return `
+      <div class="kw-mgr-cat">
+        <div class="kw-mgr-cat-header">
+          <button type="button" class="kw-cat-toggle" data-cat-toggle="${cat.id}" onclick="App.toggleKwCatCollapse('${cat.id}')" aria-label="접기/펼치기">${collapsed?'▸':'▾'}</button>
+          <input type="text" class="kw-mgr-cat-name" value="${this.esc(cat.name)}" oninput="App.renameKeywordCategory('${cat.id}',this.value)" onblur="App.persistKeywordCategories()">
+          <span class="kw-cat-count">${items.length}개</span>
+          <button class="rowbtn" onclick="App.deleteKeywordCategory('${cat.id}')" aria-label="카테고리 삭제">✕</button>
+        </div>
+        <div class="kw-mgr-pills" id="kwPills_${cat.id}" style="${collapsed?'display:none;':''}">
+          ${items.map(k=>this.kwMgrPillHTML(k)).join('')}
+          ${this.kwMgrAddPillHTML(cat.id)}
+        </div>
+      </div>
+    `;}).join('');
+    if(uncategorized.length){
+      const collapsed=!!this.state.collapsedKwCats['__uncat'];
+      html += `
+      <div class="kw-mgr-cat">
+        <div class="kw-mgr-cat-header">
+          <button type="button" class="kw-cat-toggle" data-cat-toggle="__uncat" onclick="App.toggleKwCatCollapse('__uncat')" aria-label="접기/펼치기">${collapsed?'▸':'▾'}</button>
+          <span style="font-size:14px;font-weight:700;color:var(--moon);flex:1;">미분류</span>
+          <span class="kw-cat-count">${uncategorized.length}개</span>
+        </div>
+        <div class="kw-mgr-pills" id="kwPills___uncat" style="${collapsed?'display:none;':''}">${uncategorized.map(k=>this.kwMgrPillHTML(k)).join('')}</div>
+      </div>`;
+    }
+    return html || `<div style="color:var(--muted);font-size:13px;padding:12px 0 20px;">카테고리를 먼저 추가해보세요.</div>`;
+  },
+  toggleKwCatCollapse(id){
+    this.state.collapsedKwCats[id] = !this.state.collapsedKwCats[id];
+    const pillsEl=document.getElementById('kwPills_'+id);
+    if(pillsEl) pillsEl.style.display = this.state.collapsedKwCats[id] ? 'none' : '';
+    const btn=document.querySelector(`[data-cat-toggle="${id}"]`);
+    if(btn) btn.textContent = this.state.collapsedKwCats[id] ? '▸' : '▾';
+  },
+  kwMgrPillHTML(k){
+    const usage=this.state.dramas.filter(d=>(d.keywordIds||[]).includes(k.id)).length;
+    return `
+      <span class="kw-mgr-pill">
+        <input type="text" value="${this.esc(k.label)}" size="${Math.max(2,k.label.length)}" oninput="App.mgrUpdateKeywordLabel('${k.id}',this.value)" onblur="App.persistKeywords()">
+        ${usage?`<span class="kw-mgr-pill-usage">${usage}</span>`:''}
+        <button class="kw-mgr-pill-del" onclick="App.deleteKeywordItem('${k.id}')">✕</button>
+      </span>`;
+  },
+  kwMgrAddPillHTML(categoryId){
+    return `
+      <span class="kw-mgr-add-pill">
+        <input type="text" id="newKwFor_${categoryId}" placeholder="+ 추가" size="5" onkeydown="if(event.key==='Enter'){event.preventDefault();App.addKeywordToCategory('${categoryId}');}">
+        <button class="kw-mgr-add-btn" onclick="App.addKeywordToCategory('${categoryId}')">＋</button>
+      </span>`;
+  },
+  addKeywordCategory(){
+    const input=document.getElementById('newKwCategory');
+    const name=input.value.trim();
+    if(!name) return;
+    this.state.keywordCategories.push({id:this.uid(), name});
+    this.persistKeywordCategories();
+    document.getElementById('mgrOverlay').remove();
+    this.renderManager();
+  },
+  renameKeywordCategory(id,val){
+    const cat=this.state.keywordCategories.find(c=>c.id===id);
+    if(cat) cat.name=val;
+  },
+  deleteKeywordCategory(id){
+    const count=this.state.keywords.filter(k=>k.categoryId===id).length;
+    if(count>0 && !confirm(`이 카테고리에 키워드 ${count}개가 있어요. 카테고리를 삭제하면 그 키워드들은 '미분류'로 이동해요. 계속할까요?`)) return;
+    this.state.keywordCategories = this.state.keywordCategories.filter(c=>c.id!==id);
+    this.state.keywords.forEach(k=>{ if(k.categoryId===id) k.categoryId=null; });
+    this.persistKeywordCategories();
+    this.persistKeywords();
+    document.getElementById('mgrOverlay').remove();
+    this.renderManager();
+  },
+  mgrUpdateKeywordLabel(id,val){
+    const k=this.state.keywords.find(x=>x.id===id);
+    if(k) k.label=val;
+  },
+  deleteKeywordItem(id){
+    const count=this.state.dramas.filter(d=>(d.keywordIds||[]).includes(id)).length;
+    if(count>0 && !confirm(`${count}편의 드라마에서 쓰이고 있어요. 삭제하면 해당 드라마에서도 사라져요. 계속할까요?`)) return;
+    this.state.keywords = this.state.keywords.filter(k=>k.id!==id);
+    this.state.dramas.forEach(d=>{ d.keywordIds=(d.keywordIds||[]).filter(kid=>kid!==id); });
+    this.persistKeywords();
+    this.persistDramas();
+    document.getElementById('mgrOverlay').remove();
+    this.renderManager();
+  },
+  addKeywordToCategory(categoryId){
+    const input=document.getElementById('newKwFor_'+categoryId);
+    const label=input.value.trim();
+    if(!label) return;
+    this.state.keywords.push({id:this.uid(), label, categoryId});
+    this.persistKeywords();
+    document.getElementById('mgrOverlay').remove();
+    this.renderManager();
+  },
+
+  mgrUpdateCpField(id,field,val){
+    const item=this.state.cps.find(x=>x.id===id);
+    if(item) item[field]=val;
+  },
+
+
+  mgrAdd(){
+    const kind=this.state.mgrKind;
+    if(kind==='cp'){
+      const val=id=>{ const el=document.getElementById(id); return el ? el.value.trim() : ''; };
+      const gong=val('newCpGong');
+      const su=val('newCpSu');
+      const nickname=val('newCpNick');
+      const highlight=val('newCpHighlight');
+      if(!gong && !su && !nickname){ alert('공 배우, 수 배우, 별명 중 하나는 입력해주세요.'); return; }
+      let gongActorId=null, suActorId=null;
+      if(gong) gongActorId=this.findOrCreateActor(gong).id;
+      if(su) suActorId=this.findOrCreateActor(su).id;
+      this.state.cps.push({id:this.uid(),gongActorId,suActorId,nickname,highlight});
+      this.persistCps();
+    }else{
+      const label=document.getElementById('newMgrLabel').value.trim();
+      if(!label) return;
+      this.mgrArr(kind).push({id:this.uid(),label});
+      this.mgrPersist(kind);
+    }
+    document.getElementById('mgrOverlay').remove();
+    this.renderManager();
+  },
+  pickNewCpHighlight(emoji){
+    const hidden=document.getElementById('newCpHighlight');
+    const current=hidden.value;
+    hidden.value = current===emoji ? '' : emoji;
+    document.querySelectorAll('#newCpHighlightPicker .cp-highlight-btn').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.emoji===hidden.value);
+    });
+  },
+  mgrDelete(id){
+    const kind=this.state.mgrKind;
+    const count=this.mgrUsage(kind,id);
+    if(count>0 && !confirm(`${count}편의 드라마에서 쓰이고 있어요. 삭제하면 해당 드라마에서도 사라져요. 계속할까요?`)) return;
+    const arr=this.mgrArr(kind);
+    const idx=arr.findIndex(x=>x.id===id);
+    if(idx>-1) arr.splice(idx,1);
+    this.mgrRemoveRefs(kind,id);
+    this.mgrPersist(kind);
+    this.persistDramas();
+    document.getElementById('mgrOverlay').remove();
+    this.renderManager();
+  },
+
+  /* ================= 배우 탭 ================= */
+  actorNameDatalistHTML(){
+    return `<datalist id="actorNameList">${this.state.actors.map(a=>`<option value="${this.esc(a.name)}">`).join('')}</datalist>`;
+  },
+  actorDramas(actorId){
+    return this.state.dramas.filter(d=>(d.cast||[]).some(c=>c.actorId===actorId));
+  },
+  actorCps(actorId){
+    return this.state.cps.filter(c=>c.gongActorId===actorId || c.suActorId===actorId);
+  },
+  filteredActors(){
+    const q=(this.state.actorSearch||'').toLowerCase().replace(/\s+/g,'');
+    return this.state.actors.filter(a=> !q || a.name.toLowerCase().replace(/\s+/g,'').includes(q))
+      .sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  },
+  renderActorsTab(){
+    const s=this.state;
+    const app=document.getElementById('app');
+    app.innerHTML=`
+      <div class="hdr">
+        <div>
+          <h1 class="serif">입덕티켓</h1>
+          <div class="tag">등록한 배우들 — 총 ${s.actors.length}명</div>
+        </div>
+        <div class="hdr-actions">
+          <button class="btn btn-primary" onclick="App.openActorForm()">+ 배우 등록</button>
+          <div class="gear-wrap" id="gearWrap">
+            <button class="btn gear-btn" onclick="App.toggleGearMenu(event)" aria-label="설정">⚙</button>
+            <div class="gear-menu" id="gearMenu">
+              <div class="gear-menu-label">보기 방식</div>
+              <button class="gear-view-opt ${s.actorViewMode!=='table'?'active':''}" data-mode="card" onclick="App.setActorViewMode('card')">카드형<span class="chk">✓</span></button>
+              <button class="gear-view-opt ${s.actorViewMode==='table'?'active':''}" data-mode="table" onclick="App.setActorViewMode('table')">표형식<span class="chk">✓</span></button>
+              <div class="gear-menu-divider"></div>
+              <button onclick="App.closeGearMenu(); App.openManager('studio');">제작사 관리</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${this.tabBarHTML()}
+      <div class="toolbar">
+        <input type="text" id="actorSearchInput" placeholder="배우 이름으로 검색" oninput="App.state.actorSearch=this.value; App.updateActorGrid();">
+      </div>
+      <div class="grid" id="actorGrid"></div>
+    `;
+    this.updateActorGrid();
+  },
+  setActorViewMode(mode){
+    this.state.actorViewMode=mode;
+    this.storageSet('actorViewMode', mode);
+    document.querySelectorAll('#gearMenu .gear-view-opt').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.mode===mode);
+    });
+    this.closeGearMenu();
+    this.updateActorGrid();
+  },
+  updateActorGrid(){
+    const grid=document.getElementById('actorGrid');
+    if(!grid) return;
+    const list=this.filteredActors();
+    if(list.length===0){
+      grid.outerHTML=`<div class="empty" id="actorGrid"><div class="big">🎭</div>아직 등록된 배우가 없어요.<br>드라마에 출연진을 입력하면 자동으로 등록되거나, 직접 추가할 수 있어요.</div>`;
+      return;
+    }
+    if(this.state.actorViewMode==='table'){
+      grid.className='table-wrap';
+      grid.innerHTML=this.actorTableViewHTML(list);
+    }else{
+      grid.className='grid';
+      grid.innerHTML=list.map(a=>this.actorCardHTML(a)).join('');
+    }
+  },
+  actorTableViewHTML(list){
+    const rows=list.map(a=>{
+      const studio=this.studioById(a.studioId);
+      const cps=this.actorCps(a.id);
+      return `<tr onclick="App.openActorDetail('${a.id}')">
+        <td>${a.image?`<img src="${a.image}" class="table-thumb">`:'🎭'} ${this.esc(a.name)}</td>
+        <td>${this.esc(a.realName)||'-'}</td>
+        <td>${this.esc(a.birthdate)||'-'}</td>
+        <td>${this.esc(a.nationality)||'-'}</td>
+        <td>${studio?this.esc(studio.label):'-'}</td>
+        <td class="wrap">${cps.length?cps.map(c=>this.esc(this.cpLabel(c))).join(', '):'-'}</td>
+        <td>${this.actorDramas(a.id).length}</td>
+      </tr>`;
+    }).join('');
+    return `<table class="data-table"><thead><tr><th>이름</th><th>본명</th><th>생년월일</th><th>국적</th><th>소속사</th><th>CP</th><th>출연작</th></tr></thead><tbody>${rows}</tbody></table>`;
+  },
+  actorCardHTML(a){
+    const dramaCount=this.actorDramas(a.id).length;
+    const cps=this.actorCps(a.id);
+    return `
+      <div class="person-card" onclick="App.openActorDetail('${a.id}')">
+        <div class="person-card-imgwrap">
+          ${a.image?`<img src="${a.image}">`:`<div class="person-card-placeholder">🎭</div>`}
+        </div>
+        <div class="person-card-body">
+          ${cps.length?`<div class="person-card-cp">${cps.map(c=>`${c.highlight?this.esc(c.highlight)+' ':''}${this.esc(this.cpLabel(c))}`).join(', ')}</div>`:''}
+          <div class="person-card-name serif">${this.esc(a.name)}</div>
+          ${a.realName?`<div class="person-card-meta">${this.esc(a.realName)}</div>`:''}
+          <div class="person-card-meta">출연작 ${dramaCount}편</div>
+        </div>
+      </div>`;
+  },
+  openActorDetail(id){ this.state.viewingActorId=id; this.renderActorDetail(); },
+  closeActorDetail(){ const ov=document.getElementById('actorDetailOverlay'); if(ov) ov.remove(); },
+  entryListRowsHTML(list){
+    return (list||[]).map(r=>`<div class="ost-row"><span>${this.esc(r.title)}${r.memo?` <span style="color:var(--muted);font-size:11px;">· ${this.esc(r.memo)}</span>`:''}</span><span class="cast-role">${this.esc(r.year)}</span></div>`).join('');
+  },
+  renderActorDetail(){
+    const a=this.actorById(this.state.viewingActorId);
+    if(!a) return;
+    const dramas=this.actorDramas(a.id);
+    const cps=this.actorCps(a.id);
+    const studio=this.studioById(a.studioId);
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='actorDetailOverlay';
+    overlay.innerHTML=`
+      <div class="modal">
+        <div class="panel-hdr"><div></div><button class="iconbtn" onclick="App.closeActorDetail()">✕</button></div>
+        <div class="profile-hero">
+          <div class="profile-hero-imgwrap">${a.image?`<img src="${a.image}" onclick="App.openImageLightbox('${a.image}')">`:`<div class="d-emoji">🎭</div>`}</div>
+          <div class="profile-hero-body">
+            <div class="d-title serif">${this.esc(a.name)}</div>
+            ${a.realName?`<div class="d-orig">${this.esc(a.realName)}</div>`:''}
+            <div class="d-badges">
+              ${a.altName?`<span class="badge">${this.esc(a.altName)}</span>`:''}
+              ${a.birthdate?`<span class="badge">${this.esc(a.birthdate)}</span>`:''}
+              ${a.nationality?`<span class="badge">${this.esc(a.nationality)}</span>`:''}
+              ${studio?`<span class="badge">${this.esc(studio.label)}</span>`:''}
+            </div>
+          </div>
+        </div>
+        ${cps.length?`<div class="sec-title">소속 CP</div><div class="kwpills">${cps.map(c=>`<span class="kwpill" style="cursor:pointer;" onclick="App.closeActorDetail(); App.openCpProfile('${c.id}')">${c.highlight?this.esc(c.highlight)+' ':''}${this.esc(this.cpLabel(c))}${c.wrecked?' ⚓💔':''}</span>`).join('')}</div>`:''}
+        ${dramas.length?`<div class="sec-title">출연작</div><div class="kwpills">${dramas.map(d=>`<span class="kwpill" style="cursor:pointer;" onclick="App.closeActorDetail(); App.openDetail('${d.id}')">${this.esc(d.title)}</span>`).join('')}</div>`:''}
+        ${a.memo?`<div class="sec-title">기타</div><div class="spoiler-box">${this.esc(a.memo)}</div>`:''}
+        <div class="formfoot" style="justify-content:flex-end;">
+          <button class="btn" onclick="App.openActorMerge('${a.id}')">배우 합치기</button>
+          <button class="btn" onclick="App.closeActorDetail(); App.openActorForm('${a.id}');">수정</button>
+          <button class="btn btn-danger" onclick="App.deleteActor('${a.id}')">삭제</button>
+        </div>
+      </div>`;
+    document.getElementById('app').appendChild(overlay);
+  },
+  deleteActor(id){
+    const dramaCount=this.actorDramas(id).length;
+    const cpCount=this.actorCps(id).length;
+    if((dramaCount||cpCount) && !confirm(`이 배우는 드라마 ${dramaCount}편, CP ${cpCount}개에 연결돼 있어요. 삭제해도 그 작품·CP 자체는 남고, 배우 연결만 사라져요. 계속할까요?`)) return;
+    this.state.actors=this.state.actors.filter(a=>a.id!==id);
+    this.state.dramas.forEach(d=>{ (d.cast||[]).forEach(c=>{ if(c.actorId===id) c.actorId=null; }); });
+    this.state.cps.forEach(c=>{ if(c.gongActorId===id) c.gongActorId=null; if(c.suActorId===id) c.suActorId=null; });
+    this.persistActors(); this.persistDramas(); this.persistCps();
+    this.closeActorDetail();
+    this.renderActorsTab();
+  },
+  openActorMerge(id){ this.state.mergeSourceActorId=id; this.renderActorMerge(); },
+  closeActorMerge(){ const ov=document.getElementById('actorMergeOverlay'); if(ov) ov.remove(); },
+  renderActorMerge(){
+    const source=this.actorById(this.state.mergeSourceActorId);
+    if(!source) return;
+    const others=this.state.actors.filter(a=>a.id!==source.id).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='actorMergeOverlay';
+    overlay.innerHTML=`
+      <div class="modal">
+        <div class="panel-hdr"><h2 class="serif">배우 합치기</h2><button class="iconbtn" onclick="App.closeActorMerge()">✕</button></div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">같은 배우가 이름 표기 차이 등으로 중복 등록됐을 때 사용해요. "${this.esc(source.name)}"의 출연작·CP 연결을 아래에서 고른 배우로 전부 옮기고, "${this.esc(source.name)}" 항목은 삭제돼요.</div>
+        <div class="field">
+          <label>합칠 대상 배우</label>
+          <select id="mergeTargetSelect">
+            <option value="">배우 선택</option>
+            ${others.map(a=>`<option value="${a.id}">${this.esc(a.name)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="formfoot">
+          <button class="btn btn-primary" style="flex:1" onclick="App.confirmActorMerge()">합치기</button>
+          <button class="btn btn-ghost" onclick="App.closeActorMerge()">취소</button>
+        </div>
+      </div>`;
+    document.getElementById('app').appendChild(overlay);
+  },
+  confirmActorMerge(){
+    const targetId=document.getElementById('mergeTargetSelect').value;
+    if(!targetId){ alert('합칠 배우를 선택해주세요.'); return; }
+    const sourceId=this.state.mergeSourceActorId;
+    if(!confirm('합치면 되돌릴 수 없어요. 계속할까요?')) return;
+    this.state.dramas.forEach(d=>{ (d.cast||[]).forEach(c=>{ if(c.actorId===sourceId) c.actorId=targetId; }); });
+    this.state.cps.forEach(c=>{
+      if(c.gongActorId===sourceId) c.gongActorId=targetId;
+      if(c.suActorId===sourceId) c.suActorId=targetId;
+    });
+    this.state.actors=this.state.actors.filter(a=>a.id!==sourceId);
+    this.persistDramas(); this.persistCps(); this.persistActors();
+    this.closeActorMerge();
+    this.closeActorDetail();
+    this.renderActorsTab();
+  },
+
+  openActorForm(existingId){
+    this.state.editingActorId=existingId||null;
+    const existing=existingId?this.actorById(existingId):null;
+    this.state.actorDraft = existing ? JSON.parse(JSON.stringify(existing)) : {
+      id:null,name:'',image:null,realName:'',altName:'',birthdate:'',nationality:'',studioId:null,
+      realityList:[{title:'',year:'',memo:''}], discography:[{title:'',year:'',memo:''}], memo:''
+    };
+    this.renderActorForm();
+  },
+  closeActorForm(){
+    this.state.actorDraft=null;
+    const ov=document.getElementById('actorFormOverlay'); if(ov) ov.remove();
+    if(this.state.reopenFormAfterActorCreate){
+      this.state.reopenFormAfterActorCreate=false;
+      this.switchTab('review');
+      this.renderForm();
+    }
+    if(this.state.reopenCpFullFormAfterActorCreate){
+      this.state.reopenCpFullFormAfterActorCreate=false;
+      this.switchTab('cps');
+      this.renderCpFullForm();
+    }
+  },
+  closeActorFormKeepDraft(){
+    const ov=document.getElementById('actorFormOverlay');
+    if(ov) ov.remove();
+    this.state.reopenActorFormAfterManager=true;
+  },
+  renderActorForm(){
+    const d=this.state.actorDraft;
+    const overlay=document.createElement('div');
+    overlay.className='overlay';
+    overlay.id='actorFormOverlay';
+    overlay.innerHTML=`
+      <div class="panel">
+        <div class="panel-hdr">
+          <h2 class="serif">${this.state.editingActorId?'배우 수정':'배우 등록'}</h2>
+          <button class="iconbtn" onclick="App.closeActorForm()">✕</button>
+        </div>
+        <div class="field">
+          <label>사진 (선택)</label>
+          <div class="poster-upload portrait" id="actorPosterUpload">
+            ${d.image?`<img src="${d.image}" class="poster-preview" onclick="event.stopPropagation();App.openImageLightbox('${d.image}')">`:`<div class="poster-placeholder">🎭</div>`}
+          </div>
+          <div class="poster-actions">
+            <label class="btn" style="cursor:pointer;">이미지 선택<input type="file" accept="image/*" style="display:none;" onchange="App.handleActorImageUpload(event)"></label>
+            ${d.image?`<button type="button" class="btn btn-ghost" onclick="App.clearActorImage()">제거</button>`:''}
+          </div>
+          <div class="poster-url-row">
+            <input type="text" id="actorImageUrlInput" placeholder="또는 이미지 URL 붙여넣기" value="${(d.image && !d.image.startsWith('data:'))?this.esc(d.image):''}" onkeydown="if(event.key==='Enter'){event.preventDefault();App.applyActorImageUrl();}">
+            <button type="button" class="btn" onclick="App.applyActorImageUrl()">적용</button>
+          </div>
+        </div>
+        <div class="field"><label>이름 (표시명)</label><input type="text" value="${this.esc(d.name)}" oninput="App.state.actorDraft.name=this.value" placeholder="예: 오프 준티피"></div>
+        <div class="row2">
+          <div class="field"><label>본명</label><input type="text" value="${this.esc(d.realName)}" oninput="App.state.actorDraft.realName=this.value"></div>
+          <div class="field"><label>츠렌</label><input type="text" value="${this.esc(d.altName)}" oninput="App.state.actorDraft.altName=this.value"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>생년월일</label><input type="text" value="${this.esc(d.birthdate)}" oninput="App.state.actorDraft.birthdate=this.value" placeholder="예: 1993-03-17"></div>
+          <div class="field"><label>국적</label><input type="text" value="${this.esc(d.nationality)}" oninput="App.state.actorDraft.nationality=this.value" placeholder="예: 태국"></div>
+        </div>
+        <div class="field">
+          <label style="display:flex;justify-content:space-between;align-items:center;">소속사 <button type="button" class="addrow" style="padding:2px 8px;font-size:11px;margin:0;" onclick="App.closeActorFormKeepDraft(); App.openManager('studio');">+ 관리</button></label>
+          <select onchange="App.state.actorDraft.studioId=this.value||null;">
+            <option value="">선택 안 함</option>
+            ${this.state.studios.map(s=>`<option value="${s.id}" ${d.studioId===s.id?'selected':''}>${this.esc(s.label)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>기타 (메모)</label><textarea oninput="App.state.actorDraft.memo=this.value">${this.esc(d.memo)}</textarea></div>
+        <div class="formfoot">
+          <button class="btn btn-primary" style="flex:1" onclick="App.saveActor()">${this.state.editingActorId?'수정 완료':'배우 등록'}</button>
+          <button class="btn btn-ghost" onclick="App.closeActorForm()">취소</button>
+        </div>
+      </div>`;
+    document.getElementById('app').appendChild(overlay);
+  },
+  entryEditRowsHTML(draftKey,field){
+    const d=this.state[draftKey];
+    return d[field].map((r,i)=>`
+      <div class="dyn-row">
+        <input type="text" placeholder="제목" value="${this.esc(r.title)}" oninput="App.state.${draftKey}.${field}[${i}].title=this.value">
+        <input type="text" placeholder="연도" value="${this.esc(r.year)}" oninput="App.state.${draftKey}.${field}[${i}].year=this.value" style="max-width:80px;">
+        <button class="rowbtn" onclick="App.removeEntryRow('${draftKey}','${field}',${i})">✕</button>
+      </div>
+      <input type="text" class="cast-memo" placeholder="메모 (선택)" value="${this.esc(r.memo)}" oninput="App.state.${draftKey}.${field}[${i}].memo=this.value" style="margin-bottom:8px;">
+    `).join('');
+  },
+  entryRowsBoxId(draftKey,field){
+    if(draftKey==='actorDraft') return field==='realityList'?'actorRealityRows':'actorDiscographyRows';
+    return field==='realityList'?'cpFullRealityRows':'cpFullDiscographyRows';
+  },
+  addActorRow(field){
+    this.state.actorDraft[field].push({title:'',year:'',memo:''});
+    const box=document.getElementById(this.entryRowsBoxId('actorDraft',field));
+    if(box) box.innerHTML=this.entryEditRowsHTML('actorDraft',field);
+  },
+  removeEntryRow(draftKey,field,i){
+    this.state[draftKey][field].splice(i,1);
+    if(this.state[draftKey][field].length===0) this.state[draftKey][field].push({title:'',year:'',memo:''});
+    const box=document.getElementById(this.entryRowsBoxId(draftKey,field));
+    if(box) box.innerHTML=this.entryEditRowsHTML(draftKey,field);
+  },
+  handleActorImageUpload(e){
+    const file=e.target.files[0];
+    if(!file) return;
+    this.compressImageFile(file,500,0.75).then(url=>{
+      this.state.actorDraft.image=url;
+      const ov=document.getElementById('actorFormOverlay'); if(ov) ov.remove();
+      this.renderActorForm();
+    }).catch(()=>alert('이미지를 불러오지 못했어요.'));
+  },
+  clearActorImage(){
+    this.state.actorDraft.image=null;
+    const ov=document.getElementById('actorFormOverlay'); if(ov) ov.remove();
+    this.renderActorForm();
+  },
+  applyActorImageUrl(){
+    const input=document.getElementById('actorImageUrlInput');
+    const url=input.value.trim();
+    if(!url) return;
+    this.state.actorDraft.image=url;
+    const ov=document.getElementById('actorFormOverlay'); if(ov) ov.remove();
+    this.renderActorForm();
+  },
+  saveActor(){
+    const d=this.state.actorDraft;
+    if(!d.name || !d.name.trim()){ alert('이름을 입력해주세요.'); return; }
+    d.realityList=d.realityList.filter(r=>r.title||r.year||r.memo);
+    d.discography=d.discography.filter(r=>r.title||r.year||r.memo);
+    if(this.state.editingActorId){
+      const idx=this.state.actors.findIndex(a=>a.id===this.state.editingActorId);
+      d.id=this.state.editingActorId;
+      this.state.actors[idx]=d;
+    }else{
+      const dup=this.state.actors.find(a=>a.name===d.name.trim());
+      if(dup){ alert('이미 같은 이름의 배우가 등록되어 있어요. 그 배우를 수정해주세요.'); return; }
+      d.id=this.uid();
+      this.state.actors.push(d);
+    }
+    this.persistActors();
+    this.state.actorDraft=null;
+    const ov=document.getElementById('actorFormOverlay'); if(ov) ov.remove();
+    if(this.state.reopenFormAfterActorCreate){
+      this.state.reopenFormAfterActorCreate=false;
+      this.switchTab('review');
+      this.renderForm();
+      return;
+    }
+    if(this.state.reopenCpFullFormAfterActorCreate){
+      this.state.reopenCpFullFormAfterActorCreate=false;
+      this.switchTab('cps');
+      this.renderCpFullForm();
+      return;
+    }
+    this.renderActorsTab();
+  },
+
+  /* ================= CP 탭 ================= */
+  renderCpsTab(){
+    const s=this.state;
+    const app=document.getElementById('app');
+    app.innerHTML=`
+      <div class="hdr">
+        <div>
+          <h1 class="serif">입덕티켓</h1>
+          <div class="tag">등록한 CP들 — 총 ${s.cps.length}개</div>
+        </div>
+        <div class="hdr-actions">
+          <button class="btn btn-primary" onclick="App.openCpFullForm()">+ CP 등록</button>
+          <div class="gear-wrap" id="gearWrap">
+            <button class="btn gear-btn" onclick="App.toggleGearMenu(event)" aria-label="설정">⚙</button>
+            <div class="gear-menu" id="gearMenu">
+              <div class="gear-menu-label">보기 방식</div>
+              <button class="gear-view-opt ${s.cpViewMode!=='table'?'active':''}" data-mode="card" onclick="App.setCpViewMode('card')">카드형<span class="chk">✓</span></button>
+              <button class="gear-view-opt ${s.cpViewMode==='table'?'active':''}" data-mode="table" onclick="App.setCpViewMode('table')">표형식<span class="chk">✓</span></button>
+              <div class="gear-menu-divider"></div>
+              <button onclick="App.closeGearMenu(); App.openManager('studio');">제작사 관리</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${this.tabBarHTML()}
+      <div class="grid" id="cpGrid"></div>
+    `;
+    this.updateCpGrid();
+  },
+  setCpViewMode(mode){
+    this.state.cpViewMode=mode;
+    this.storageSet('cpViewMode', mode);
+    document.querySelectorAll('#gearMenu .gear-view-opt').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.mode===mode);
+    });
+    this.closeGearMenu();
+    this.updateCpGrid();
+  },
+  updateCpGrid(){
+    const grid=document.getElementById('cpGrid');
+    if(!grid) return;
+    const list=this.state.cps;
+    if(list.length===0){
+      grid.outerHTML=`<div class="empty" id="cpGrid"><div class="big">💞</div>아직 등록된 CP가 없어요.</div>`;
+      return;
+    }
+    if(this.state.cpViewMode==='table'){
+      grid.className='table-wrap';
+      grid.innerHTML=this.cpTableViewHTML(list);
+    }else{
+      grid.className='grid';
+      const active=list.filter(c=>!c.wrecked);
+      const wrecked=list.filter(c=>c.wrecked);
+      let html=active.map(c=>this.cpCardHTML(c)).join('');
+      if(wrecked.length){
+        html += `<div class="cp-wrecked-divider">⚓💔 난파된 CP</div>` + wrecked.map(c=>this.cpCardHTML(c)).join('');
+      }
+      grid.innerHTML=html;
+    }
+  },
+  cpTableViewHTML(list){
+    const sorted=[...list].sort((a,b)=>(a.wrecked?1:0)-(b.wrecked?1:0));
+    const rows=sorted.map(c=>{
+      const gong=this.actorById(c.gongActorId), su=this.actorById(c.suActorId);
+      const dramaCount=this.state.dramas.filter(d=>(d.cpIds||[]).includes(c.id)).length;
+      const studio=this.studioById(c.studioId);
+      return `<tr onclick="App.openCpProfile('${c.id}')" style="${c.wrecked?'opacity:.55;':''}">
+        <td>${c.highlight?this.esc(c.highlight)+' ':''}${this.esc(this.cpLabel(c))}${c.wrecked?' ⚓💔':''}</td>
+        <td>${gong?this.esc(gong.name):'-'} x ${su?this.esc(su.name):'-'}</td>
+        <td>${this.esc(c.activePeriod)||'-'}</td>
+        <td>${studio?this.esc(studio.label):'-'}</td>
+        <td>${dramaCount}</td>
+      </tr>`;
+    }).join('');
+    return `<table class="data-table"><thead><tr><th>CP명</th><th>멤버</th><th>활동기간</th><th>소속사</th><th>드라마</th></tr></thead><tbody>${rows}</tbody></table>`;
+  },
+  cpCardHTML(c){
+    const dramaCount=this.state.dramas.filter(d=>(d.cpIds||[]).includes(c.id)).length;
+    return `
+      <div class="person-card ${c.wrecked?'person-card-wrecked':''}" onclick="App.openCpProfile('${c.id}')">
+        <div class="person-card-imgwrap">
+          ${c.image?`<img src="${c.image}">`:`<div class="person-card-placeholder">${c.highlight||'💞'}</div>`}
+        </div>
+        <div class="person-card-body">
+          <div class="person-card-name serif">${c.highlight?this.esc(c.highlight)+' ':''}${this.esc(this.cpLabel(c))}${c.wrecked?' ⚓💔':''}</div>
+          <div class="person-card-meta">출연작 ${dramaCount}편${c.wrecked?' · 난파':''}</div>
+        </div>
+      </div>`;
+  },
+  openCpProfile(id){ this.state.viewingCpId=id; this.renderCpProfile(); },
+  closeCpProfile(){ const ov=document.getElementById('cpProfileOverlay'); if(ov) ov.remove(); },
+  renderCpProfile(){
+    const c=this.state.cps.find(x=>x.id===this.state.viewingCpId);
+    if(!c) return;
+    const gong=this.actorById(c.gongActorId);
+    const su=this.actorById(c.suActorId);
+    const studio=this.studioById(c.studioId);
+    const dramas=this.state.dramas.filter(d=>(d.cpIds||[]).includes(c.id));
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='cpProfileOverlay';
+    overlay.innerHTML=`
+      <div class="modal">
+        <div class="panel-hdr"><div></div><button class="iconbtn" onclick="App.closeCpProfile()">✕</button></div>
+        <div class="profile-hero">
+          <div class="profile-hero-imgwrap">${c.image?`<img src="${c.image}" onclick="App.openImageLightbox('${c.image}')">`:`<div class="d-emoji">${c.highlight||'💞'}</div>`}</div>
+          <div class="profile-hero-body">
+            <div class="d-title serif">${this.esc(this.cpLabel(c))}</div>
+            <div class="d-badges">
+              ${c.wrecked?`<span class="badge" style="background:rgba(211,47,90,.18);color:#e0447a;">⚓💔 난파</span>`:''}
+              ${c.activePeriod?`<span class="badge">${this.esc(c.activePeriod)}</span>`:''}
+              ${studio?`<span class="badge">${this.esc(studio.label)}</span>`:''}
+            </div>
+          </div>
+        </div>
+        <div class="sec-title">멤버</div>
+        <div class="cast-card"><div class="cast-field"><span class="cast-field-label">공</span><span class="cast-field-value actor-name" ${gong?`style="cursor:pointer;" onclick="App.closeCpProfile(); App.openActorDetail('${gong.id}')"`:''}>${gong?this.esc(gong.name):'-'}</span></div></div>
+        <div class="cast-card"><div class="cast-field"><span class="cast-field-label">수</span><span class="cast-field-value actor-name" ${su?`style="cursor:pointer;" onclick="App.closeCpProfile(); App.openActorDetail('${su.id}')"`:''}>${su?this.esc(su.name):'-'}</span></div></div>
+        ${dramas.length?`<div class="sec-title">드라마</div><div class="kwpills">${dramas.map(d=>`<span class="kwpill" style="cursor:pointer;" onclick="App.closeCpProfile(); App.openDetail('${d.id}')">${this.esc(d.title)}</span>`).join('')}</div>`:''}
+        ${c.memo?`<div class="sec-title">기타</div><div class="spoiler-box">${this.esc(c.memo)}</div>`:''}
+        <div class="formfoot" style="justify-content:flex-end;">
+          <button class="btn" onclick="App.closeCpProfile(); App.openCpFullForm('${c.id}');">수정</button>
+          <button class="btn btn-danger" onclick="App.deleteCpFromTab('${c.id}')">삭제</button>
+        </div>
+      </div>`;
+    document.getElementById('app').appendChild(overlay);
+  },
+  deleteCpFromTab(id){
+    const count=this.state.dramas.filter(d=>(d.cpIds||[]).includes(id)).length;
+    if(count>0 && !confirm(`${count}편의 드라마에 연결되어 있어요. 삭제하면 그 작품들에서도 이 CP 표시가 사라져요. 계속할까요?`)) return;
+    this.state.cps=this.state.cps.filter(c=>c.id!==id);
+    this.state.dramas.forEach(d=>{ d.cpIds=(d.cpIds||[]).filter(cid=>cid!==id); });
+    this.persistCps(); this.persistDramas();
+    this.closeCpProfile();
+    this.renderCpsTab();
+  },
+  openCpFullForm(existingId){
+    this.state.editingCpFullId=existingId||null;
+    const existing=existingId?this.state.cps.find(c=>c.id===existingId):null;
+    this.state.cpFullDraft = existing ? JSON.parse(JSON.stringify(existing)) : {
+      id:null,gongActorId:null,suActorId:null,nickname:'',highlight:'',image:null,
+      activePeriod:'',wrecked:false,studioId:null,
+      realityList:[{title:'',year:'',memo:''}], discography:[{title:'',year:'',memo:''}], memo:''
+    };
+    this.renderCpFullForm();
+  },
+  closeCpFullForm(){
+    this.state.cpFullDraft=null;
+    const ov=document.getElementById('cpFullFormOverlay'); if(ov) ov.remove();
+    if(this.state.reopenFormAfterManager){
+      this.state.reopenFormAfterManager=false;
+      this.renderForm();
+    }
+  },
+  closeCpFullFormKeepDraft(){
+    const ov=document.getElementById('cpFullFormOverlay');
+    if(ov) ov.remove();
+    this.state.reopenCpFullFormAfterManager=true;
+  },
+  closeCpFullFormForActorCreate(){
+    const ov=document.getElementById('cpFullFormOverlay');
+    if(ov) ov.remove();
+    this.state.reopenCpFullFormAfterActorCreate=true;
+  },
+  openCpActorSearch(role){
+    this.state.cpActorSearchRole=role;
+    this.state.cpActorSearchQuery='';
+    this.renderCpActorSearch();
+  },
+  closeCpActorSearch(){ const ov=document.getElementById('cpActorSearchOverlay'); if(ov) ov.remove(); },
+  cpActorSearchListHTML(){
+    const role=this.state.cpActorSearchRole;
+    const q=(this.state.cpActorSearchQuery||'').toLowerCase().replace(/\s+/g,'');
+    const list=this.state.actors.filter(a=>!q || a.name.toLowerCase().replace(/\s+/g,'').includes(q)).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+    if(!list.length) return `<div style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center;">일치하는 배우가 없어요.</div>`;
+    const selectedId = role==='gong' ? this.state.cpFullDraft.gongActorId : this.state.cpFullDraft.suActorId;
+    return list.map(a=>`
+      <div class="cast-picker-row ${selectedId===a.id?'picked':''}" onclick="App.pickCpActor('${a.id}')">
+        ${a.image?`<img src="${a.image}" class="table-thumb">`:'🎭'}
+        <span>${this.esc(a.name)}</span>
+        ${selectedId===a.id?'<span class="chk">✓</span>':''}
+      </div>`).join('');
+  },
+  refreshCpActorSearchList(){
+    const box=document.getElementById('cpActorSearchList');
+    if(box) box.innerHTML=this.cpActorSearchListHTML();
+  },
+  renderCpActorSearch(){
+    const role=this.state.cpActorSearchRole;
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='cpActorSearchOverlay';
+    overlay.innerHTML=`
+      <div class="modal">
+        <div class="panel-hdr">
+          <h2 class="serif">${role==='gong'?'공':'수'} 배우 검색</h2>
+          <button class="iconbtn" onclick="App.closeCpActorSearch()">✕</button>
+        </div>
+        <input type="text" placeholder="배우 이름 검색" value="${this.esc(this.state.cpActorSearchQuery)}" oninput="App.state.cpActorSearchQuery=this.value; App.refreshCpActorSearchList();" style="width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:10px;font-size:15px;margin-bottom:12px;">
+        <div id="cpActorSearchList" style="max-height:320px;overflow-y:auto;">${this.cpActorSearchListHTML()}</div>
+        <div class="formfoot">
+          <button class="btn btn-ghost" style="flex:1" onclick="App.closeCpActorSearch(); App.closeCpFullFormForActorCreate(); App.switchTab('actors'); App.openActorForm();">+ 새 배우 등록하러 가기</button>
+          <button class="btn btn-primary" onclick="App.closeCpActorSearch()">완료</button>
+        </div>
+      </div>`;
+    document.getElementById('app').appendChild(overlay);
+  },
+  pickCpActor(actorId){
+    const role=this.state.cpActorSearchRole;
+    const actor=this.actorById(actorId);
+    if(!actor) return;
+    if(role==='gong') this.state.cpFullDraft.gongActorId = (this.state.cpFullDraft.gongActorId===actorId) ? null : actorId;
+    else this.state.cpFullDraft.suActorId = (this.state.cpFullDraft.suActorId===actorId) ? null : actorId;
+    this.refreshCpActorSearchList();
+    const gongActor=this.actorById(this.state.cpFullDraft.gongActorId);
+    const suActor=this.actorById(this.state.cpFullDraft.suActorId);
+    const gd=document.getElementById('cpFullGongDisplay');
+    if(gd) gd.innerHTML = gongActor?this.esc(gongActor.name):'<span style="color:var(--muted);font-weight:400;">공 배우 선택 안 함</span>';
+    const sd=document.getElementById('cpFullSuDisplay');
+    if(sd) sd.innerHTML = suActor?this.esc(suActor.name):'<span style="color:var(--muted);font-weight:400;">수 배우 선택 안 함</span>';
+  },
+  pickCpFullHighlight(emoji){
+    const hidden=document.getElementById('cpFullHighlight');
+    const cur=hidden.value;
+    hidden.value = cur===emoji?'':emoji;
+    document.querySelectorAll('#cpFullHighlightPicker .cp-highlight-btn').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.emoji===hidden.value);
+    });
+  },
+  renderCpFullForm(){
+    const d=this.state.cpFullDraft;
+    const gongActor=this.actorById(d.gongActorId);
+    const suActor=this.actorById(d.suActorId);
+    const overlay=document.createElement('div');
+    overlay.className='overlay';
+    overlay.id='cpFullFormOverlay';
+    overlay.innerHTML=`
+      <div class="panel">
+        <div class="panel-hdr">
+          <h2 class="serif">${this.state.editingCpFullId?'CP 수정':'CP 등록'}</h2>
+          <button class="iconbtn" onclick="App.closeCpFullForm()">✕</button>
+        </div>
+        <div class="field">
+          <label>이미지 (선택)</label>
+          <div class="poster-upload portrait" id="cpFullImageUpload">
+            ${d.image?`<img src="${d.image}" class="poster-preview" onclick="event.stopPropagation();App.openImageLightbox('${d.image}')">`:`<div class="poster-placeholder">${d.highlight||'💞'}</div>`}
+          </div>
+          <div class="poster-actions">
+            <label class="btn" style="cursor:pointer;">이미지 선택<input type="file" accept="image/*" style="display:none;" onchange="App.handleCpFullImageUpload(event)"></label>
+            ${d.image?`<button type="button" class="btn btn-ghost" onclick="App.clearCpFullImage()">제거</button>`:''}
+          </div>
+          <div class="poster-url-row">
+            <input type="text" id="cpFullImageUrlInput" placeholder="또는 이미지 URL 붙여넣기" value="${(d.image && !d.image.startsWith('data:'))?this.esc(d.image):''}" onkeydown="if(event.key==='Enter'){event.preventDefault();App.applyCpFullImageUrl();}">
+            <button type="button" class="btn" onclick="App.applyCpFullImageUrl()">적용</button>
+          </div>
+        </div>
+        <div class="cp-manage-line1" style="margin-bottom:10px;">
+          <span class="cast-locked-name" id="cpFullGongDisplay">${gongActor?this.esc(gongActor.name):'<span style="color:var(--muted);font-weight:400;">공 배우 선택 안 함</span>'}</span>
+          <span class="cp-x">x</span>
+          <span class="cast-locked-name" id="cpFullSuDisplay">${suActor?this.esc(suActor.name):'<span style="color:var(--muted);font-weight:400;">수 배우 선택 안 함</span>'}</span>
+        </div>
+        <div class="row2" style="margin-bottom:16px;">
+          <button type="button" class="btn" onclick="App.openCpActorSearch('gong')">공 배우 검색</button>
+          <button type="button" class="btn" onclick="App.openCpActorSearch('su')">수 배우 검색</button>
+        </div>
+        <div class="field"><label>CP명 (별명)</label><input type="text" id="cpFullNickname" value="${this.esc(d.nickname)}" placeholder="예: 오미확"></div>
+        <div class="field">
+          <label>강조 표시</label>
+          <div class="cp-highlight-picker" id="cpFullHighlightPicker">
+            ${CP_HIGHLIGHTS.map(e=>`<button type="button" class="cp-highlight-btn ${d.highlight===e?'active':''}" data-emoji="${e}" onclick="App.pickCpFullHighlight('${e}')">${e}</button>`).join('')}
+          </div>
+          <input type="hidden" id="cpFullHighlight" value="${d.highlight||''}">
+        </div>
+        <div class="row2">
+          <div class="field"><label>활동기간</label><input type="text" value="${this.esc(d.activePeriod)}" oninput="App.state.cpFullDraft.activePeriod=this.value" placeholder="예: 2022~현재"></div>
+          <div class="field">
+            <label>활동 상태</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:400;color:var(--text);padding-top:9px;">
+              <input type="checkbox" style="width:auto;" ${d.wrecked?'checked':''} onchange="App.state.cpFullDraft.wrecked=this.checked;">
+              ⚓💔 난파(활동 종료/불화)
+            </label>
+          </div>
+        </div>
+        <div class="field">
+          <label style="display:flex;justify-content:space-between;align-items:center;">소속사 <button type="button" class="addrow" style="padding:2px 8px;font-size:11px;margin:0;" onclick="App.closeCpFullFormKeepDraft(); App.openManager('studio');">+ 관리</button></label>
+          <select onchange="App.state.cpFullDraft.studioId=this.value||null;">
+            <option value="">선택 안 함</option>
+            ${this.state.studios.map(s=>`<option value="${s.id}" ${d.studioId===s.id?'selected':''}>${this.esc(s.label)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>기타 (메모)</label><textarea oninput="App.state.cpFullDraft.memo=this.value">${this.esc(d.memo)}</textarea></div>
+        <div class="formfoot">
+          <button class="btn btn-primary" style="flex:1" onclick="App.saveCpFullForm()">${this.state.editingCpFullId?'수정 완료':'CP 등록'}</button>
+          <button class="btn btn-ghost" onclick="App.closeCpFullForm()">취소</button>
+        </div>
+      </div>`;
+    document.getElementById('app').appendChild(overlay);
+  },
+  addCpFullRow(field){
+    this.state.cpFullDraft[field].push({title:'',year:'',memo:''});
+    const box=document.getElementById(this.entryRowsBoxId('cpFullDraft',field));
+    if(box) box.innerHTML=this.entryEditRowsHTML('cpFullDraft',field);
+  },
+  handleCpFullImageUpload(e){
+    const file=e.target.files[0];
+    if(!file) return;
+    this.compressImageFile(file,500,0.75).then(url=>{
+      this.state.cpFullDraft.image=url;
+      const ov=document.getElementById('cpFullFormOverlay'); if(ov) ov.remove();
+      this.renderCpFullForm();
+    }).catch(()=>alert('이미지를 불러오지 못했어요.'));
+  },
+  clearCpFullImage(){
+    this.state.cpFullDraft.image=null;
+    const ov=document.getElementById('cpFullFormOverlay'); if(ov) ov.remove();
+    this.renderCpFullForm();
+  },
+  applyCpFullImageUrl(){
+    const input=document.getElementById('cpFullImageUrlInput');
+    const url=input.value.trim();
+    if(!url) return;
+    this.state.cpFullDraft.image=url;
+    const ov=document.getElementById('cpFullFormOverlay'); if(ov) ov.remove();
+    this.renderCpFullForm();
+  },
+  saveCpFullForm(){
+    const d=this.state.cpFullDraft;
+    d.nickname=document.getElementById('cpFullNickname').value.trim();
+    const hlEl=document.getElementById('cpFullHighlight');
+    d.highlight = hlEl?hlEl.value:'';
+    d.realityList=d.realityList.filter(r=>r.title||r.year||r.memo);
+    d.discography=d.discography.filter(r=>r.title||r.year||r.memo);
+    this.persistActors();
+    if(this.state.editingCpFullId){
+      const idx=this.state.cps.findIndex(c=>c.id===this.state.editingCpFullId);
+      d.id=this.state.editingCpFullId;
+      this.state.cps[idx]=d;
+    }else{
+      d.id=this.uid();
+      this.state.cps.push(d);
+    }
+    this.persistCps();
+    this.state.cpFullDraft=null;
+    const ov=document.getElementById('cpFullFormOverlay'); if(ov) ov.remove();
+    if(this.state.reopenFormAfterManager){
+      this.state.reopenFormAfterManager=false;
+      this.renderForm();
+      return;
+    }
+    this.renderCpsTab();
+  },
+
+  /* ================= OST 탭 ================= */
+  filteredOsts(){
+    const q=(this.state.ostSearch||'').toLowerCase().replace(/\s+/g,'');
+    return this.state.osts.filter(o=> !q || (o.title+o.artist).toLowerCase().replace(/\s+/g,'').includes(q))
+      .sort((a,b)=>a.title.localeCompare(b.title,'ko'));
+  },
+  ostDramas(ostId){
+    return this.state.dramas.filter(d=>(d.ostIds||[]).includes(ostId));
+  },
+  renderOstsTab(){
+    const s=this.state;
+    const app=document.getElementById('app');
+    app.innerHTML=`
+      <div class="hdr">
+        <div>
+          <h1 class="serif">입덕티켓</h1>
+          <div class="tag">등록한 OST — 총 ${s.osts.length}곡</div>
+        </div>
+        <div class="hdr-actions">
+          <button class="btn btn-primary" onclick="App.openOstForm()">+ OST 등록</button>
+          <div class="gear-wrap" id="gearWrap">
+            <button class="btn gear-btn" onclick="App.toggleGearMenu(event)" aria-label="설정">⚙</button>
+            <div class="gear-menu" id="gearMenu">
+              <div class="gear-menu-label">보기 방식</div>
+              <button class="gear-view-opt ${s.ostViewMode!=='table'?'active':''}" data-mode="card" onclick="App.setOstViewMode('card')">카드형<span class="chk">✓</span></button>
+              <button class="gear-view-opt ${s.ostViewMode==='table'?'active':''}" data-mode="table" onclick="App.setOstViewMode('table')">표형식<span class="chk">✓</span></button>
+              <div class="gear-menu-divider"></div>
+              <button onclick="App.closeGearMenu(); App.openManager('ostGenre');">장르 관리</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${this.tabBarHTML()}
+      <div class="toolbar">
+        <input type="text" id="ostSearchInput" placeholder="곡명/아티스트로 검색" oninput="App.state.ostSearch=this.value; App.updateOstGrid();">
+      </div>
+      <div class="grid" id="ostGrid"></div>
+    `;
+    this.updateOstGrid();
+  },
+  setOstViewMode(mode){
+    this.state.ostViewMode=mode;
+    this.storageSet('ostViewMode', mode);
+    document.querySelectorAll('#gearMenu .gear-view-opt').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.mode===mode);
+    });
+    this.closeGearMenu();
+    this.updateOstGrid();
+  },
+  updateOstGrid(){
+    const grid=document.getElementById('ostGrid');
+    if(!grid) return;
+    const list=this.filteredOsts();
+    if(list.length===0){
+      grid.outerHTML=`<div class="empty" id="ostGrid"><div class="big">🎵</div>아직 등록된 OST가 없어요.</div>`;
+      return;
+    }
+    if(this.state.ostViewMode==='table'){
+      grid.className='table-wrap';
+      grid.innerHTML=this.ostTableViewHTML(list);
+    }else{
+      grid.className='grid';
+      grid.innerHTML=list.map(o=>this.ostCardHTML(o)).join('');
+    }
+  },
+  ostTableViewHTML(list){
+    const rows=list.map(o=>{
+      const genres=(o.genreIds||[]).map(id=>this.state.ostGenres.find(g=>g.id===id)).filter(Boolean).map(g=>g.label).join(', ');
+      const dramas=this.ostDramas(o.id).map(d=>d.title).join(', ');
+      return `<tr onclick="App.openOstDetail('${o.id}')">
+        <td>${this.esc(o.title)}</td>
+        <td>${this.esc(o.artist)||'-'}</td>
+        <td class="wrap">${this.esc(genres)||'-'}</td>
+        <td class="wrap">${this.esc(dramas)||'-'}</td>
+        <td>${o.mvLink?'🎬':'-'}</td>
+      </tr>`;
+    }).join('');
+    return `<table class="data-table"><thead><tr><th>곡명</th><th>아티스트</th><th>장르</th><th>작품</th><th>MV</th></tr></thead><tbody>${rows}</tbody></table>`;
+  },
+  ostCardHTML(o){
+    const dramaCount=this.ostDramas(o.id).length;
+    const genres=(o.genreIds||[]).map(id=>this.state.ostGenres.find(g=>g.id===id)).filter(Boolean);
+    return `
+      <div class="simple-card" onclick="App.openOstDetail('${o.id}')">
+        <div class="ticket-title serif">${this.esc(o.title)}</div>
+        ${o.artist?`<div class="ticket-orig">${this.esc(o.artist)}</div>`:''}
+        ${genres.length?`<div class="ship-tags">${genres.map(g=>`<span class="ship-tag">${this.esc(g.label)}</span>`).join('')}</div>`:''}
+        <div class="ticket-meta">${dramaCount}편에 사용됨${o.mvLink?' · 🎬 MV':''}</div>
+      </div>`;
+  },
+  openOstDetail(id){ this.state.viewingOstId=id; this.renderOstDetail(); },
+  closeOstDetail(){ const ov=document.getElementById('ostDetailOverlay'); if(ov) ov.remove(); },
+  renderOstDetail(){
+    const o=this.ostById(this.state.viewingOstId);
+    if(!o) return;
+    const dramas=this.ostDramas(o.id);
+    const genres=(o.genreIds||[]).map(id=>this.state.ostGenres.find(g=>g.id===id)).filter(Boolean);
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='ostDetailOverlay';
+    overlay.innerHTML=`
+      <div class="modal">
+        <div class="panel-hdr"><div></div><button class="iconbtn" onclick="App.closeOstDetail()">✕</button></div>
+        <div class="d-title serif">${this.esc(o.title)}</div>
+        ${o.artist?`<div class="d-orig">${this.esc(o.artist)}</div>`:''}
+        ${genres.length?`<div class="d-badges">${genres.map(g=>`<span class="badge">${this.esc(g.label)}</span>`).join('')}</div>`:''}
+        ${dramas.length?`<div class="sec-title">사용된 드라마</div><div class="kwpills">${dramas.map(d=>`<span class="kwpill" style="cursor:pointer;" onclick="App.closeOstDetail(); App.openDetail('${d.id}')">${this.esc(d.title)}</span>`).join('')}</div>`:''}
+        ${o.mvLink?`<div class="sec-title">MV</div><a href="${this.esc(o.mvLink)}" target="_blank" rel="noopener" class="btn" style="display:inline-block;text-decoration:none;">🎬 MV 보러가기</a>`:''}
+        ${o.memo?`<div class="sec-title">기타</div><div class="spoiler-box">${this.esc(o.memo)}</div>`:''}
+        <div class="formfoot" style="justify-content:flex-end;">
+          <button class="btn" onclick="App.closeOstDetail(); App.openOstForm('${o.id}');">수정</button>
+          <button class="btn btn-danger" onclick="App.deleteOst('${o.id}')">삭제</button>
+        </div>
+      </div>`;
+    document.getElementById('app').appendChild(overlay);
+  },
+  deleteOst(id){
+    const count=this.ostDramas(id).length;
+    if(count>0 && !confirm(`${count}편의 드라마에 연결되어 있어요. 삭제하면 그 작품들에서도 이 OST가 사라져요. 계속할까요?`)) return;
+    this.state.osts=this.state.osts.filter(o=>o.id!==id);
+    this.state.dramas.forEach(d=>{ d.ostIds=(d.ostIds||[]).filter(oid=>oid!==id); });
+    this.persistOsts(); this.persistDramas();
+    this.closeOstDetail();
+    this.renderOstsTab();
+  },
+  openOstForm(existingId){
+    this.state.editingOstId=existingId||null;
+    this.state.ostDramaSearchQuery='';
+    const existing=existingId?this.ostById(existingId):null;
+    const existingDrama = existingId ? this.ostDramas(existingId)[0] : null;
+    this.state.ostDraft = existing ? {...JSON.parse(JSON.stringify(existing)), dramaId:existingDrama?existingDrama.id:null} : {id:null,title:'',artist:'',genreIds:[],dramaId:null,mvLink:'',memo:''};
+    this.renderOstForm();
+  },
+  closeOstForm(){
+    this.state.ostDraft=null;
+    const ov=document.getElementById('ostFormOverlay'); if(ov) ov.remove();
+    if(this.state.reopenFormAfterOstCreate){
+      this.state.reopenFormAfterOstCreate=false;
+      this.switchTab('review');
+      this.renderForm();
+    }
+  },
+  renderOstForm(){
+    const d=this.state.ostDraft;
+    const overlay=document.createElement('div');
+    overlay.className='overlay';
+    overlay.id='ostFormOverlay';
+    overlay.innerHTML=`
+      <div class="panel">
+        <div class="panel-hdr">
+          <h2 class="serif">${this.state.editingOstId?'OST 수정':'OST 등록'}</h2>
+          <button class="iconbtn" onclick="App.closeOstForm()">✕</button>
+        </div>
+        <div class="field"><label>곡명</label><input type="text" value="${this.esc(d.title)}" oninput="App.state.ostDraft.title=this.value" placeholder="예: Loved You Anyway"></div>
+        <div class="field"><label>아티스트</label><input type="text" value="${this.esc(d.artist)}" oninput="App.state.ostDraft.artist=this.value"></div>
+
+        <div class="subhdr"><span>장르</span><button class="addrow" onclick="App.closeOstFormKeepDraft(); App.openManager('ostGenre');">+ 장르 관리</button></div>
+        <div class="kw-pick" id="ostGenrePick">${this.ostGenrePickerHTML(d.genreIds)}</div>
+
+        <div class="subhdr">작품</div>
+        <div class="field">
+          <div id="ostDramaSelected" class="cast-locked-name" style="display:inline-block;width:100%;">${this.ostSelectedDramaLabel(d.dramaId)}</div>
+        </div>
+        <button type="button" class="btn" style="margin:-6px 0 16px;" onclick="App.openOstDramaSearch()">작품 검색</button>
+
+        <div class="field"><label>MV 링크 (선택)</label><input type="text" value="${this.esc(d.mvLink)}" oninput="App.state.ostDraft.mvLink=this.value" placeholder="https://youtube.com/..."></div>
+
+        <div class="field" style="margin-top:16px;"><label>기타 (메모)</label><textarea oninput="App.state.ostDraft.memo=this.value">${this.esc(d.memo)}</textarea></div>
+        <div class="formfoot">
+          <button class="btn btn-primary" style="flex:1" onclick="App.saveOst()">${this.state.editingOstId?'수정 완료':'OST 등록'}</button>
+          <button class="btn btn-ghost" onclick="App.closeOstForm()">취소</button>
+        </div>
+      </div>`;
+    document.getElementById('app').appendChild(overlay);
+  },
+  ostGenrePickerHTML(selectedIds){
+    selectedIds=selectedIds||[];
+    return this.state.ostGenres.map(g=>`
+      <label><input type="checkbox" ${selectedIds.includes(g.id)?'checked':''} onchange="App.toggleOstGenre('${g.id}')">${this.esc(g.label)}</label>
+    `).join('') || '<span style="color:var(--muted);font-size:12px;">등록된 장르가 없어요. "+ 장르 관리"에서 추가해보세요.</span>';
+  },
+  toggleOstGenre(id){
+    const arr=this.state.ostDraft.genreIds;
+    const idx=arr.indexOf(id);
+    if(idx>-1) arr.splice(idx,1); else arr.push(id);
+    const box=document.getElementById('ostGenrePick');
+    if(box) box.innerHTML=this.ostGenrePickerHTML(arr);
+  },
+  closeOstFormKeepDraft(){
+    const ov=document.getElementById('ostFormOverlay');
+    if(ov) ov.remove();
+    this.state.reopenOstFormAfterManager=true;
+  },
+  ostSelectedDramaLabel(dramaId){
+    const dr=dramaId ? this.state.dramas.find(x=>x.id===dramaId) : null;
+    return dr ? this.esc(dr.title) : '<span style="color:var(--muted);font-weight:400;">선택 안 함</span>';
+  },
+  openOstDramaSearch(){
+    this.state.ostDramaSearchQuery='';
+    this.renderOstDramaSearch();
+  },
+  closeOstDramaSearch(){ const ov=document.getElementById('ostDramaSearchOverlay'); if(ov) ov.remove(); },
+  ostDramaSearchListHTML(){
+    const q=(this.state.ostDramaSearchQuery||'').toLowerCase().replace(/\s+/g,'');
+    const list=this.state.dramas.filter(dr=>!q || dr.title.toLowerCase().replace(/\s+/g,'').includes(q)).sort((a,b)=>a.title.localeCompare(b.title,'ko'));
+    if(!list.length) return `<div style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center;">일치하는 작품이 없어요.</div>`;
+    const selectedId=this.state.ostDraft.dramaId;
+    return list.map(dr=>`
+      <div class="cast-picker-row ${selectedId===dr.id?'picked':''}" onclick="App.pickOstDrama('${dr.id}')">
+        ${dr.poster?`<img src="${dr.poster}" class="table-thumb">`:this.countryEmoji(dr.country)}
+        <span>${this.esc(dr.title)}</span>
+        ${selectedId===dr.id?'<span class="chk">✓</span>':''}
+      </div>`).join('');
+  },
+  refreshOstDramaSearchList(){
+    const box=document.getElementById('ostDramaSearchList');
+    if(box) box.innerHTML=this.ostDramaSearchListHTML();
+  },
+  renderOstDramaSearch(){
+    const overlay=document.createElement('div');
+    overlay.className='overlay center';
+    overlay.id='ostDramaSearchOverlay';
+    overlay.innerHTML=`
+      <div class="modal">
+        <div class="panel-hdr">
+          <h2 class="serif">작품 검색</h2>
+          <button class="iconbtn" onclick="App.closeOstDramaSearch()">✕</button>
+        </div>
+        <input type="text" placeholder="작품 제목 검색" value="${this.esc(this.state.ostDramaSearchQuery)}" oninput="App.state.ostDramaSearchQuery=this.value; App.refreshOstDramaSearchList();" style="width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:10px;font-size:15px;margin-bottom:12px;">
+        <div id="ostDramaSearchList" style="max-height:320px;overflow-y:auto;">${this.ostDramaSearchListHTML()}</div>
+        <div class="formfoot">
+          ${this.state.ostDraft.dramaId?`<button class="btn btn-ghost" style="flex:1" onclick="App.pickOstDrama(null)">선택 해제</button>`:''}
+          <button class="btn btn-primary" style="flex:1" onclick="App.closeOstDramaSearch()">완료</button>
+        </div>
+      </div>`;
+    document.getElementById('app').appendChild(overlay);
+  },
+  pickOstDrama(dramaId){
+    this.state.ostDraft.dramaId = (dramaId===null || this.state.ostDraft.dramaId===dramaId) ? null : dramaId;
+    this.refreshOstDramaSearchList();
+    const foot=document.querySelector('#ostDramaSearchOverlay .formfoot');
+    if(foot) foot.innerHTML = `${this.state.ostDraft.dramaId?`<button class="btn btn-ghost" style="flex:1" onclick="App.pickOstDrama(null)">선택 해제</button>`:''}<button class="btn btn-primary" style="flex:1" onclick="App.closeOstDramaSearch()">완료</button>`;
+    const label=document.getElementById('ostDramaSelected');
+    if(label) label.innerHTML=this.ostSelectedDramaLabel(this.state.ostDraft.dramaId);
+  },
+  saveOst(){
+    const d=this.state.ostDraft;
+    if((!d.title || !d.title.trim()) && (!d.artist || !d.artist.trim())){ alert('곡명이나 아티스트 중 하나는 입력해주세요.'); return; }
+    const chosenDramaId = d.dramaId || null;
+    delete d.dramaId;
+    if(this.state.editingOstId){
+      const idx=this.state.osts.findIndex(o=>o.id===this.state.editingOstId);
+      d.id=this.state.editingOstId;
+      this.state.osts[idx]=d;
+    }else{
+      d.id=this.uid();
+      this.state.osts.push(d);
+    }
+    this.state.dramas.forEach(dr=>{
+      const has=(dr.ostIds||[]).includes(d.id);
+      const shouldHave = dr.id===chosenDramaId;
+      if(shouldHave && !has){ dr.ostIds=[...(dr.ostIds||[]), d.id]; }
+      else if(!shouldHave && has){ dr.ostIds=(dr.ostIds||[]).filter(id=>id!==d.id); }
+    });
+    this.persistOsts();
+    this.persistDramas();
+    this.state.ostDraft=null;
+    const ov=document.getElementById('ostFormOverlay'); if(ov) ov.remove();
+    if(this.state.reopenFormAfterOstCreate){
+      this.state.reopenFormAfterOstCreate=false;
+      this.switchTab('review');
+      this.renderForm();
+      return;
+    }
+    this.renderOstsTab();
+  }
+};
+
+document.addEventListener('click', ()=>{ App.closeGearMenu(); });
+App.init();
+</script>
+</body>
+</html>
