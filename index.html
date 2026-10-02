@@ -4559,7 +4559,7 @@ const dItem = o => `<div class="ditem" style="--c:${o.ev.color}" data-ev="${o.ev
 const todoRow = o => `<li class="lab${isDone(o.ev, o.s) ? ' done' : ''}" style="--c:${o.ev.color}">
     <button class="ck" data-done="${o.ev.id}" data-s="${o.s}" aria-label="${isDone(o.ev, o.s) ? '완료 취소' : '완료'}"></button>
     <span class="tx" data-ev="${o.ev.id}" data-s="${o.s}" title="눌러서 수정">${o.ev.allDay ? '' : `<em>${o.ev.start}</em>`}${esc(o.ev.title)}${isRep(o.ev) ? ' <i class="rpi" title="' + esc(repLabel(o.ev)) + '">반복</i>' : ''}</span></li>`;
-const todoBlock = (list, d) => `<ul class="todo">${list.map(todoRow).join('')}</ul><button class="td-new" data-cadd-todo="${d}">＋ 할 일</button>`;
+const todoBlock = (list, d, addBtn = true) => `<ul class="todo">${list.map(todoRow).join('')}</ul>${addBtn ? `<button class="td-new" data-cadd-todo="${d}">＋ 할 일</button>` : ''}`;
 function calBar(title, sub = '') {
   return `<div class="cal-bar">
     <button class="cal-nav" data-cnav="-1" title="이전">◀</button>
@@ -4591,9 +4591,9 @@ function dayPanel(d) {
     <div class="wk-sub">일정</div>
     <div class="dlist">${evs.length ? evs.map(dItem).join('') : '<div class="empty">일정이 없어요 · 날짜를 두 번 누르면 바로 추가돼요</div>'}</div>
     <div class="wk-sub">할 일 <span class="muted">${tds.filter(o => isDone(o.ev, o.s)).length}/${tds.length}</span></div>
-    ${todoBlock(tds, d)}
+    ${tds.length ? todoBlock(tds, d, false) : '<div class="empty">할 일이 없어요</div>'}
     ${mm?.text ? `<div class="wk-sub">메모</div><div class="dmemo-prev" data-goday="${d}" title="눌러서 메모 쓰기">${esc(mm.text)}</div>` : ''}
-    <div class="acts" style="margin-top:10px"><button class="btn" data-cadd-day="${d}">＋ 일정</button><button class="btn" data-goday="${d}">이날 자세히 보기 ›</button></div></div>`;
+    <div class="acts" style="margin-top:10px"><button class="btn" data-cadd-day="${d}">＋ 일정 · 할 일</button><button class="btn" data-goday="${d}">이날 자세히 보기 ›</button></div></div>`;
 }
 // 겹치는 일정은 옆으로 나란히
 function layoutDay(list) {
