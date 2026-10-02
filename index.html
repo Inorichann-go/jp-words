@@ -746,6 +746,10 @@
   .mgrid .dow { text-align: center; font-size: 11px; font-weight: 700; color: var(--text2); padding: 6px 0; background: var(--surface2); border-bottom: 1px solid var(--border); }
   .mgrid .dow.sun, .mcell.sun .dn { color: #e0526b; }
   .mgrid .dow.sat, .mcell.sat .dn { color: #4a7bd0; }
+  @media (min-width: 821px) {     /* 월간: 화면 아래까지 꽉 차게 */
+    .mgrid { height: max(520px, calc(100vh - 200px)); grid-template-rows: auto; grid-auto-rows: minmax(0, 1fr); }
+    .mcell { overflow: hidden; }
+  }
   .mcell { min-height: 92px; padding: 3px 3px 4px; border-right: 1px solid #fbe6ed; border-bottom: 1px solid #fbe6ed; cursor: pointer; min-width: 0; position: relative; }
   .mcell:nth-child(7n+7) { border-right: none; }
   .mcell.out { background: #fffafc; }
@@ -762,9 +766,11 @@
   @media (min-width: 561px) { .wk-grid { grid-auto-rows: 1fr; } }   /* 윗줄·아랫줄 칸 높이 같게 */
   /* 월간 칸 속 할 일 (작은 글씨) */
   .mtd { display: block; position: relative; font-size: 9.5px; line-height: 1.35; padding-left: 11px; margin-top: 1px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .mtd::before { content: ''; position: absolute; left: 1px; top: 2.5px; width: 7px; height: 7px; border: 1.2px solid var(--pink-mid); border-radius: 2px; box-sizing: border-box; }
+  .mtd::before { content: ''; position: absolute; left: 1px; top: 2.5px; width: 7px; height: 7px; border: 1.2px solid var(--c, var(--pink-mid)); border-radius: 2px; box-sizing: border-box; }
+  .mtd.lab { background: color-mix(in srgb, var(--c) 13%, transparent); border-radius: 3px; padding-left: 12px; }
+  .mtd.lab::before { left: 2px; }
   .mtd.done { color: var(--text3); text-decoration: line-through; }
-  .mtd.done::before { background: var(--accent); border-color: var(--accent); }
+  .mtd.done::before { background: var(--c, var(--accent)); border-color: var(--c, var(--accent)); }
   @media (max-width: 520px) { .mtd { font-size: 8.5px; padding-left: 9px; } .mtd::before { width: 6px; height: 6px; } }
   @media (max-width: 1100px) { .wk-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 560px) { .wk-grid { grid-template-columns: 1fr; } }
@@ -798,14 +804,27 @@
   .todo li { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; padding: 3px 2px; border-radius: 6px; }
   .todo li:hover { background: var(--surface2); }
   .todo li span { flex: 1; min-width: 0; word-break: break-all; padding-top: 1px; }
-  .todo .ck { width: 17px; height: 17px; border-radius: 6px; border: 1.5px solid var(--pink-mid); background: #fff; flex-shrink: 0; margin-top: 1px; position: relative; }
-  .todo li.done .ck { background: var(--accent); border-color: var(--accent); }
+  .todo .ck { width: 17px; height: 17px; border-radius: 6px; border: 1.5px solid var(--c, var(--pink-mid)); background: #fff; flex-shrink: 0; margin-top: 1px; position: relative; }
+  .todo li.done .ck { background: var(--c, var(--accent)); border-color: var(--c, var(--accent)); }
+  .todo li.lab { background: color-mix(in srgb, var(--c) 9%, transparent); }
+  .todo li.lab .ck { border-width: 2px; }
+  .todo .lc { width: 12px; height: 12px; border-radius: 99px; border: 1.5px solid #fff; box-shadow: 0 0 0 1px var(--border); background: var(--c, #fff); flex-shrink: 0; margin-top: 3px; opacity: 0; padding: 0; }
+  .todo li:hover .lc, .todo li.lab .lc { opacity: 1; }
+  @media (hover: none) { .todo .lc { opacity: 1; } }
+  .td-add-row { display: flex; gap: 5px; align-items: center; }
+  .td-col { width: 20px; height: 20px; border-radius: 99px; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); background: var(--c); flex-shrink: 0; padding: 0; }
+  .td-col.none, .td-pal button.none { background: repeating-linear-gradient(135deg, #fff 0 3px, #f6dbe5 3px 5px); }
+  .td-pal { position: fixed; z-index: 95; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 8px 10px 10px; box-shadow: 0 8px 26px rgba(232,115,154,.25); display: flex; flex-wrap: wrap; gap: 6px; width: 176px; animation: pop .15s ease-out; }
+  .td-pal[hidden] { display: none; }
+  .td-pal .tp-t { width: 100%; font-size: 10px; color: var(--text2); font-weight: 700; }
+  .td-pal button { width: 28px; height: 28px; border-radius: 99px; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); background: var(--c); padding: 0; }
+  .td-pal button.on { box-shadow: 0 0 0 2px var(--c, var(--text3)); }
   .todo li.done .ck::after { content: ''; position: absolute; left: 4.5px; top: 1.5px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
   .todo li.done span { color: var(--text3); text-decoration: line-through; }
   .todo .x { border: none; background: none; color: var(--text3); font-size: 10px; opacity: 0; padding: 2px 4px; }
   .todo li:hover .x { opacity: 1; }
   @media (hover: none) { .todo .x { opacity: .6; } }
-  .td-add { width: 100%; border: 1px dashed var(--border); border-radius: 8px; padding: 4px 8px; font-size: 11px; background: transparent; }
+  .td-add { flex: 1; min-width: 0; width: 100%; border: 1px dashed var(--border); border-radius: 8px; padding: 4px 8px; font-size: 11px; background: transparent; }
 
   /* 일별 */
   .day-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
@@ -835,7 +854,7 @@
   .ev.allday .t { color: #fff; }
   .more { font-size: 10px; color: var(--text3); padding-left: 4px; }
   @media (max-width: 520px) {
-    .mcell { min-height: 64px; padding: 2px 1px; }
+    .mcell { min-height: 74px; padding: 2px 1px; }
     .ev { font-size: 9px; padding: 0 2px; border-left-width: 2px; }
     .ev .t { display: none; }
   }
@@ -1206,6 +1225,7 @@
 </main>
 
 <!-- ═══════════ 단어 추가/수정 팝업 ═══════════ -->
+<div class="td-pal" id="tdPal" hidden></div>
 <div class="modal" id="evModal" hidden>
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="evTitle">
     <div class="card-h">
@@ -4489,11 +4509,16 @@ const MOODS = [
 const moodOf = k => MOODS.find(m => m.k === k);
 // 할 일: key = 날짜(그날 할 일) 또는 'w:주 시작일'(이번 주 할 일)
 const todosOf = key => S.todos.filter(t => t.key === key).sort((a, b) => (a.created || 0) - (b.created || 0));
+// 할 일 라벨 색 ('' = 색 없음)
+const TD_COLORS = ['', '#e8739a', '#f08a4b', '#e8b931', '#4caf8a', '#4a90d9', '#9b6bd6', '#8a8a8a'];
+const tdStyle = c => c ? ` style="--c:${c}"` : '';
 function todoList(key, ph = '할 일 추가') {
-  return `<ul class="todo">${todosOf(key).map(t => `<li class="${t.done ? 'done' : ''}">
+  return `<ul class="todo">${todosOf(key).map(t => `<li class="${t.done ? 'done' : ''}${t.c ? ' lab' : ''}"${tdStyle(t.c)}>
       <button class="ck" data-td="${t.id}" aria-label="${t.done ? '완료 취소' : '완료'}"></button><span>${esc(t.text)}</span>
+      <button class="lc" data-td-col="${t.id}" title="라벨 색 바꾸기"></button>
       <button class="x" data-td-del="${t.id}" title="삭제">✕</button></li>`).join('')}</ul>
-    <input class="td-add keep" data-td-add="${key}" placeholder="＋ ${ph}" maxlength="120" enterkeyhint="done">`;
+    <div class="td-add-row"><button class="td-col${S.todoColor ? '' : ' none'}" data-td-pal="${key}"${tdStyle(S.todoColor)} title="새 할 일 라벨 색"></button>
+    <input class="td-add keep" data-td-add="${key}" placeholder="＋ ${ph}" maxlength="120" enterkeyhint="done"></div>`;
 }
 
 // ── 그리기 ──
@@ -4516,11 +4541,11 @@ function monthHtml() {
   const weeks = Math.ceil((first.getDay() + new Date(y, m + 1, 0).getDate()) / 7), today = dkey();
   let cells = DOW.map((d, i) => `<div class="dow ${i === 0 ? 'sun' : i === 6 ? 'sat' : ''}">${d}</div>`).join('');
   for (let i = 0; i < weeks * 7; i++) {
-    const d = calAdd(start, i), dt = pd(d), evs = eventsOn(d), max = 3, wd = dt.getDay(), tds = todosOf(d), tmax = 3;
+    const d = calAdd(start, i), dt = pd(d), evs = eventsOn(d), max = 3, wd = dt.getDay(), tds = todosOf(d), tmax = Math.max(2, 5 - Math.min(evs.length, max));   // 일정+할 일 합쳐 칸에 5줄쯤
     cells += `<div class="mcell${dt.getMonth() !== m ? ' out' : ''}${d === today ? ' today' : ''}${d === C.sel ? ' sel' : ''}${wd === 0 ? ' sun' : wd === 6 ? ' sat' : ''}" data-day="${d}">
       <span class="dn">${dt.getDate()}</span>${memoOf(d)?.mood ? `<span class="mood-dot" style="--c:${moodOf(memoOf(d).mood).c}" title="기분: ${moodOf(memoOf(d).mood).l}"></span>` : ''}${memoOf(d)?.text ? '<span class="memo-dot" title="메모 있음"></span>' : ''}
       ${evs.slice(0, max).map(evChip).join('')}${evs.length > max ? `<div class="more">+${evs.length - max}개</div>` : ''}
-      ${tds.slice(0, tmax).map(t => `<span class="mtd${t.done ? ' done' : ''}" title="${esc(t.text)}">${esc(t.text)}</span>`).join('')}${tds.length > tmax ? `<div class="more">할 일 +${tds.length - tmax}</div>` : ''}</div>`;
+      ${tds.slice(0, tmax).map(t => `<span class="mtd${t.done ? ' done' : ''}${t.c ? ' lab' : ''}"${tdStyle(t.c)} title="${esc(t.text)}">${esc(t.text)}</span>`).join('')}${tds.length > tmax ? `<div class="more">할 일 +${tds.length - tmax}</div>` : ''}</div>`;
   }
   return calBar(`${y}년 ${m + 1}월`) + `<div class="cal-wrap"><div class="mgrid">${cells}</div>${dayPanel(C.sel)}</div>`;
 }
@@ -4667,6 +4692,8 @@ $('#calRoot').addEventListener('click', e => {
   if (t.closest('[data-cadd]')) return openEv(null, C.sel);
   const ad = t.closest('[data-cadd-day]');
   if (ad) return openEv(null, ad.dataset.caddDay);
+  const po = t.closest('[data-td-pal], [data-td-col]');
+  if (po) return openTdPal(po, po.dataset.tdCol ? { id: po.dataset.tdCol } : { key: po.dataset.tdPal });
   const ck = t.closest('[data-td]');
   if (ck) { const td = S.todos.find(x => x.id === ck.dataset.td); if (td) { td.done = !td.done; store.save(); renderCal(); } return; }
   const tx = t.closest('[data-td-del]');
@@ -4720,10 +4747,37 @@ $('#calRoot').addEventListener('keydown', e => {
   if (!k || e.key !== 'Enter' || e.isComposing) return;
   e.preventDefault();
   const text = e.target.value.trim(); if (!text) return;
-  S.todos.push({ id: uid(), key: k, text, done: false, created: Date.now() });
+  S.todos.push({ id: uid(), key: k, text, done: false, c: S.todoColor || '', created: Date.now() });
   store.save(); renderCal();
   $(`[data-td-add="${k}"]`)?.focus();
 });
+
+// ── 할 일 라벨 색 고르기 (작은 팝업) ──
+let palFor = null;            // {id}: 이미 있는 할 일 / {key}: 새로 추가할 할 일
+function openTdPal(btn, target) {
+  const pal = $('#tdPal');
+  if (!pal.hidden && palFor && palFor.id === target.id && palFor.key === target.key) return closeTdPal();
+  palFor = target;
+  const cur = target.id ? (S.todos.find(x => x.id === target.id)?.c || '') : (S.todoColor || '');
+  pal.innerHTML = `<div class="tp-t">${target.id ? '이 할 일의 라벨 색' : '새 할 일 라벨 색'}</div>` +
+    TD_COLORS.map(c => `<button data-pc="${c}" class="${c === cur ? 'on' : ''}${c ? '' : ' none'}"${tdStyle(c)} title="${c ? '' : '색 없음'}"></button>`).join('');
+  pal.hidden = false;
+  const r = btn.getBoundingClientRect(), w = pal.offsetWidth, h = pal.offsetHeight;
+  pal.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left - 6)) + 'px';
+  pal.style.top = (r.bottom + h + 8 > innerHeight - 56 ? r.top - h - 6 : r.bottom + 6) + 'px';
+}
+function closeTdPal() { $('#tdPal').hidden = true; palFor = null; }
+$('#tdPal').addEventListener('click', e => {
+  const b = e.target.closest('[data-pc]'); if (!b || !palFor) return;
+  const c = b.dataset.pc, f = palFor;
+  if (f.id) { const td = S.todos.find(x => x.id === f.id); if (td) td.c = c; }
+  else S.todoColor = c;
+  store.save(); closeTdPal(); renderCal();
+  if (f.key) $(`[data-td-add="${f.key}"]`)?.focus();
+});
+document.addEventListener('click', e => { if (!$('#tdPal').hidden && !e.target.closest('#tdPal, [data-td-pal], [data-td-col]')) closeTdPal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTdPal(); });
+addEventListener('scroll', () => { if (!$('#tdPal').hidden) closeTdPal(); }, true);
 
 // ── 일정 추가 · 수정 창 ──
 let EVD = null;            // 편집 중인 값 (색·요일)
