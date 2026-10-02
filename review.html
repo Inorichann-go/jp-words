@@ -479,7 +479,9 @@ const App={
     this.migrateOsts();
     this.migrateOstGenres();
     this.migrateRelated();
-    this.renderLogin();
+    // 종합 앱 안에서는 비밀번호 없이 바로 열기
+    this.renderMain();
+    this.checkTodayAiring();
   },
 
   renderLogin(){

@@ -671,7 +671,18 @@
     padding: 9px 12px; border-radius: 12px; font-size: 13px; font-weight: 700; color: var(--text2); text-align: left;
     position: relative; transition: background .15s;
   }
-  .snav-item .i { font-size: 16px; width: 20px; text-align: center; }
+  .snav-item .i {
+    width: 30px; height: 30px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+    background: #fff0f5; color: var(--accent); transition: background .15s, color .15s;
+  }
+  .snav-item .i svg { width: 18px; height: 18px; }
+  .snav-item:hover .i { background: var(--pink-mid); color: #fff; }
+  .snav-item.active .i { background: var(--accent); color: #fff; box-shadow: 0 3px 10px rgba(232,115,154,.35); }
+  .logo { display: inline-flex; align-items: center; gap: 6px; }
+  .logo-i { width: 22px; height: 22px; border-radius: 7px; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+  .logo-i svg { width: 15px; height: 15px; }
+  .head-btns[hidden] { display: none !important; }
+  .logo-row { min-height: 40px; }
   .snav-item:hover { background: var(--surface2); color: var(--accent-dark); }
   .snav-item.active { background: var(--accent-light); color: var(--accent-dark); }
   .snav-item.active::before { content: ''; position: absolute; left: -10px; top: 8px; bottom: 8px; width: 4px; border-radius: 0 4px 4px 0; background: var(--accent); }
@@ -737,7 +748,70 @@
   .mcell.sel { background: var(--accent-light); }
   .mcell .dn { font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; border-radius: 99px; color: var(--text); }
   .mcell.today .dn { background: var(--accent); color: #fff !important; }
-  .mcell .memo-dot { position: absolute; top: 4px; right: 5px; font-size: 9px; }
+  .mcell .memo-dot { position: absolute; top: 7px; right: 6px; width: 6px; height: 6px; border-radius: 99px; background: var(--pink-mid); }
+  .mcell .mood-dot { display: inline-block; width: 7px; height: 7px; border-radius: 99px; background: var(--c); margin-left: 2px; vertical-align: 1px; }
+
+  /* 주간 플래너 */
+  .wk-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 1100px) { .wk-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .wk-grid { grid-template-columns: 1fr; } }
+  .wk-day { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 11px; box-shadow: var(--shadow); min-height: 150px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .wk-day.today { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), var(--shadow); }
+  .wk-h { display: flex; align-items: center; gap: 6px; padding-bottom: 6px; border-bottom: 1px dashed var(--border); }
+  .wk-date { display: flex; align-items: baseline; gap: 5px; border: none; background: none; padding: 0; flex: 1; min-width: 0; text-align: left; }
+  .wk-date b { font-size: 18px; color: var(--text); }
+  .wk-date span { font-size: 11px; color: var(--text3); font-weight: 700; }
+  .wk-day.today .wk-date b { color: var(--accent); }
+  .wk-day.sun .wk-date span { color: #e0526b; } .wk-day.sat .wk-date span { color: #4a7bd0; }
+  .wk-add { width: 24px; height: 24px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); color: var(--accent); font-size: 14px; line-height: 1; flex-shrink: 0; }
+  .wk-add:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .mood-pill { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 99px; color: #fff; background: var(--c); }
+  .wk-evs { display: flex; flex-direction: column; gap: 3px; }
+  .wk-ev { display: flex; gap: 5px; align-items: center; font-size: 11px; padding: 3px 6px; border-radius: 7px; cursor: pointer; background: color-mix(in srgb, var(--c) 15%, #fff); border-left: 3px solid var(--c); min-width: 0; }
+  .wk-ev .t { font-size: 10px; color: var(--text2); flex-shrink: 0; }
+  .wk-ev .n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+  .wk-memo { font-size: 11px; color: var(--text2); background: #fffbe6; border-radius: 8px; padding: 5px 7px; white-space: pre-wrap; max-height: 72px; overflow: hidden; cursor: pointer; }
+  .wk-side { background: linear-gradient(180deg, #fff 0%, #fff4f7 100%); }
+  .wk-sub { font-size: 11px; font-weight: 700; color: var(--accent-dark); margin-top: 4px; }
+  .wk-stat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .wk-stat div, .day-sum div { background: var(--accent-light); border-radius: 10px; padding: 6px 4px; text-align: center; }
+  .wk-stat b, .day-sum b { display: block; font-size: 15px; color: var(--accent-dark); }
+  .wk-stat span, .day-sum span { font-size: 10px; color: var(--text2); }
+  .wk-memo-in { width: 100%; min-height: 80px; resize: vertical; border: 1px solid var(--border); border-radius: 10px; padding: 7px 9px; font-size: 12px; line-height: 1.6; background: #fffdf5; }
+  .wk-memo-in:focus, .td-add:focus { outline: 2px solid var(--pink-mid); border-color: transparent; }
+
+  /* 할 일 체크리스트 */
+  .todo { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+  .todo li { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; padding: 3px 2px; border-radius: 6px; }
+  .todo li:hover { background: var(--surface2); }
+  .todo li span { flex: 1; min-width: 0; word-break: break-all; padding-top: 1px; }
+  .todo .ck { width: 17px; height: 17px; border-radius: 6px; border: 1.5px solid var(--pink-mid); background: #fff; flex-shrink: 0; margin-top: 1px; position: relative; }
+  .todo li.done .ck { background: var(--accent); border-color: var(--accent); }
+  .todo li.done .ck::after { content: ''; position: absolute; left: 4.5px; top: 1.5px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .todo li.done span { color: var(--text3); text-decoration: line-through; }
+  .todo .x { border: none; background: none; color: var(--text3); font-size: 10px; opacity: 0; padding: 2px 4px; }
+  .todo li:hover .x { opacity: 1; }
+  @media (hover: none) { .todo .x { opacity: .6; } }
+  .td-add { width: 100%; border: 1px dashed var(--border); border-radius: 8px; padding: 4px 8px; font-size: 11px; background: transparent; }
+
+  /* 일별 */
+  .day-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+  .day-sum div { padding: 8px 6px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: 12px; }
+  .day-sum .bar { display: block; height: 4px; border-radius: 99px; background: var(--accent-light); margin: 4px 8px 0; overflow: hidden; }
+  .day-sum .bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+  .day-lbl { font-size: 11px; font-weight: 700; color: var(--accent-dark); margin: 0 0 5px 2px; }
+  .day-side { display: flex; flex-direction: column; }
+  .day-side .card { margin-bottom: 10px; }
+  .moods { display: flex; gap: 5px; flex-wrap: wrap; }
+  .moods button { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--border); background: var(--surface); border-radius: 99px; padding: 4px 10px 4px 6px; font-size: 11px; color: var(--text2); }
+  .moods button i { width: 12px; height: 12px; border-radius: 99px; background: var(--c); }
+  .moods button.on { background: var(--c); border-color: var(--c); color: #fff; font-weight: 700; }
+  .moods button.on i { background: #fff; }
+  .up-row { display: flex; gap: 8px; align-items: center; font-size: 11px; padding: 5px 6px; border-radius: 8px; cursor: pointer; border-left: 3px solid var(--c); margin-bottom: 3px; background: var(--surface2); }
+  .up-row:hover { background: var(--accent-light); }
+  .up-row .dd { color: var(--text2); white-space: nowrap; min-width: 52px; }
+  .up-row .n { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+  .up-row .t { color: var(--text3); font-size: 10px; }
   .ev {
     display: block; font-size: 10px; line-height: 1.35; padding: 1px 4px; margin-top: 2px; border-radius: 4px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text);
@@ -790,9 +864,9 @@
   .tl-now { position: absolute; left: 0; right: 0; height: 2px; background: var(--danger); z-index: 3; pointer-events: none; }
   .tl-now::before { content: ''; position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 99px; background: var(--danger); }
   .day-wrap { display: grid; grid-template-columns: 1fr 300px; gap: 12px; align-items: start; }
-  @media (max-width: 820px) { .day-wrap { grid-template-columns: 1fr; } }
+  @media (max-width: 820px) { .day-wrap { grid-template-columns: 1fr; } .day-wrap > :first-child { order: 2; } .day-wrap .tl-scroll { max-height: 440px; min-height: 260px; } }
   .day-memo textarea {
-    width: 100%; min-height: 260px; resize: vertical; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+    width: 100%; min-height: 150px; resize: vertical; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
     font-size: 13px; line-height: 1.7; background: #fffdf5;
     background-image: repeating-linear-gradient(180deg, transparent 0, transparent 21px, #f6e9c8 21px, #f6e9c8 22px); background-attachment: local; background-position: 0 9px;
   }
@@ -829,10 +903,10 @@
 
 <aside class="snav" id="snav" aria-label="메인 메뉴">
   <div class="snav-date" id="snavDate"></div>
-  <button class="snav-item" data-sec="main"><span class="i">🏠</span>홈</button>
-  <button class="snav-item" data-sec="cal"><span class="i">📅</span>캘린더</button>
-  <button class="snav-item" data-sec="words"><span class="i">📚</span>단어장</button>
-  <button class="snav-item" data-sec="review"><span class="i">🎬</span>리뷰</button>
+  <button class="snav-item" data-sec="main"><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.2 12 3.5l8.5 6.7"/><path d="M5.5 8.8V19a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5V8.8"/><path d="M12 17.2s-3.2-1.9-3.2-3.9a1.7 1.7 0 0 1 3.2-.8 1.7 1.7 0 0 1 3.2.8c0 2-3.2 3.9-3.2 3.9z"/></svg></span>홈</button>
+  <button class="snav-item" data-sec="cal"><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/><path d="M12 17.6s-2.4-1.4-2.4-2.9a1.25 1.25 0 0 1 2.4-.6 1.25 1.25 0 0 1 2.4.6c0 1.5-2.4 2.9-2.4 2.9z"/></svg></span>캘린더</button>
+  <button class="snav-item" data-sec="words"><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.6C10 5.1 7 4.6 3.5 5.1v13.6c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5.1C17 4.6 14 5.1 12 6.6z"/><path d="M12 6.6v13.6"/><path d="M6.5 9.2c1.2-.1 2.3.1 3.2.5M6.5 12.2c1.2-.1 2.3.1 3.2.5"/></svg></span>단어장</button>
+  <button class="snav-item" data-sec="review"><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2.5 2.5 0 0 0 0 5v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2.5 2.5 0 0 0 0-5z"/><path d="m12 9.2.95 1.9 2.1.3-1.52 1.48.36 2.1L12 14l-1.9 1 .37-2.1-1.53-1.48 2.1-.3z"/></svg></span>리뷰</button>
 </aside>
 <div class="snav-backdrop" id="snavBack" hidden></div>
 
@@ -870,7 +944,7 @@
 <main>
   <!-- ═══════════ 홈 (메인) ═══════════ -->
   <section class="page" id="page-main">
-    <div class="card main-empty"><div class="big">🏠</div><b>홈은 아직 비어 있어요</b>앞으로 자주 보는 것들을 여기에 모아 둘 거예요</div>
+    <div class="card main-empty"><div class="big"><span class="logo-i" style="width:52px;height:52px;border-radius:16px"><svg style="width:30px;height:30px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.2 12 3.5l8.5 6.7"/><path d="M5.5 8.8V19a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5V8.8"/><path d="M12 17.2s-3.2-1.9-3.2-3.9a1.7 1.7 0 0 1 3.2-.8 1.7 1.7 0 0 1 3.2.8c0 2-3.2 3.9-3.2 3.9z"/></svg></span></div><b>홈은 아직 비어 있어요</b>앞으로 자주 보는 것들을 여기에 모아 둘 거예요</div>
   </section>
 
   <!-- ═══════════ 캘린더 ═══════════ -->
@@ -1490,7 +1564,8 @@ const store = {
 };
 const S = Object.assign({
   events: [],         // 캘린더 일정 (아래 캘린더 참고)
-  dayMemos: [],       // 캘린더 일별 메모
+  dayMemos: [],       // 캘린더 일별 메모·기분
+  todos: [],          // 캘린더 할 일 {id, key:날짜|'w:주 시작일', text, done, created, mt}
   notes: [],          // 노트패드 {id, title, pages:[{strokes, items}], created, mt}
   words: [],          // {id, yomi, word, meaning, example, tags, memorized, important, memorizedAt, created, wrong, right, srs:{lv, due, last}}
   goal: 5,
@@ -1754,7 +1829,8 @@ function showTab(name) {
   $$('.tabs [data-sec]').forEach(t => t.hidden = t.dataset.sec !== sec);
   $('.tabs').hidden = sec !== 'words' && sec !== 'cal';
   $$('.snav-item').forEach(b => b.classList.toggle('active', b.dataset.sec === sec));
-  $('#logo').innerHTML = SEC_LOGO[sec];
+  $('#logo').innerHTML = `<span class="logo-i">${SEC_ICON[sec]}</span>${SEC_LOGO[sec]}`;
+  $('.head-btns').hidden = sec !== 'words';          // 바로가기·동기화·설정은 단어장에서만
   renderSnavDate();
   $$('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
   try { sessionStorage.setItem('jpTab', name); } catch {}
@@ -2099,7 +2175,7 @@ function addSamples() {
   store.save(); renderAll(); toast('예시 단어를 추가했어요');
 }
 $('#exportBtn').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify({ words: S.words, notes: S.notes, events: S.events, dayMemos: S.dayMemos, goal: S.goal, tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, reviewLog: S.reviewLog, quizLog: S.quizLog }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ words: S.words, notes: S.notes, events: S.events, dayMemos: S.dayMemos, todos: S.todos, goal: S.goal, tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, reviewLog: S.reviewLog, quizLog: S.quizLog }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `일본어단어장_${dkey()}.json`;
@@ -4008,7 +4084,7 @@ const SY = store.sync;
 let sb = null, sbUser = null;
 
 // ── 변경 추적: 저장할 때마다 바뀐 단어에 수정 시각을 찍고, 사라진 단어는 삭제 기록 ──
-const SYNC_COLLS = ['events', 'dayMemos'];
+const SYNC_COLLS = ['events', 'dayMemos', 'todos'];
 function wordSig(w) { const { mt, ...rest } = w; return JSON.stringify(rest); }
 function metaOf() {
   return { tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder,
@@ -4058,7 +4134,7 @@ function onLocalSaved() { if (SY.dirty && sbUser) schedulePush(); }
 
 // ── 합치기 ──
 function payload() {
-  return { v: 1, words: S.words, notes: S.notes, events: S.events, dayMemos: S.dayMemos, deleted: S.deleted, reviewLog: S.reviewLog, quizLog: S.quizLog, meta: metaOf(), metaMt: S.metaMt || 0 };
+  return { v: 1, words: S.words, notes: S.notes, events: S.events, dayMemos: S.dayMemos, todos: S.todos, deleted: S.deleted, reviewLog: S.reviewLog, quizLog: S.quizLog, meta: metaOf(), metaMt: S.metaMt || 0 };
 }
 function maxMerge(a = {}, b = {}) {
   const o = { ...a };
@@ -4090,7 +4166,7 @@ function mergePayload(L, R) {
   };
   const remoteMeta = (R.metaMt || 0) > (L.metaMt || 0);
   return {
-    v: 1, words, notes, deleted, events: coll(L.events, R.events), dayMemos: coll(L.dayMemos, R.dayMemos),
+    v: 1, words, notes, deleted, events: coll(L.events, R.events), dayMemos: coll(L.dayMemos, R.dayMemos), todos: coll(L.todos, R.todos),
     reviewLog: maxMerge(L.reviewLog, R.reviewLog), quizLog: maxMerge(L.quizLog, R.quizLog),
     meta: remoteMeta ? R.meta : L.meta, metaMt: Math.max(L.metaMt || 0, R.metaMt || 0)
   };
@@ -4101,6 +4177,7 @@ function applyPayload(P) {
   if (Array.isArray(P.notes)) S.notes = P.notes.map(normNote);
   if (Array.isArray(P.events)) S.events = P.events;
   if (Array.isArray(P.dayMemos)) S.dayMemos = P.dayMemos;
+  if (Array.isArray(P.todos)) S.todos = P.todos;
   S.deleted = P.deleted; S.reviewLog = P.reviewLog; S.quizLog = P.quizLog; S.metaMt = P.metaMt;
   const m = P.meta || {};
   if (Array.isArray(m.tags)) S.tags = m.tags;
@@ -4377,13 +4454,27 @@ function repLabel(ev) {
   }[r.f] || '';
   return base + (r.until ? ` · ${pd(r.until).getMonth() + 1}/${pd(r.until).getDate()}까지` : '');
 }
+// 날짜별 메모·기분 (주간 메모는 date가 'w:주 시작일')
 const memoOf = d => S.dayMemos.find(m => m.date === d);
-function setMemo(d, text) {
-  const m = memoOf(d);
-  if (!text.trim()) { if (m) S.dayMemos = S.dayMemos.filter(x => x !== m); }
-  else if (m) m.text = text;
-  else S.dayMemos.push({ id: 'memo-' + d, date: d, text });
+function setDayField(d, k, v) {
+  let m = memoOf(d);
+  if (!m) { m = { id: 'memo-' + d, date: d, text: '' }; S.dayMemos.push(m); }
+  m[k] = v;
+  if (!String(m.text || '').trim() && !m.mood) S.dayMemos = S.dayMemos.filter(x => x !== m);
   store.save();
+}
+const setMemo = (d, text) => setDayField(d, 'text', text);
+const MOODS = [
+  { k: 5, l: '최고', c: '#ff8fb1' }, { k: 4, l: '좋음', c: '#ffb38a' }, { k: 3, l: '보통', c: '#f2cf63' },
+  { k: 2, l: '별로', c: '#9fc7e8' }, { k: 1, l: '힘듦', c: '#b7a6d9' }];
+const moodOf = k => MOODS.find(m => m.k === k);
+// 할 일: key = 날짜(그날 할 일) 또는 'w:주 시작일'(이번 주 할 일)
+const todosOf = key => S.todos.filter(t => t.key === key).sort((a, b) => (a.created || 0) - (b.created || 0));
+function todoList(key, ph = '할 일 추가') {
+  return `<ul class="todo">${todosOf(key).map(t => `<li class="${t.done ? 'done' : ''}">
+      <button class="ck" data-td="${t.id}" aria-label="${t.done ? '완료 취소' : '완료'}"></button><span>${esc(t.text)}</span>
+      <button class="x" data-td-del="${t.id}" title="삭제">✕</button></li>`).join('')}</ul>
+    <input class="td-add keep" data-td-add="${key}" placeholder="＋ ${ph}" maxlength="120" enterkeyhint="done">`;
 }
 
 // ── 그리기 ──
@@ -4408,7 +4499,7 @@ function monthHtml() {
   for (let i = 0; i < weeks * 7; i++) {
     const d = calAdd(start, i), dt = pd(d), evs = eventsOn(d), max = 3, wd = dt.getDay();
     cells += `<div class="mcell${dt.getMonth() !== m ? ' out' : ''}${d === today ? ' today' : ''}${d === C.sel ? ' sel' : ''}${wd === 0 ? ' sun' : wd === 6 ? ' sat' : ''}" data-day="${d}">
-      <span class="dn">${dt.getDate()}</span>${memoOf(d) ? '<span class="memo-dot" title="메모 있음">📝</span>' : ''}
+      <span class="dn">${dt.getDate()}</span>${memoOf(d)?.mood ? `<span class="mood-dot" style="--c:${moodOf(memoOf(d).mood).c}" title="기분: ${moodOf(memoOf(d).mood).l}"></span>` : ''}${memoOf(d)?.text ? '<span class="memo-dot" title="메모 있음"></span>' : ''}
       ${evs.slice(0, max).map(evChip).join('')}${evs.length > max ? `<div class="more">+${evs.length - max}개</div>` : ''}</div>`;
   }
   return calBar(`${y}년 ${m + 1}월`) + `<div class="cal-wrap"><div class="mgrid">${cells}</div>${dayPanel(C.sel)}</div>`;
@@ -4456,25 +4547,73 @@ function timeline(days) {
 }
 const weekDays = () => { const s = calAdd(C.sel, -pd(C.sel).getDay()); return Array.from({ length: 7 }, (_, i) => calAdd(s, i)); };
 function weekHtml() {
-  const days = weekDays(), a = pd(days[0]), b = pd(days[6]);
-  return calBar(`${a.getMonth() + 1}월 ${a.getDate()}일 – ${a.getMonth() !== b.getMonth() ? b.getMonth() + 1 + '월 ' : ''}${b.getDate()}일`, `${b.getFullYear()}년`) + timeline(days);
+  const days = weekDays(), a = pd(days[0]), b = pd(days[6]), today = dkey(), wk = 'w:' + days[0];
+  let evN = 0, tdAll = 0, tdDone = 0;
+  const cards = days.map(d => {
+    const dt = pd(d), wd = dt.getDay(), evs = eventsOn(d), mm = memoOf(d), tds = todosOf(d);
+    evN += evs.length; tdAll += tds.length; tdDone += tds.filter(t => t.done).length;
+    return `<div class="wk-day${d === today ? ' today' : ''}${wd === 0 ? ' sun' : wd === 6 ? ' sat' : ''}">
+      <div class="wk-h"><button class="wk-date" data-goday="${d}" title="이날 자세히 보기"><b>${dt.getDate()}</b><span>${DOW[wd]}요일</span></button>
+        ${mm?.mood ? `<span class="mood-pill" style="--c:${moodOf(mm.mood).c}">${moodOf(mm.mood).l}</span>` : ''}
+        <button class="wk-add" data-cadd-day="${d}" title="일정 추가">＋</button></div>
+      ${evs.length ? `<div class="wk-evs">${evs.map(o => `<div class="wk-ev" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}"><span class="t">${o.ev.allDay ? '종일' : o.ev.start}</span><span class="n">${esc(o.ev.title)}</span></div>`).join('')}</div>` : ''}
+      ${todoList(d)}
+      ${mm?.text ? `<div class="wk-memo" data-goday="${d}">${esc(mm.text)}</div>` : ''}
+    </div>`;
+  }).join('');
+  const wt = todosOf(wk), wDone = wt.filter(t => t.done).length;
+  const side = `<div class="wk-day wk-side">
+      <div class="wk-h"><div class="wk-date"><b>이번 주</b></div></div>
+      <div class="wk-stat"><div><b>${evN}</b><span>일정</span></div><div><b>${tdDone}/${tdAll}</b><span>할 일</span></div><div><b>${wDone}/${wt.length}</b><span>주간 목표</span></div></div>
+      <div class="wk-sub">이번 주 목표 · 할 일</div>${todoList(wk, '이번 주에 할 일')}
+      <div class="wk-sub">이번 주 메모</div>
+      <textarea class="wk-memo-in keep" data-memo="${wk}" placeholder="이번 주 다짐, 회고, 메모…">${esc(memoOf(wk)?.text || '')}</textarea>
+    </div>`;
+  return calBar(`${a.getMonth() + 1}월 ${a.getDate()}일 – ${a.getMonth() !== b.getMonth() ? b.getMonth() + 1 + '월 ' : ''}${b.getDate()}일`, `${b.getFullYear()}년 · 주간 플래너`) +
+    `<div class="wk-grid">${cards}${side}</div>`;
+}
+function upcomingHtml(from) {
+  const out = [];
+  for (let i = 1; i <= 14 && out.length < 6; i++) { const d = calAdd(from, i); for (const o of eventsOn(d)) if (out.length < 6) out.push({ ...o, d }); }
+  return out.length ? out.map(o => `<div class="up-row" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}"><span class="dd">${pd(o.d).getMonth() + 1}/${pd(o.d).getDate()} ${DOW[pd(o.d).getDay()]}</span><span class="n">${esc(o.ev.title)}</span><span class="t">${o.ev.allDay ? '종일' : o.ev.start}</span></div>`).join('')
+    : '<div class="empty">2주 안에 잡힌 일정이 없어요</div>';
 }
 function dayHtml() {
-  const d = C.sel, mm = memoOf(d);
+  const d = C.sel, mm = memoOf(d), evs = eventsOn(d), tds = todosOf(d), done = tds.filter(t => t.done).length;
+  const left = todosOf(calAdd(d, -1)).filter(t => !t.done).length, mood = mm?.mood && moodOf(mm.mood);
+  const pct = tds.length ? Math.round(done / tds.length * 100) : 0;
   return calBar(mdLabel(d), `${pd(d).getFullYear()}년${d === dkey() ? ' · 오늘' : ''}`) +
-    `<div class="day-wrap"><div>${timeline([d])}</div>
-      <div class="card day-memo"><div class="card-h"><h2>📝 ${pd(d).getMonth() + 1}/${pd(d).getDate()} 메모</h2><span class="st" id="memoSt">${mm ? '저장됨' : ''}</span></div>
-      <textarea id="dayMemo" placeholder="이날의 메모, 할 일, 일기…">${esc(mm?.text || '')}</textarea></div></div>`;
+    `<div class="day-sum">
+      <div><b>${evs.length}</b><span>일정</span></div>
+      <div><b>${done}/${tds.length}</b><span>할 일</span><i class="bar"><i style="width:${pct}%"></i></i></div>
+      <div><b style="color:${mood ? mood.c : 'var(--text3)'}">${mood ? mood.l : '—'}</b><span>기분</span></div>
+    </div>
+    <div class="day-wrap">
+      <div><div class="day-lbl">타임라인</div>${timeline([d])}</div>
+      <div class="day-side">
+        <div class="card"><div class="card-h"><h2>오늘의 기분</h2></div>
+          <div class="moods">${MOODS.map(m => `<button class="${mm?.mood === m.k ? 'on' : ''}" style="--c:${m.c}" data-mood="${m.k}"><i></i>${m.l}</button>`).join('')}</div></div>
+        <div class="card"><div class="card-h"><h2>할 일 <span class="sub">${done}/${tds.length}</span></h2>
+          ${left ? `<button class="btn sm" data-carry="${d}" title="전날 끝내지 못한 할 일을 오늘로 옮겨요">어제 못 한 ${left}개 가져오기</button>` : ''}</div>
+          ${todoList(d)}</div>
+        <div class="card day-memo"><div class="card-h"><h2>메모 · 일기</h2><span class="st" id="memoSt">${mm?.text ? '저장됨' : ''}</span></div>
+          <textarea class="keep" data-memo="${d}" placeholder="이날의 메모, 일기, 생각…">${esc(mm?.text || '')}</textarea></div>
+        <div class="card"><div class="card-h"><h2>다가오는 일정</h2></div>${upcomingHtml(d)}</div>
+      </div></div>`;
 }
-function renderCal() {
+function renderCal(force) {
   const root = $('#calRoot'); if (!root) return;
   $$('.tabs [data-cv]').forEach(b => b.classList.toggle('active', b.dataset.cv === C.view));
-  if (root.contains(document.activeElement) && document.activeElement.id === 'dayMemo') return;   // 메모 쓰는 중엔 다시 그리지 않음
+  const act = document.activeElement;
+  if (!force && root.contains(act) && act.classList.contains('keep')) return;   // 메모·할 일 쓰는 중엔 다시 그리지 않음
+  const y = scrollY, oldTop = $('#tlScroll')?.scrollTop;
   root.innerHTML = C.view === 'week' ? weekHtml() : C.view === 'day' ? dayHtml() : monthHtml();
-  const sc = $('#tlScroll'), key = C.view + (C.view === 'week' ? weekDays()[0] : C.sel);
+  if (force) scrollTo(0, y);
+  const sc = $('#tlScroll'), key = C.view + C.sel;
+  if (sc && C.scrolled === key && oldTop !== undefined) sc.scrollTop = oldTop;
   if (sc && C.scrolled !== key) {
     C.scrolled = key;
-    const days = C.view === 'week' ? weekDays() : [C.sel];
+    const days = [C.sel];
     const first = days.flatMap(d => eventsOn(d).filter(o => !o.ev.allDay)).map(o => toMin(o.ev.start)).sort((a, b) => a - b)[0];
     const h = days.includes(dkey()) ? new Date().getHours() - 1 : first !== undefined ? Math.floor(first / 60) - 1 : 8;
     sc.scrollTop = Math.max(0, h) * HH;
@@ -4500,6 +4639,20 @@ $('#calRoot').addEventListener('click', e => {
     return renderCal();
   }
   if (t.closest('[data-cadd]')) return openEv(null, C.sel);
+  const ad = t.closest('[data-cadd-day]');
+  if (ad) return openEv(null, ad.dataset.caddDay);
+  const ck = t.closest('[data-td]');
+  if (ck) { const td = S.todos.find(x => x.id === ck.dataset.td); if (td) { td.done = !td.done; store.save(); renderCal(true); } return; }
+  const tx = t.closest('[data-td-del]');
+  if (tx) { S.todos = S.todos.filter(x => x.id !== tx.dataset.tdDel); store.save(); return renderCal(true); }
+  const md = t.closest('[data-mood]');
+  if (md) { const k = +md.dataset.mood; setDayField(C.sel, 'mood', memoOf(C.sel)?.mood === k ? 0 : k); return renderCal(true); }
+  const cy = t.closest('[data-carry]');
+  if (cy) {
+    const d = cy.dataset.carry, moved = todosOf(calAdd(d, -1)).filter(x => !x.done);
+    moved.forEach(x => { x.key = d; });
+    store.save(); renderCal(true); return toast(`할 일 ${moved.length}개를 가져왔어요`);
+  }
   const ev = t.closest('[data-ev]');
   if (ev) return openEv(ev.dataset.ev, ev.dataset.s);
   const go = t.closest('[data-goday]');
@@ -4523,17 +4676,27 @@ $('#calRoot').addEventListener('dblclick', e => {
   const cell = e.target.closest('[data-day]');
   if (cell && !e.target.closest('[data-ev]')) openEv(null, cell.dataset.day);
 });
-let memoT = null;
+let memoT = null, memoKey = null;
 $('#calRoot').addEventListener('input', e => {
-  if (e.target.id !== 'dayMemo') return;
-  const d = C.sel, v = e.target.value;
-  $('#memoSt').textContent = '저장 중…';
-  clearTimeout(memoT);
-  memoT = setTimeout(() => { setMemo(d, v); const st = $('#memoSt'); if (st) st.textContent = v.trim() ? '저장됨' : ''; }, 400);
+  const k = e.target.dataset.memo; if (!k) return;
+  const v = e.target.value, st = $('#memoSt');
+  if (st) st.textContent = '저장 중…';
+  clearTimeout(memoT); memoKey = k;
+  memoT = setTimeout(() => { memoT = null; setMemo(k, v); const st = $('#memoSt'); if (st) st.textContent = v.trim() ? '저장됨' : ''; }, 400);
 });
 $('#calRoot').addEventListener('focusout', e => {
-  if (e.target.id !== 'dayMemo' || !memoT) return;
-  clearTimeout(memoT); memoT = null; setMemo(C.sel, e.target.value);
+  const k = e.target.dataset.memo;
+  if (!k || !memoT) return;
+  clearTimeout(memoT); memoT = null; setMemo(k, e.target.value);
+});
+$('#calRoot').addEventListener('keydown', e => {
+  const k = e.target.dataset.tdAdd;
+  if (!k || e.key !== 'Enter' || e.isComposing) return;
+  e.preventDefault();
+  const text = e.target.value.trim(); if (!text) return;
+  S.todos.push({ id: uid(), key: k, text, done: false, created: Date.now() });
+  store.save(); renderCal(true);
+  $(`[data-td-add="${k}"]`)?.focus();
 });
 
 // ── 일정 추가 · 수정 창 ──
@@ -4629,7 +4792,8 @@ $('#eDel').addEventListener('click', async () => {
 
 /* ═════════════════ 메인 메뉴 (왼쪽) ═════════════════ */
 const SEC_OF = { main: 'main', cal: 'cal', review: 'review', home: 'words', words: 'words', quiz: 'words', notes: 'words' };
-const SEC_LOGO = { main: '🏠 <b>홈</b>', cal: '📅 <b>캘린더</b>', words: '🌸 <b>日本語</b> 단어장', review: '🎬 <b>리뷰</b>' };
+const SEC_ICON = {"main": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3.5 10.2 12 3.5l8.5 6.7\"/><path d=\"M5.5 8.8V19a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5V8.8\"/><path d=\"M12 17.2s-3.2-1.9-3.2-3.9a1.7 1.7 0 0 1 3.2-.8 1.7 1.7 0 0 1 3.2.8c0 2-3.2 3.9-3.2 3.9z\"/></svg>", "cal": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3.5\" y=\"5\" width=\"17\" height=\"15.5\" rx=\"3.5\"/><path d=\"M3.5 10h17M8.5 3v4M15.5 3v4\"/><path d=\"M12 17.6s-2.4-1.4-2.4-2.9a1.25 1.25 0 0 1 2.4-.6 1.25 1.25 0 0 1 2.4.6c0 1.5-2.4 2.9-2.4 2.9z\"/></svg>", "words": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 6.6C10 5.1 7 4.6 3.5 5.1v13.6c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5.1C17 4.6 14 5.1 12 6.6z\"/><path d=\"M12 6.6v13.6\"/><path d=\"M6.5 9.2c1.2-.1 2.3.1 3.2.5M6.5 12.2c1.2-.1 2.3.1 3.2.5\"/></svg>", "review": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 7.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2.5 2.5 0 0 0 0 5v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2.5 2.5 0 0 0 0-5z\"/><path d=\"m12 9.2.95 1.9 2.1.3-1.52 1.48.36 2.1L12 14l-1.9 1 .37-2.1-1.53-1.48 2.1-.3z\"/></svg>"};
+const SEC_LOGO = { main: '<b>홈</b>', cal: '<b>캘린더</b>', words: '<b>日本語</b> 단어장', review: '<b>리뷰</b>' };
 let lastWordTab = 'home';
 try { lastWordTab = sessionStorage.getItem('jpWordTab') || 'home'; } catch {}
 function renderSnavDate() {
