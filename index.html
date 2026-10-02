@@ -845,7 +845,8 @@
   .day-sum div { padding: 8px 6px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: 12px; }
   .day-sum .bar { display: block; height: 4px; border-radius: 99px; background: var(--accent-light); margin: 4px 8px 0; overflow: hidden; }
   .day-sum .bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
-  .day-lbl { font-size: 11px; font-weight: 700; color: var(--accent-dark); margin: 0 0 5px 2px; }
+  .day-lbl { font-size: 11px; font-weight: 700; color: var(--accent-dark); margin: 0 0 5px 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .day-lbl .muted { font-weight: 400; font-size: 10px; flex: 1; }
   .day-side { display: flex; flex-direction: column; }
   .day-side .card { margin-bottom: 10px; }
   .moods { display: flex; gap: 5px; flex-wrap: wrap; }
@@ -1239,6 +1240,30 @@
 </main>
 
 <!-- ═══════════ 단어 추가/수정 팝업 ═══════════ -->
+<div class="modal" id="tbModal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="tbTitle">
+    <div class="card-h">
+      <h2 id="tbTitle">＋ 타임라인 추가</h2><span class="sub muted" id="tbDate"></span>
+      <button class="ic" id="tbClose" title="닫기">✕</button>
+    </div>
+    <form class="form ev-form" id="tbForm" autocomplete="off">
+      <label class="full">한 일 · 할 일 * <input id="tName" required placeholder="예) 공부, 운동, 점심, 출근"></label>
+      <div class="full row">
+        <label>시작 <input type="time" id="tStart" required></label>
+        <label>끝 <input type="time" id="tEnd"></label>
+      </div>
+      <div class="full"><div class="ev-colors" id="tColors"></div></div>
+      <label class="full">메모 <textarea id="tMemo" rows="2" placeholder="자세한 내용"></textarea></label>
+      <div class="full ev-note">타임라인은 이날의 시간 기록이에요. 캘린더 일정·할 일과는 따로 저장돼요.</div>
+      <div class="form-actions">
+        <button type="button" class="btn danger" id="tDel">🗑 삭제</button>
+        <span style="flex:1"></span>
+        <button type="button" class="btn" id="tCancel">취소</button>
+        <button class="btn primary">저장</button>
+      </div>
+    </form>
+  </div>
+</div>
 <div class="modal" id="evModal" hidden>
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="evTitle">
     <div class="card-h">
@@ -1614,6 +1639,7 @@ const store = {
 const S = Object.assign({
   events: [],         // 캘린더 일정 (아래 캘린더 참고)
   dayMemos: [],       // 캘린더 일별 메모·기분
+  tblocks: [],        // 일별 타임라인 (일정과 따로) {id, date, title, start, end, color, memo, mt}
   todos: [],          // 캘린더 할 일 {id, key:날짜|'w:주 시작일', text, done, created, mt}
   notes: [],          // 노트패드 {id, title, pages:[{strokes, items}], created, mt}
   words: [],          // {id, yomi, word, meaning, example, tags, memorized, important, memorizedAt, created, wrong, right, srs:{lv, due, last}}
@@ -2225,7 +2251,7 @@ function addSamples() {
   store.save(); renderAll(); toast('예시 단어를 추가했어요');
 }
 $('#exportBtn').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify({ words: S.words, notes: S.notes, events: S.events, dayMemos: S.dayMemos, todos: S.todos, goal: S.goal, tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, reviewLog: S.reviewLog, quizLog: S.quizLog }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ words: S.words, notes: S.notes, events: S.events, dayMemos: S.dayMemos, todos: S.todos, tblocks: S.tblocks, goal: S.goal, tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, reviewLog: S.reviewLog, quizLog: S.quizLog }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `일본어단어장_${dkey()}.json`;
@@ -4139,7 +4165,7 @@ const SY = store.sync;
 let sb = null, sbUser = null;
 
 // ── 변경 추적: 저장할 때마다 바뀐 단어에 수정 시각을 찍고, 사라진 단어는 삭제 기록 ──
-const SYNC_COLLS = ['events', 'dayMemos', 'todos'];
+const SYNC_COLLS = ['events', 'dayMemos', 'todos', 'tblocks'];
 function wordSig(w) { const { mt, ...rest } = w; return JSON.stringify(rest); }
 function metaOf() {
   return { tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder,
@@ -4189,7 +4215,7 @@ function onLocalSaved() { if (SY.dirty && sbUser) schedulePush(); }
 
 // ── 합치기 ──
 function payload() {
-  return { v: 1, words: S.words, notes: S.notes, events: S.events, dayMemos: S.dayMemos, todos: S.todos, deleted: S.deleted, reviewLog: S.reviewLog, quizLog: S.quizLog, meta: metaOf(), metaMt: S.metaMt || 0 };
+  return { v: 1, words: S.words, notes: S.notes, events: S.events, dayMemos: S.dayMemos, todos: S.todos, tblocks: S.tblocks, deleted: S.deleted, reviewLog: S.reviewLog, quizLog: S.quizLog, meta: metaOf(), metaMt: S.metaMt || 0 };
 }
 function maxMerge(a = {}, b = {}) {
   const o = { ...a };
@@ -4221,7 +4247,7 @@ function mergePayload(L, R) {
   };
   const remoteMeta = (R.metaMt || 0) > (L.metaMt || 0);
   return {
-    v: 1, words, notes, deleted, events: coll(L.events, R.events), dayMemos: coll(L.dayMemos, R.dayMemos), todos: coll(L.todos, R.todos),
+    v: 1, words, notes, deleted, events: coll(L.events, R.events), dayMemos: coll(L.dayMemos, R.dayMemos), todos: coll(L.todos, R.todos), tblocks: coll(L.tblocks, R.tblocks),
     reviewLog: maxMerge(L.reviewLog, R.reviewLog), quizLog: maxMerge(L.quizLog, R.quizLog),
     meta: remoteMeta ? R.meta : L.meta, metaMt: Math.max(L.metaMt || 0, R.metaMt || 0)
   };
@@ -4233,6 +4259,7 @@ function applyPayload(P) {
   if (Array.isArray(P.events)) S.events = P.events;
   if (Array.isArray(P.dayMemos)) S.dayMemos = P.dayMemos;
   if (Array.isArray(P.todos)) S.todos = P.todos;
+  if (Array.isArray(P.tblocks)) S.tblocks = P.tblocks;
   migrateTodos();
   S.deleted = P.deleted; S.reviewLog = P.reviewLog; S.quizLog = P.quizLog; S.metaMt = P.metaMt;
   const m = P.meta || {};
@@ -4613,16 +4640,15 @@ function layoutDay(list) {
   if (group.length) flush();
   return out.map(x => ({ ...x, top: x.s / 60 * HH, h: Math.max(18, (x.e - x.s) / 60 * HH - 2) }));
 }
-function timeline(days) {
-  const today = dkey(), cols = `40px repeat(${days.length}, minmax(0, 1fr))`;
-  const allRow = `<div class="tl-allday" style="grid-template-columns:${cols}"><div class="lab">종일</div>${days.map(d =>
-    `<div class="cell" data-newday="${d}">${eventsOn(d).filter(o => o.ev.allDay && !o.ev.todo).map(evChip).join('')}</div>`).join('')}</div>`;
+// 일별 타임라인: 캘린더 일정과 따로 쓰는 하루 시간 기록 (S.tblocks)
+const blocksOn = d => S.tblocks.filter(x => x.date === d);
+function timeline(d) {
+  const today = dkey(), cols = '40px minmax(0, 1fr)';
   const hours = `<div class="tl-hours">${Array.from({ length: 24 }, (_, h) => `<div>${h ? h + '시' : ''}</div>`).join('')}</div>`;
   const now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
-  const colsHtml = days.map(d => `<div class="tl-col${d === today ? ' today' : ''}" data-tday="${d}" style="height:${24 * HH}px">${
-    layoutDay(eventsOn(d).filter(o => !o.ev.allDay)).map(x => `<div class="tl-ev${x.o.ev.todo ? ' is-todo' : ''}${x.o.ev.todo && isDone(x.o.ev, x.o.s) ? ' done' : ''}" style="--c:${x.o.ev.color}; top:${x.top}px; height:${x.h}px; left:calc(${x.left}% + 1px); width:calc(${x.w}% - 3px)" data-ev="${x.o.ev.id}" data-s="${x.o.s}" title="${esc(x.o.ev.title)}"><b>${x.o.ev.todo ? '<i class="tck"></i>' : ''}${esc(x.o.ev.title)}</b><small>${tmLabel(x.o.ev)}</small></div>`).join('')
-  }${d === today ? `<div class="tl-now" style="top:${nowMin / 60 * HH}px"></div>` : ''}</div>`).join('');
-  return `<div class="tl-wrap" style="--hh:${HH}px">${allRow}<div class="tl-scroll" id="tlScroll"><div class="tl-body" style="grid-template-columns:${cols}">${hours}${colsHtml}</div></div></div>`;
+  const blocks = layoutDay(blocksOn(d).map(x => ({ ev: x }))).map(x => `<div class="tl-ev" style="--c:${x.o.ev.color}; top:${x.top}px; height:${x.h}px; left:calc(${x.left}% + 1px); width:calc(${x.w}% - 3px)" data-tb="${x.o.ev.id}" title="${esc(x.o.ev.title)}"><b>${esc(x.o.ev.title)}</b><small>${x.o.ev.start}${x.o.ev.end ? '–' + x.o.ev.end : ''}${x.o.ev.memo ? ' · ' + esc(x.o.ev.memo) : ''}</small></div>`).join('');
+  return `<div class="tl-wrap" style="--hh:${HH}px"><div class="tl-scroll" id="tlScroll"><div class="tl-body" style="grid-template-columns:${cols}">${hours}<div class="tl-col${d === today ? ' today' : ''}" data-tday="${d}" style="height:${24 * HH}px">${blocks}${
+    d === today ? `<div class="tl-now" style="top:${nowMin / 60 * HH}px"></div>` : ''}</div></div></div></div>`;
 }
 const weekDays = () => { const s = calAdd(C.sel, -pd(C.sel).getDay()); return Array.from({ length: 7 }, (_, i) => calAdd(s, i)); };
 function weekHtml() {
@@ -4672,8 +4698,11 @@ function dayHtml() {
       <div><b style="color:${mood ? mood.c : 'var(--text3)'}">${mood ? mood.l : '—'}</b><span>기분</span></div>
     </div>
     <div class="day-wrap">
-      <div><div class="day-lbl">타임라인</div>${timeline([d])}</div>
+      <div><div class="day-lbl">타임라인 <span class="muted">· 빈 시간을 누르면 추가 (캘린더 일정과 따로 기록돼요)</span><button class="btn sm" data-tb-add="${d}">＋ 타임라인</button></div>${timeline(d)}</div>
       <div class="day-side">
+        <div class="card"><div class="card-h"><h2>이날 일정</h2></div>
+          <div class="dlist">${evs.length ? evs.map(dItem).join('') : '<div class="empty">일정이 없어요</div>'}</div>
+          <button class="td-new" data-cadd-day="${d}">＋ 일정</button></div>
         <div class="card"><div class="card-h"><h2>오늘의 기분</h2></div>
           <div class="moods">${MOODS.map(m => `<button class="${mm?.mood === m.k ? 'on' : ''}" style="--c:${m.c}" data-mood="${m.k}"><i></i>${m.l}</button>`).join('')}</div></div>
         <div class="card"><div class="card-h"><h2>할 일 <span class="sub">${done}/${tds.length}</span></h2>
@@ -4699,7 +4728,7 @@ function renderCal({ passive = false } = {}) {
   if (sc && C.scrolled === key && oldTop !== undefined) sc.scrollTop = oldTop;
   if (sc && C.scrolled !== key) {
     C.scrolled = key;
-    const first = eventsOn(C.sel).filter(o => !o.ev.allDay).map(o => toMin(o.ev.start)).sort((a, b) => a - b)[0];
+    const first = blocksOn(C.sel).map(x => toMin(x.start)).sort((a, b) => a - b)[0];
     const h = C.sel === dkey() ? new Date().getHours() - 1 : first !== undefined ? Math.floor(first / 60) - 1 : 8;
     sc.scrollTop = Math.max(0, h) * HH;
   }
@@ -4743,6 +4772,10 @@ $('#calRoot').addEventListener('click', e => {
     moved.forEach(o => { o.ev.date = d; });
     store.save(); renderCal(); return toast(`할 일 ${moved.length}개를 가져왔어요`);
   }
+  const tb = t.closest('[data-tb]');
+  if (tb) return openTb(tb.dataset.tb);
+  const tba = t.closest('[data-tb-add]');
+  if (tba) return openTb(null, tba.dataset.tbAdd, Math.min(22, new Date().getHours()) * 60);
   const ev = t.closest('[data-ev]');
   if (ev) return openEv(ev.dataset.ev, ev.dataset.s);
   const go = t.closest('[data-goday]');
@@ -4758,8 +4791,7 @@ $('#calRoot').addEventListener('click', e => {
   if (col) {
     const y = e.clientY - col.getBoundingClientRect().top;
     const m = Math.max(0, Math.min(23 * 60 + 30, Math.floor(y / HH * 2) * 30));
-    C.sel = col.dataset.tday;
-    return openEv(null, col.dataset.tday, { start: fromMin(m), end: fromMin(Math.min(m + 60, 1439)) });
+    return openTb(null, col.dataset.tday, m);
   }
 });
 $('#calRoot').addEventListener('dblclick', e => {
@@ -4787,6 +4819,59 @@ $('#calRoot').addEventListener('keydown', e => {           // 주간 목표: Ent
   S.todos.push({ id: uid(), key: k, text, done: false, created: Date.now() });
   store.save(); renderCal();
   $(`[data-goal-add="${k}"]`)?.focus();
+});
+
+// ── 타임라인 칸 추가 · 수정 창 ──
+let TBE = null;            // {edit: 고치는 칸 | null, date, color}
+function openTb(id, date, startMin = 540) {
+  const x = id ? S.tblocks.find(b => b.id === id) : null;
+  if (id && !x) return;
+  TBE = { edit: x, date: x ? x.date : date, color: x ? x.color : EV_COLORS[0] };
+  $('#tbTitle').textContent = x ? '✏️ 타임라인 수정' : '＋ 타임라인 추가';
+  $('#tName').value = x ? x.title : '';
+  $('#tStart').value = x ? x.start : fromMin(startMin);
+  $('#tEnd').value = x ? (x.end || '') : fromMin(Math.min(startMin + 60, 1439));
+  $('#tMemo').value = x ? (x.memo || '') : '';
+  TBE.start = $('#tStart').value;
+  $('#tDel').hidden = !x;
+  $('#tbDate').textContent = mdLabel(TBE.date);
+  renderTbColors();
+  $('#tbModal').hidden = false; document.body.classList.add('modal-open');
+  if (!x) setTimeout(() => $('#tName').focus(), 30);
+}
+function renderTbColors() {
+  $('#tColors').innerHTML = EV_COLORS.map(c => `<button type="button" style="--c:${c}" data-col="${c}" class="${c === TBE.color ? 'on' : ''}" aria-label="색 ${c}"></button>`).join('');
+}
+function closeTb() {
+  $('#tbModal').hidden = true; TBE = null;
+  if ($$('.modal').every(m => m.hidden)) document.body.classList.remove('modal-open');
+}
+$('#tColors').addEventListener('click', e => { const b = e.target.closest('[data-col]'); if (b) { TBE.color = b.dataset.col; renderTbColors(); } });
+$('#tStart').addEventListener('change', () => {          // 시작을 바꾸면 끝도 같은 길이만큼 따라가기
+  const s0 = toMin($('#tStart').value), dur = $('#tEnd').value ? toMin($('#tEnd').value) - toMin(TBE.start) : 60;
+  $('#tEnd').value = fromMin(Math.min(1439, s0 + (dur > 0 ? dur : 60)));
+  TBE.start = $('#tStart').value;
+});
+$('#tbClose').addEventListener('click', closeTb);
+$('#tCancel').addEventListener('click', closeTb);
+$('#tbModal').addEventListener('click', e => { if (e.target.id === 'tbModal') closeTb(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#tbModal').hidden && $('#askModal').hidden) closeTb(); });
+$('#tbForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const title = $('#tName').value.trim(); if (!title) return $('#tName').focus();
+  const start = $('#tStart').value || '09:00';
+  let end = $('#tEnd').value; if (end && end <= start) end = '';
+  const data = { title, start, end, color: TBE.color, memo: $('#tMemo').value.trim() };
+  if (TBE.edit) Object.assign(TBE.edit, data);
+  else S.tblocks.push({ id: uid(), date: TBE.date, created: Date.now(), ...data });
+  store.save(); closeTb(); renderCal(); toast('타임라인에 저장했어요');
+});
+$('#tDel').addEventListener('click', async () => {
+  const x = TBE?.edit; if (!x) return;
+  const v = await ask({ title: `'${x.title}'을 타임라인에서 지울까요?`, html: '지우면 되돌릴 수 없어요.' + syncWarn(), choices: [{ v: 'del', label: '🗑 삭제', cls: 'solid-danger' }] });
+  if (!v) return;
+  S.tblocks = S.tblocks.filter(b => b !== x);
+  store.save(); closeTb(); renderCal(); toast('삭제했어요');
 });
 
 // ── 일정 · 할 일 추가 · 수정 창 ──
