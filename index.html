@@ -1821,6 +1821,7 @@ $$('.tab').forEach(t => t.addEventListener('click', () => t.dataset.cv ? setCalV
 // 메인 메뉴(홈·캘린더·단어장·리뷰) 안의 화면 전환. 단어장은 학습홈·단어목록·퀴즈·노트패드
 function showTab(name) {
   if (!SEC_OF[name]) name = 'main';
+  if ($('main').contains(document.activeElement)) document.activeElement.blur();   // 쓰던 메모는 저장하고 화면 전환
   const sec = SEC_OF[name];
   if (sec === 'words') { lastWordTab = name; try { sessionStorage.setItem('jpWordTab', name); } catch {} }
   else if (!$('#dictPanel').hidden) closeDict();
@@ -4505,12 +4506,15 @@ function monthHtml() {
   return calBar(`${y}년 ${m + 1}월`) + `<div class="cal-wrap"><div class="mgrid">${cells}</div>${dayPanel(C.sel)}</div>`;
 }
 function dayPanel(d) {
-  const evs = eventsOn(d), mm = memoOf(d);
+  const evs = eventsOn(d), mm = memoOf(d), mood = mm?.mood && moodOf(mm.mood), tds = todosOf(d);
   return `<div class="card dpanel">
-    <h3>${mdLabel(d)}${d === dkey() ? '<small>오늘</small>' : ''}</h3>
+    <h3>${mdLabel(d)}${d === dkey() ? '<small>오늘</small>' : ''}${mood ? `<span class="mood-pill" style="--c:${mood.c}">${mood.l}</span>` : ''}</h3>
+    <div class="wk-sub">일정</div>
     <div class="dlist">${evs.length ? evs.map(dItem).join('') : '<div class="empty">일정이 없어요 · 날짜를 두 번 누르면 바로 추가돼요</div>'}</div>
-    ${mm ? `<div class="dmemo-prev" data-goday="${d}" title="눌러서 메모 쓰기">📝 ${esc(mm.text)}</div>` : ''}
-    <div class="acts" style="margin-top:8px"><button class="btn" data-cadd>＋ 일정</button><button class="btn" data-goday="${d}">🕒 타임라인 · 메모</button></div></div>`;
+    <div class="wk-sub">할 일 <span class="muted">${tds.filter(t => t.done).length}/${tds.length}</span></div>
+    ${todoList(d)}
+    ${mm?.text ? `<div class="wk-sub">메모</div><div class="dmemo-prev" data-goday="${d}" title="눌러서 메모 쓰기">${esc(mm.text)}</div>` : ''}
+    <div class="acts" style="margin-top:10px"><button class="btn" data-cadd>＋ 일정</button><button class="btn" data-goday="${d}">이날 자세히 보기 ›</button></div></div>`;
 }
 // 겹치는 일정은 옆으로 나란히
 function layoutDay(list) {
@@ -4601,14 +4605,17 @@ function dayHtml() {
         <div class="card"><div class="card-h"><h2>다가오는 일정</h2></div>${upcomingHtml(d)}</div>
       </div></div>`;
 }
-function renderCal(force) {
+// passive: 동기화·탭 이동처럼 내가 직접 누르지 않은 다시 그리기 → 메모·할 일을 쓰는 중이면 건너뜀
+// (사파리는 버튼을 눌러도 입력칸 포커스가 남아 있어서, 직접 누른 경우엔 항상 다시 그려야 함)
+function renderCal({ passive = false } = {}) {
   const root = $('#calRoot'); if (!root) return;
   $$('.tabs [data-cv]').forEach(b => b.classList.toggle('active', b.dataset.cv === C.view));
   const act = document.activeElement;
-  if (!force && root.contains(act) && act.classList.contains('keep')) return;   // 메모·할 일 쓰는 중엔 다시 그리지 않음
+  if (passive && root.contains(act) && act.classList.contains('keep')) return;
+  if (!passive && root.contains(act) && act.dataset.memo && memoT) { clearTimeout(memoT); memoT = null; setMemo(act.dataset.memo, act.value); }
   const y = scrollY, oldTop = $('#tlScroll')?.scrollTop;
   root.innerHTML = C.view === 'week' ? weekHtml() : C.view === 'day' ? dayHtml() : monthHtml();
-  if (force) scrollTo(0, y);
+  if (!passive) scrollTo(0, y);
   const sc = $('#tlScroll'), key = C.view + C.sel;
   if (sc && C.scrolled === key && oldTop !== undefined) sc.scrollTop = oldTop;
   if (sc && C.scrolled !== key) {
@@ -4642,16 +4649,16 @@ $('#calRoot').addEventListener('click', e => {
   const ad = t.closest('[data-cadd-day]');
   if (ad) return openEv(null, ad.dataset.caddDay);
   const ck = t.closest('[data-td]');
-  if (ck) { const td = S.todos.find(x => x.id === ck.dataset.td); if (td) { td.done = !td.done; store.save(); renderCal(true); } return; }
+  if (ck) { const td = S.todos.find(x => x.id === ck.dataset.td); if (td) { td.done = !td.done; store.save(); renderCal(); } return; }
   const tx = t.closest('[data-td-del]');
-  if (tx) { S.todos = S.todos.filter(x => x.id !== tx.dataset.tdDel); store.save(); return renderCal(true); }
+  if (tx) { S.todos = S.todos.filter(x => x.id !== tx.dataset.tdDel); store.save(); return renderCal(); }
   const md = t.closest('[data-mood]');
-  if (md) { const k = +md.dataset.mood; setDayField(C.sel, 'mood', memoOf(C.sel)?.mood === k ? 0 : k); return renderCal(true); }
+  if (md) { const k = +md.dataset.mood; setDayField(C.sel, 'mood', memoOf(C.sel)?.mood === k ? 0 : k); return renderCal(); }
   const cy = t.closest('[data-carry]');
   if (cy) {
     const d = cy.dataset.carry, moved = todosOf(calAdd(d, -1)).filter(x => !x.done);
     moved.forEach(x => { x.key = d; });
-    store.save(); renderCal(true); return toast(`할 일 ${moved.length}개를 가져왔어요`);
+    store.save(); renderCal(); return toast(`할 일 ${moved.length}개를 가져왔어요`);
   }
   const ev = t.closest('[data-ev]');
   if (ev) return openEv(ev.dataset.ev, ev.dataset.s);
@@ -4695,7 +4702,7 @@ $('#calRoot').addEventListener('keydown', e => {
   e.preventDefault();
   const text = e.target.value.trim(); if (!text) return;
   S.todos.push({ id: uid(), key: k, text, done: false, created: Date.now() });
-  store.save(); renderCal(true);
+  store.save(); renderCal();
   $(`[data-td-add="${k}"]`)?.focus();
 });
 
@@ -4828,7 +4835,7 @@ addEventListener('resize', sizeReview);
 function renderAll() {
   renderHome(); renderWords(); renderQuizSetup();
   if ($('#page-notes').classList.contains('active')) renderNotes();
-  if ($('#page-cal').classList.contains('active')) renderCal();
+  if ($('#page-cal').classList.contains('active')) renderCal({ passive: true });
   if (Q && $('#quizResult').style.display !== 'none') renderResultWrong();
 }
 initPlayer();
