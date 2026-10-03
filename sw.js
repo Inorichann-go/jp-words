@@ -1,5 +1,5 @@
 // 오프라인 지원: 앱 화면은 저장해 두고, 인터넷이 되면 항상 최신 버전으로 갱신
-const CACHE = 'jp-words-v5';
+const CACHE = 'jp-words-v6';
 const APP = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
