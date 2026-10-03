@@ -721,8 +721,36 @@
   .tab-dict.on, .tab-dict:hover { background: var(--accent); color: #fff; }
   .tab-dict[hidden] { display: none; }
   @media (max-width: 480px) { .tab-dict span { display: none; } .tab-dict { padding: 4px 9px; } .tab { font-size: 13px; } }
-  main:has(#page-cal.active), body:has(#page-cal.active) .head-inner { max-width: 1100px; }
+  main:has(#page-cal.active), body:has(#page-cal.active) .head-inner,
+  main:has(#page-main.active), body:has(#page-main.active) .head-inner { max-width: 1100px; }
 
+  /* ── 홈 ── */
+  .motto { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; padding: 14px 18px; border-radius: 16px;
+    background: linear-gradient(135deg, #fff 0%, var(--accent-light) 100%); border: 1px solid var(--border); box-shadow: var(--shadow); }
+  .motto .q { font-size: 34px; line-height: .6; color: var(--pink-mid); font-family: Georgia, serif; height: 20px; }
+  .motto input { flex: 1; min-width: 0; border: none; background: transparent; text-align: center; font-size: 17px; font-weight: 700; color: var(--accent-dark); padding: 6px 4px; border-bottom: 1.5px dashed transparent; }
+  .motto input::placeholder { color: var(--text3); font-weight: 400; font-size: 13px; }
+  .motto input:focus { outline: none; border-bottom-color: var(--pink-mid); }
+  .mweek { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  @media (max-width: 760px) { .mweek { grid-template-columns: repeat(7, minmax(112px, 1fr)); overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x proximity; } .mw-day { scroll-snap-align: center; } }
+  .mw-day { border: 1px solid var(--border); border-radius: 12px; padding: 6px 6px 8px; min-height: 118px; background: var(--surface2); cursor: pointer; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .mw-day:hover { border-color: var(--pink-mid); }
+  .mw-day.today { border: 2px solid var(--accent); background: #fff; box-shadow: 0 3px 12px rgba(232,115,154,.22); padding: 5px 5px 7px; }
+  .mw-h { display: flex; align-items: baseline; gap: 4px; padding: 0 2px 4px; border-bottom: 1px dashed var(--border); margin-bottom: 2px; }
+  .mw-h span { font-size: 11px; font-weight: 700; color: var(--text2); }
+  .mw-h b { font-size: 15px; }
+  .mw-h em { font-style: normal; margin-left: auto; font-size: 10px; font-weight: 700; color: #fff; background: var(--accent); border-radius: 99px; padding: 0 7px; }
+  .mw-day.today .mw-h b { color: var(--accent); }
+  .mw-day.sun .mw-h span { color: #e0526b; } .mw-day.sat .mw-h span { color: #4a7bd0; }
+  .mw-ev { font-size: 10.5px; line-height: 1.35; padding: 2px 5px; border-radius: 6px; background: color-mix(in srgb, var(--c) 16%, #fff); border-left: 3px solid var(--c); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mw-ev .t { font-size: 9.5px; color: var(--text2); margin-right: 3px; }
+  .mw-td { display: flex; align-items: center; gap: 4px; font-size: 10.5px; min-width: 0; }
+  .mw-td span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mw-td .ck { width: 12px; height: 12px; border-radius: 4px; border: 1.5px solid var(--c, var(--pink-mid)); background: #fff; flex-shrink: 0; padding: 0; position: relative; }
+  .mw-td.done .ck { background: var(--c, var(--accent)); }
+  .mw-td.done .ck::after { content: ''; position: absolute; left: 3px; top: 0; width: 3px; height: 6px; border: solid #fff; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+  .mw-td.done span { color: var(--text3); text-decoration: line-through; }
+  .mw-empty { color: var(--text3); text-align: center; margin-top: 18px; }
   /* ── 홈 (빈 화면) ── */
   .main-empty { text-align: center; padding: 60px 20px; color: var(--text3); }
   .main-empty .big { font-size: 40px; margin-bottom: 8px; }
@@ -984,7 +1012,21 @@
 <main>
   <!-- ═══════════ 홈 (메인) ═══════════ -->
   <section class="page" id="page-main">
-    <div class="card main-empty"><div class="big"><span class="logo-i" style="width:52px;height:52px;border-radius:16px"><svg style="width:30px;height:30px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.2 12 3.5l8.5 6.7"/><path d="M5.5 8.8V19a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5V8.8"/><path d="M12 17.2s-3.2-1.9-3.2-3.9a1.7 1.7 0 0 1 3.2-.8 1.7 1.7 0 0 1 3.2.8c0 2-3.2 3.9-3.2 3.9z"/></svg></span></div><b>홈은 아직 비어 있어요</b>앞으로 자주 보는 것들을 여기에 모아 둘 거예요</div>
+    <div class="motto"><span class="q">“</span><input id="mottoIn" maxlength="80" placeholder="오늘의 명언이나 목표를 한 줄 적어 보세요" aria-label="오늘의 한 줄"><span class="q">”</span></div>
+    <div class="card">
+      <div class="card-h">
+        <h2>이번 주 스케줄 <span class="sub" id="mwRange"></span></h2>
+        <div class="acts"><button class="btn sm" data-mw="-1" title="지난주">◀</button><button class="btn sm" data-mw="0">이번 주</button><button class="btn sm" data-mw="1" title="다음 주">▶</button></div>
+      </div>
+      <div class="mweek" id="mWeek"></div>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <h2>오늘 외울 단어 <span class="sub" id="mTodaySub"></span></h2>
+        <div class="acts"><button class="btn sm primary" id="mCardToday">🃏 카드로 외우기</button><button class="btn sm" id="mGoWords">단어장 ›</button></div>
+      </div>
+      <div class="wlist" id="mTodayList"></div>
+    </div>
   </section>
 
   <!-- ═══════════ 캘린더 ═══════════ -->
@@ -4176,7 +4218,7 @@ let sb = null, sbUser = null;
 const SYNC_COLLS = ['events', 'dayMemos', 'todos', 'tblocks'];
 function wordSig(w) { const { mt, ...rest } = w; return JSON.stringify(rest); }
 function metaOf() {
-  return { tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder,
+  return { tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder, motto: S.motto || '',
     music: { list: S.music.list, repeat: S.music.repeat, shuffle: S.music.shuffle } };
 }
 const logsSig = () => JSON.stringify([S.reviewLog, S.quizLog]);
@@ -4274,7 +4316,7 @@ function applyPayload(P) {
   if (Array.isArray(m.tags)) S.tags = m.tags;
   if (Array.isArray(m.folders)) S.folders = m.folders;
   if (m.tagFolder && typeof m.tagFolder === 'object') S.tagFolder = m.tagFolder;
-  for (const k of ['goal', 'autoSpeak', 'pageSize', 'bulkOrder']) if (m[k] !== undefined) S[k] = m[k];
+  for (const k of ['goal', 'autoSpeak', 'pageSize', 'bulkOrder', 'motto']) if (m[k] !== undefined) S[k] = m[k];
   if (m.listen) Object.assign(S.listen, m.listen);
   if (m.music) {
     const curId = curItem()?.id;
@@ -4735,6 +4777,7 @@ function renderCal({ passive = false } = {}) {
   const y = scrollY, oldTop = $('#tlScroll')?.scrollTop;
   root.innerHTML = C.view === 'week' ? weekHtml() : C.view === 'day' ? dayHtml() : monthHtml();
   if (!passive) scrollTo(0, y);
+  if ($('#page-main').classList.contains('active')) renderMainHome();   // 홈의 주간 스케줄도 같이
   const sc = $('#tlScroll'), key = C.view + C.sel;
   if (sc && C.scrolled === key && oldTop !== undefined) sc.scrollTop = oldTop;
   if (sc && C.scrolled !== key) {
@@ -5036,6 +5079,47 @@ $('#eDel').addEventListener('click', async () => {
   store.save(); closeEv(); renderCal(); toast('삭제했어요');
 });
 
+/* ═════════════════ 홈 (메인) ═════════════════ */
+let mwOff = 0;                 // 주간 스케줄: 이번 주에서 몇 주 앞/뒤
+function renderMainHome() {
+  const inp = $('#mottoIn');
+  if (document.activeElement !== inp) inp.value = S.motto || '';
+  const today = dkey(), base = calAdd(today, 7 * mwOff), s0 = calAdd(base, -pd(base).getDay());
+  const days = Array.from({ length: 7 }, (_, i) => calAdd(s0, i)), a = pd(days[0]), b = pd(days[6]);
+  $('#mwRange').textContent = `${a.getMonth() + 1}/${a.getDate()} – ${b.getMonth() + 1}/${b.getDate()}`;
+  $('#mWeek').innerHTML = days.map(d => {
+    const dt = pd(d), wd = dt.getDay(), [evs, tds] = splitEv(eventsOn(d));
+    return `<div class="mw-day${d === today ? ' today' : ''}${wd === 0 ? ' sun' : wd === 6 ? ' sat' : ''}" data-mwday="${d}" title="눌러서 이날 자세히 보기">
+      <div class="mw-h"><span>${DOW[wd]}</span><b>${dt.getDate()}</b>${d === today ? '<em>오늘</em>' : ''}</div>
+      ${evs.map(o => `<div class="mw-ev" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}"><span class="t">${o.ev.allDay ? '' : o.ev.start}</span>${evName(o.ev)}</div>`).join('')}
+      ${tds.map(o => `<div class="mw-td${isDone(o.ev, o.s) ? ' done' : ''}" style="--c:${o.ev.color}"><button class="ck" data-done="${o.ev.id}" data-s="${o.s}" aria-label="완료"></button><span data-ev="${o.ev.id}" data-s="${o.s}">${evName(o.ev)}</span></div>`).join('')}
+      ${!evs.length && !tds.length ? '<div class="mw-empty">·</div>' : ''}</div>`;
+  }).join('');
+  const ws = pickToday().map(byId).filter(Boolean), doneN = ws.filter(w => w.memorized).length;
+  $('#mTodaySub').textContent = ws.length ? `${doneN} / ${ws.length} 완료` : '';
+  $('#mCardToday').disabled = !ws.length;
+  $('#mTodayList').innerHTML = listHtml(ws, {}, S.words.length ? '못 외운 단어가 없어요! 🎉' : '단어장에 단어를 먼저 등록해 주세요');
+  const mw = $('#mWeek'), w = $('#mWeek .today');      // 폰(가로 스크롤)에선 오늘 칸이 가운데 오게
+  if (w && mw.scrollWidth > mw.clientWidth) mw.scrollLeft = w.offsetLeft - mw.offsetLeft - (mw.clientWidth - w.offsetWidth) / 2;
+}
+let mottoT = null;
+$('#mottoIn').addEventListener('input', e => { clearTimeout(mottoT); const v = e.target.value; mottoT = setTimeout(() => { S.motto = v.trim(); store.save(); }, 400); });
+$('#mottoIn').addEventListener('change', e => { clearTimeout(mottoT); S.motto = e.target.value.trim(); store.save(); });
+$('#mottoIn').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
+$('#page-main').addEventListener('click', e => {
+  const t = e.target;
+  const nv = t.closest('[data-mw]');
+  if (nv) { const k = +nv.dataset.mw; mwOff = k ? mwOff + k : 0; return renderMainHome(); }
+  const dn = t.closest('[data-done]');
+  if (dn) { const ev = S.events.find(x => x.id === dn.dataset.done); if (ev) { toggleDone(ev, dn.dataset.s); store.save(); renderMainHome(); } return; }
+  const ev = t.closest('#mWeek [data-ev]');
+  if (ev) return openEv(ev.dataset.ev, ev.dataset.s);
+  const day = t.closest('[data-mwday]');
+  if (day) { C.sel = day.dataset.mwday; return setCalView('day'); }
+});
+$('#mCardToday').addEventListener('click', () => $('#cardToday').click());
+$('#mGoWords').addEventListener('click', () => showTab('home'));
+
 /* ═════════════════ 메인 메뉴 (왼쪽) ═════════════════ */
 const SEC_OF = { main: 'main', cal: 'cal', home: 'words', words: 'words', quiz: 'words', notes: 'words' };
 const SEC_ICON = {"main": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3.5 10.2 12 3.5l8.5 6.7\"/><path d=\"M5.5 8.8V19a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5V8.8\"/><path d=\"M12 17.2s-3.2-1.9-3.2-3.9a1.7 1.7 0 0 1 3.2-.8 1.7 1.7 0 0 1 3.2.8c0 2-3.2 3.9-3.2 3.9z\"/></svg>", "cal": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3.5\" y=\"5\" width=\"17\" height=\"15.5\" rx=\"3.5\"/><path d=\"M3.5 10h17M8.5 3v4M15.5 3v4\"/><path d=\"M12 17.6s-2.4-1.4-2.4-2.9a1.25 1.25 0 0 1 2.4-.6 1.25 1.25 0 0 1 2.4.6c0 1.5-2.4 2.9-2.4 2.9z\"/></svg>", "words": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 6.6C10 5.1 7 4.6 3.5 5.1v13.6c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5.1C17 4.6 14 5.1 12 6.6z\"/><path d=\"M12 6.6v13.6\"/><path d=\"M6.5 9.2c1.2-.1 2.3.1 3.2.5M6.5 12.2c1.2-.1 2.3.1 3.2.5\"/></svg>"};
@@ -5061,6 +5145,7 @@ function renderAll() {
   renderHome(); renderWords(); renderQuizSetup();
   if ($('#page-notes').classList.contains('active')) renderNotes();
   if ($('#page-cal').classList.contains('active')) renderCal({ passive: true });
+  if ($('#page-main').classList.contains('active')) renderMainHome();
   if (Q && $('#quizResult').style.display !== 'none') renderResultWrong();
 }
 initPlayer();
