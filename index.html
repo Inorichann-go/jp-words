@@ -751,28 +751,18 @@
   .mw-td.done .ck::after { content: ''; position: absolute; left: 3px; top: 0; width: 3px; height: 6px; border: solid #fff; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
   .mw-td.done span { color: var(--text3); text-decoration: line-through; }
   .mw-empty { color: var(--text3); text-align: center; margin-top: 18px; }
-  .m-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: stretch; margin-bottom: 12px; }
-  .m-row > .card { margin-bottom: 0; }
-  @media (max-width: 640px) { .m-row { grid-template-columns: 1fr; } }
-  .mwl { display: flex; flex-direction: column; gap: 4px; }
-  .mwi { display: flex; align-items: baseline; gap: 10px; padding: 6px 10px; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); min-width: 0; }
-  .mwi .w { font-size: 16px; font-weight: 700; flex-shrink: 0; max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .mwi .m { font-size: 12px; color: var(--text2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .mwi.done { background: var(--success-light); border-color: #c5ecd9; }
-  .mwi.done .w { color: var(--success); }
-  .m-img { position: relative; padding: 0; overflow: hidden; min-height: 220px; display: flex; }
-  .m-img img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; inset: 0; }
-  .m-img img[hidden] { display: none; }
-  .m-img-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; margin: 10px; border: 2px dashed var(--pink-mid); border-radius: 12px; color: var(--text2); font-size: 12px; cursor: pointer; background: var(--surface2); }
-  .m-img-empty:hover { background: var(--accent-light); }
-  .m-img-empty b { font-size: 26px; color: var(--accent); line-height: 1; }
-  .m-img-empty small { font-size: 10px; color: var(--text3); }
-  .m-img-empty[hidden] { display: none; }
-  .m-img-acts { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
-  .m-img:hover .m-img-acts { opacity: 1; }
-  @media (hover: none) { .m-img-acts { opacity: 1; } }
-  .m-img-acts[hidden] { display: none; }
-  .m-img-acts .btn { background: rgba(255,255,255,.92); }
+  .cal-img { margin-top: 12px; border-radius: 12px; overflow: hidden; position: relative; }
+  .cal-img img { width: 100%; height: auto; display: block; max-height: 420px; object-fit: cover; }
+  .cal-img-empty { aspect-ratio: 4 / 5; max-height: 340px; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    border: 2px dashed var(--pink-mid); border-radius: 12px; color: var(--text2); font-size: 12px; cursor: pointer; background: var(--surface2); }
+  .cal-img-empty:hover { background: var(--accent-light); }
+  .cal-img-empty b { font-size: 26px; color: var(--accent); line-height: 1; }
+  .cal-img-empty small { font-size: 10px; color: var(--text3); }
+  .cal-img-acts { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+  .cal-img:hover .cal-img-acts { opacity: 1; }
+  @media (hover: none) { .cal-img-acts { opacity: 1; } }
+  .cal-img-acts .btn { background: rgba(255,255,255,.92); }
+  @media (max-width: 820px) { .cal-img { max-width: 320px; margin-left: auto; margin-right: auto; } }
   /* 공휴일 */
   .mcell.hol .dn, .wk-day.hol .wk-date b, .wk-day.hol .wk-date span, .mw-day.hol .mw-h span, .mw-day.hol .mw-h b { color: #e0526b; }
   .mcell.today.hol .dn { color: #fff; }
@@ -1050,25 +1040,17 @@
       </div>
       <div class="mweek" id="mWeek"></div>
     </div>
-    <div class="m-row">
-      <div class="card m-words">
-        <div class="card-h">
-          <h2>오늘 외울 단어 <span class="sub" id="mTodaySub"></span></h2>
-          <div class="acts"><button class="btn sm primary" id="mCardToday">🃏 카드</button><button class="btn sm" id="mGoWords">단어장 ›</button></div>
-        </div>
-        <div class="mwl" id="mTodayList"></div>
+    <div class="card">
+      <div class="card-h">
+        <h2>오늘 외울 단어 <span class="sub" id="mTodaySub"></span></h2>
+        <div class="acts"><button class="btn sm primary" id="mCardToday">🃏 카드로 외우기</button><button class="btn sm" id="mGoWords">단어장 ›</button></div>
       </div>
-      <div class="card m-img" id="mImgBox">
-        <div class="m-img-empty" id="mImgEmpty"><b>＋</b>원하는 이미지를 넣어 보세요<small>사진·배경화면·좋아하는 그림 등</small></div>
-        <img id="mImg" alt="" hidden>
-        <div class="m-img-acts" id="mImgActs" hidden><button class="btn sm" id="mImgChange">바꾸기</button><button class="btn sm danger" id="mImgDel">삭제</button></div>
-        <input type="file" id="mImgFile" accept="image/*" hidden>
-      </div>
+      <div class="wlist" id="mTodayList"></div>
     </div>
   </section>
 
   <!-- ═══════════ 캘린더 ═══════════ -->
-  <section class="page" id="page-cal"><div id="calRoot"></div></section>
+  <section class="page" id="page-cal"><div id="calRoot"></div><input type="file" id="calImgFile" accept="image/*" hidden></section>
 
 
   <!-- ═══════════ 단어장 · 학습홈 ═══════════ -->
@@ -4256,7 +4238,7 @@ let sb = null, sbUser = null;
 const SYNC_COLLS = ['events', 'dayMemos', 'todos', 'tblocks'];
 function wordSig(w) { const { mt, ...rest } = w; return JSON.stringify(rest); }
 function metaOf() {
-  return { tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder, motto: S.motto || '', homeImg: S.homeImg || '',
+  return { tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder, motto: S.motto || '', calImg: S.calImg || '',
     music: { list: S.music.list, repeat: S.music.repeat, shuffle: S.music.shuffle } };
 }
 const logsSig = () => JSON.stringify([S.reviewLog, S.quizLog]);
@@ -4354,7 +4336,8 @@ function applyPayload(P) {
   if (Array.isArray(m.tags)) S.tags = m.tags;
   if (Array.isArray(m.folders)) S.folders = m.folders;
   if (m.tagFolder && typeof m.tagFolder === 'object') S.tagFolder = m.tagFolder;
-  for (const k of ['goal', 'autoSpeak', 'pageSize', 'bulkOrder', 'motto', 'homeImg']) if (m[k] !== undefined) S[k] = m[k];
+  for (const k of ['goal', 'autoSpeak', 'pageSize', 'bulkOrder', 'motto', 'calImg']) if (m[k] !== undefined) S[k] = m[k];
+  if (m.homeImg && !S.calImg) S.calImg = m.homeImg;         // 예전 버전 기기에서 온 홈 이미지
   if (m.listen) Object.assign(S.listen, m.listen);
   if (m.music) {
     const curId = curItem()?.id;
@@ -4754,7 +4737,10 @@ function dayPanel(d) {
     <div class="wk-sub">할 일 <span class="muted">${tds.filter(o => isDone(o.ev, o.s)).length}/${tds.length}</span></div>
     ${tds.length ? todoBlock(tds, d, false) : '<div class="empty">할 일이 없어요</div>'}
     ${mm?.text ? `<div class="wk-sub">메모</div><div class="dmemo-prev" data-goday="${d}" title="눌러서 메모 쓰기">${esc(mm.text)}</div>` : ''}
-    <div class="acts" style="margin-top:10px"><button class="btn" data-cadd-day="${d}">＋ 일정 · 할 일</button><button class="btn" data-goday="${d}">이날 자세히 보기 ›</button></div></div>`;
+    <div class="acts" style="margin-top:10px"><button class="btn" data-cadd-day="${d}">＋ 일정 · 할 일</button><button class="btn" data-goday="${d}">이날 자세히 보기 ›</button></div>
+    <div class="cal-img">${S.calImg
+      ? `<img src="${S.calImg}" alt=""><div class="cal-img-acts"><button class="btn sm" data-calimg="pick">바꾸기</button><button class="btn sm danger" data-calimg="del">삭제</button></div>`
+      : '<div class="cal-img-empty" data-calimg="pick"><b>＋</b>원하는 이미지를 넣어 보세요<small>좋아하는 사진·그림 등</small></div>'}</div></div>`;
 }
 // 겹치는 일정은 옆으로 나란히
 function layoutDay(list) {
@@ -4890,6 +4876,12 @@ $('#calRoot').addEventListener('click', e => {
   }
   if (t.closest('[data-cadd]')) return openEv(null, C.sel);
   if (t.closest('[data-bd-add]')) return openBd(null, C.sel);
+  const ci = t.closest('[data-calimg]');
+  if (ci) {
+    if (ci.dataset.calimg === 'pick') return $('#calImgFile').click();
+    return ask({ title: '이미지를 지울까요?', html: '다시 넣고 싶으면 언제든 새로 고르면 돼요.', choices: [{ v: 'del', label: '🗑 삭제', cls: 'solid-danger' }] })
+      .then(v => { if (v) { S.calImg = ''; store.save(); renderCal(); } });
+  }
   const ad = t.closest('[data-cadd-day]');
   if (ad) return openEv(null, ad.dataset.caddDay);
   const at = t.closest('[data-cadd-todo]');
@@ -5180,11 +5172,7 @@ function renderMainHome() {
   const ws = pickToday().map(byId).filter(Boolean), doneN = ws.filter(w => w.memorized).length;
   $('#mTodaySub').textContent = ws.length ? `${doneN} / ${ws.length} 완료` : '';
   $('#mCardToday').disabled = !ws.length;
-  $('#mTodayList').innerHTML = ws.length ? ws.map(w => `<div class="mwi${w.memorized ? ' done' : ''}"><span class="w jp">${esc(w.word)}</span><span class="m">${esc(w.meaning)}</span></div>`).join('')
-    : `<div class="empty">${S.words.length ? '못 외운 단어가 없어요! 🎉' : '단어장에 단어를 먼저 등록해 주세요'}</div>`;
-  const img = S.homeImg || '';
-  $('#mImg').hidden = !img; $('#mImgActs').hidden = !img; $('#mImgEmpty').hidden = !!img;
-  if (img && $('#mImg').getAttribute('src') !== img) $('#mImg').src = img;
+  $('#mTodayList').innerHTML = listHtml(ws, {}, S.words.length ? '못 외운 단어가 없어요! 🎉' : '단어장에 단어를 먼저 등록해 주세요');
   const mw = $('#mWeek'), w = $('#mWeek .today');      // 폰(가로 스크롤)에선 오늘 칸이 가운데 오게
   if (w && mw.scrollWidth > mw.clientWidth) mw.scrollLeft = w.offsetLeft - mw.offsetLeft - (mw.clientWidth - w.offsetWidth) / 2;
 }
@@ -5204,18 +5192,13 @@ $('#page-main').addEventListener('click', e => {
   if (day) { C.sel = day.dataset.mwday; return setCalView('day'); }
 });
 $('#mCardToday').addEventListener('click', () => $('#cardToday').click());
-// 홈 이미지: 폰 사진도 넣을 수 있게 줄여서(최대 1200px) 저장, 동기화에도 포함
-$('#mImgEmpty').addEventListener('click', () => $('#mImgFile').click());
-$('#mImgChange').addEventListener('click', () => $('#mImgFile').click());
-$('#mImgFile').addEventListener('change', async e => {
+// 캘린더 월간 오른쪽 칸 아래 이미지: 폰 사진도 넣을 수 있게 줄여서(최대 1200px) 저장, 동기화에도 포함
+if (S.homeImg && !S.calImg) S.calImg = S.homeImg;      // 잠깐 있었던 홈 이미지 칸에 넣은 사진은 여기로
+delete S.homeImg;
+$('#calImgFile').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  try { S.homeImg = (await loadImg(f)).src; store.save(); renderMainHome(); toast('이미지를 넣었어요'); }
+  try { S.calImg = (await loadImg(f)).src; store.save(); renderCal(); toast('이미지를 넣었어요'); }
   catch { toast('이미지를 열 수 없어요'); }
-});
-$('#mImgDel').addEventListener('click', async () => {
-  const v = await ask({ title: '홈 이미지를 지울까요?', html: '다시 넣고 싶으면 언제든 새로 고르면 돼요.', choices: [{ v: 'del', label: '🗑 삭제', cls: 'solid-danger' }] });
-  if (!v) return;
-  S.homeImg = ''; store.save(); renderMainHome();
 });
 $('#mGoWords').addEventListener('click', () => showTab('home'));
 
