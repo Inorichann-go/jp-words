@@ -818,6 +818,8 @@
   .tl-ev.done b { text-decoration: line-through; color: var(--text3); }
   .tck { display: inline-block; width: 8px; height: 8px; border: 1.5px solid var(--c, var(--accent)); border-radius: 2px; margin-right: 4px; vertical-align: 0; }
   .tl-ev.done .tck { background: var(--c); }
+  .bd-btn { border-color: #f6c7a6; color: #c8642b; background: #fff7f1; }
+  .bd-btn:hover { background: #ffeadb; }
   .kind-seg { display: flex; border: 1px solid var(--border); border-radius: 99px; overflow: hidden; background: var(--surface2); }
   .kind-seg button { flex: 1; border: none; background: none; padding: 7px 0; font-size: 12px; font-weight: 700; color: var(--text2); }
   .kind-seg button small { font-weight: 400; font-size: 10px; }
@@ -1227,6 +1229,26 @@
 </main>
 
 <!-- ═══════════ 단어 추가/수정 팝업 ═══════════ -->
+<div class="modal" id="bdModal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="bdTitle" style="max-width:380px">
+    <div class="card-h">
+      <h2 id="bdTitle">🎂 생일 추가</h2>
+      <button class="ic" id="bdClose" title="닫기">✕</button>
+    </div>
+    <form class="form ev-form" id="bdForm" autocomplete="off">
+      <label class="full">누구 생일? * <input id="bName" required placeholder="예) 엄마, 지민" maxlength="30"></label>
+      <label class="full">생일 날짜 * <input type="date" id="bDate" required></label>
+      <label class="full">메모 <textarea id="bMemo" rows="2" placeholder="선물 아이디어 등"></textarea></label>
+      <div class="full ev-note">매년 같은 날짜에 하루 종일 일정으로 표시돼요.</div>
+      <div class="form-actions">
+        <button type="button" class="btn danger" id="bDel">🗑 삭제</button>
+        <span style="flex:1"></span>
+        <button type="button" class="btn" id="bCancel">취소</button>
+        <button class="btn primary">저장</button>
+      </div>
+    </form>
+  </div>
+</div>
 <div class="modal" id="tbModal" hidden>
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="tbTitle">
     <div class="card-h">
@@ -4537,6 +4559,8 @@ const MOODS = [
   { k: 2, l: '별로', c: '#9fc7e8' }, { k: 1, l: '힘듦', c: '#b7a6d9' }];
 const moodOf = k => MOODS.find(m => m.k === k);
 // 할 일도 일정과 같은 S.events에 들어감 (todo: true, dn: 완료한 날짜들). 반복·색·메모 모두 일정과 같음
+// 생일은 🎂 붙여서 표시
+const evName = ev => (ev.bday ? '🎂 ' : '') + esc(ev.title);
 const isDone = (ev, s) => !!(ev.dn && ev.dn.includes(s));
 function toggleDone(ev, s) { ev.dn = isDone(ev, s) ? ev.dn.filter(x => x !== s) : [...(ev.dn || []), s]; }
 const splitEv = list => [list.filter(o => !o.ev.todo), list.filter(o => o.ev.todo)];
@@ -4564,11 +4588,11 @@ function goalList(key) {
 }
 
 // ── 그리기 ──
-const evChip = o => `<span class="ev ${o.ev.allDay ? 'allday' : ''}" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}" title="${esc(o.ev.title)}">${o.ev.allDay ? '' : `<span class="t">${o.ev.start}</span>`}${esc(o.ev.title)}</span>`;
+const evChip = o => `<span class="ev ${o.ev.allDay ? 'allday' : ''}" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}" title="${evName(o.ev)}">${o.ev.allDay ? '' : `<span class="t">${o.ev.start}</span>`}${evName(o.ev)}</span>`;
 const mTodo = o => `<span class="mtd lab${isDone(o.ev, o.s) ? ' done' : ''}" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}" title="${esc(o.ev.title)}">${esc(o.ev.title)}</span>`;
 const dItem = o => `<div class="ditem" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}">
   <div class="tm">${tmLabel(o.ev)}</div>
-  <div><div class="nm">${esc(o.ev.title)}${isRep(o.ev) ? `<span class="rp">· ${repLabel(o.ev)}</span>` : ''}</div>${o.ev.memo ? `<div class="mm">${esc(o.ev.memo)}</div>` : ''}</div></div>`;
+  <div><div class="nm">${evName(o.ev)}${isRep(o.ev) ? `<span class="rp">· ${repLabel(o.ev)}</span>` : ''}</div>${o.ev.memo ? `<div class="mm">${esc(o.ev.memo)}</div>` : ''}</div></div>`;
 const todoRow = o => `<li class="lab${isDone(o.ev, o.s) ? ' done' : ''}" style="--c:${o.ev.color}">
     <button class="ck" data-done="${o.ev.id}" data-s="${o.s}" aria-label="${isDone(o.ev, o.s) ? '완료 취소' : '완료'}"></button>
     <span class="tx" data-ev="${o.ev.id}" data-s="${o.s}" title="눌러서 수정">${o.ev.allDay ? '' : `<em>${o.ev.start}</em>`}${esc(o.ev.title)}${isRep(o.ev) ? ' <i class="rpi" title="' + esc(repLabel(o.ev)) + '">반복</i>' : ''}</span></li>`;
@@ -4580,6 +4604,7 @@ function calBar(title, sub = '') {
     <button class="cal-nav" data-cnav="1" title="다음">▶</button>
     <button class="btn sm" data-cnav="0">오늘</button>
     <span class="sp"></span>
+    <button class="btn bd-btn" data-bd-add>🎂 생일</button>
     <button class="btn primary" data-cadd>＋ 일정 · 할 일</button></div>`;
 }
 function monthHtml() {
@@ -4647,7 +4672,7 @@ function weekHtml() {
       <div class="wk-h"><button class="wk-date" data-goday="${d}" title="이날 자세히 보기"><b>${dt.getDate()}</b><span>${DOW[wd]}요일</span></button>
         ${mm?.mood ? `<span class="mood-pill" style="--c:${moodOf(mm.mood).c}">${moodOf(mm.mood).l}</span>` : ''}
         <button class="wk-add" data-cadd-day="${d}" title="일정 · 할 일 추가">＋</button></div>
-      ${evs.length ? `<div class="wk-evs">${evs.map(o => `<div class="wk-ev" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}"><span class="t">${o.ev.allDay ? '종일' : o.ev.start}</span><span class="n">${esc(o.ev.title)}</span></div>`).join('')}</div>` : ''}
+      ${evs.length ? `<div class="wk-evs">${evs.map(o => `<div class="wk-ev" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}"><span class="t">${o.ev.allDay ? '종일' : o.ev.start}</span><span class="n">${evName(o.ev)}</span></div>`).join('')}</div>` : ''}
       ${tds.length ? `<ul class="todo">${tds.map(todoRow).join('')}</ul>` : ''}
       ${mm?.text ? `<div class="wk-memo" data-goday="${d}">${esc(mm.text)}</div>` : ''}
     </div>`;
@@ -4669,7 +4694,7 @@ function upcomingHtml(from) {
     const d = calAdd(from, i);
     for (const o of eventsOn(d)) if (out.length < 6 && !(o.ev.todo && isDone(o.ev, o.s))) out.push({ ...o, d });
   }
-  return out.length ? out.map(o => `<div class="up-row" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}"><span class="dd">${pd(o.d).getMonth() + 1}/${pd(o.d).getDate()} ${DOW[pd(o.d).getDay()]}</span><span class="n">${o.ev.todo ? '<i class="tck"></i>' : ''}${esc(o.ev.title)}</span><span class="t">${o.ev.allDay ? (o.ev.todo ? '할 일' : '종일') : o.ev.start}</span></div>`).join('')
+  return out.length ? out.map(o => `<div class="up-row" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}"><span class="dd">${pd(o.d).getMonth() + 1}/${pd(o.d).getDate()} ${DOW[pd(o.d).getDay()]}</span><span class="n">${o.ev.todo ? '<i class="tck"></i>' : ''}${evName(o.ev)}</span><span class="t">${o.ev.allDay ? (o.ev.todo ? '할 일' : '종일') : o.ev.start}</span></div>`).join('')
     : '<div class="empty">2주 안에 잡힌 일정이 없어요</div>';
 }
 const leftovers = d => splitEv(eventsOn(calAdd(d, -1)))[1].filter(o => !isRep(o.ev) && !isDone(o.ev, o.s));
@@ -4740,6 +4765,7 @@ $('#calRoot').addEventListener('click', e => {
     return renderCal();
   }
   if (t.closest('[data-cadd]')) return openEv(null, C.sel);
+  if (t.closest('[data-bd-add]')) return openBd(null, C.sel);
   const ad = t.closest('[data-cadd-day]');
   if (ad) return openEv(null, ad.dataset.caddDay);
   const at = t.closest('[data-cadd-todo]');
@@ -4860,12 +4886,53 @@ $('#tDel').addEventListener('click', async () => {
   store.save(); closeTb(); renderCal(); toast('삭제했어요');
 });
 
+// ── 생일 추가 · 수정 창 (매년 반복되는 하루 종일 일정으로 저장) ──
+const BD_COLOR = '#f08a4b';
+let BDE = null;
+function openBd(id, day) {
+  const x = id ? S.events.find(e => e.id === id) : null;
+  BDE = { edit: x };
+  $('#bdTitle').textContent = x ? '🎂 생일 수정' : '🎂 생일 추가';
+  $('#bName').value = x ? x.bday : '';
+  $('#bDate').value = x ? x.date : (day || dkey());
+  $('#bMemo').value = x ? (x.memo || '') : '';
+  $('#bDel').hidden = !x;
+  $('#bdModal').hidden = false; document.body.classList.add('modal-open');
+  if (!x) setTimeout(() => $('#bName').focus(), 30);
+}
+function closeBd() {
+  $('#bdModal').hidden = true; BDE = null;
+  if ($$('.modal').every(m => m.hidden)) document.body.classList.remove('modal-open');
+}
+$('#bdClose').addEventListener('click', closeBd);
+$('#bCancel').addEventListener('click', closeBd);
+$('#bdModal').addEventListener('click', e => { if (e.target.id === 'bdModal') closeBd(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#bdModal').hidden && $('#askModal').hidden) closeBd(); });
+$('#bdForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = $('#bName').value.trim().replace(/\s*생일$/, ''); if (!name) return $('#bName').focus();
+  const date = $('#bDate').value || dkey();
+  const data = { title: `${name} 생일`, bday: name, date, endDate: '', allDay: true, start: '', end: '', color: BDE.edit?.color || BD_COLOR,
+    memo: $('#bMemo').value.trim(), rep: { f: 'yearly', n: 1 }, todo: false };
+  if (BDE.edit) Object.assign(BDE.edit, data);
+  else S.events.push({ id: uid(), created: Date.now(), ex: [], ...data });
+  store.save(); closeBd(); renderCal(); toast(`${name} 생일을 저장했어요 · 매년 표시돼요`);
+});
+$('#bDel').addEventListener('click', async () => {
+  const x = BDE?.edit; if (!x) return;
+  const v = await ask({ title: `'${x.bday}' 생일을 삭제할까요?`, html: '매년 표시되던 생일이 모두 지워져요.' + syncWarn(), choices: [{ v: 'del', label: '🗑 삭제', cls: 'solid-danger' }] });
+  if (!v) return;
+  S.events = S.events.filter(e => e !== x);
+  store.save(); closeBd(); renderCal(); toast('삭제했어요');
+});
+
 // ── 일정 · 할 일 추가 · 수정 창 ──
 let EVD = null;            // 편집 중인 값 (종류·색·요일)
 const kindName = () => EVD?.todo ? '할 일' : '일정';
 function openEv(id, day, preset = {}) {
   const ev = id ? S.events.find(x => x.id === id) : null;
   if (id && !ev) return;
+  if (ev?.bday) return openBd(ev.id);           // 생일은 생일 창에서 고치기
   C.edit = ev; C.occ = day;
   const h = Math.min(22, new Date().getHours() + 1);
   EVD = ev ? { ...ev, rep: { f: 'none', n: 1, days: [], until: '', ...(ev.rep || {}) } }
