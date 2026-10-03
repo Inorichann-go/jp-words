@@ -751,6 +751,36 @@
   .mw-td.done .ck::after { content: ''; position: absolute; left: 3px; top: 0; width: 3px; height: 6px; border: solid #fff; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
   .mw-td.done span { color: var(--text3); text-decoration: line-through; }
   .mw-empty { color: var(--text3); text-align: center; margin-top: 18px; }
+  .m-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: stretch; margin-bottom: 12px; }
+  .m-row > .card { margin-bottom: 0; }
+  @media (max-width: 640px) { .m-row { grid-template-columns: 1fr; } }
+  .mwl { display: flex; flex-direction: column; gap: 4px; }
+  .mwi { display: flex; align-items: baseline; gap: 10px; padding: 6px 10px; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); min-width: 0; }
+  .mwi .w { font-size: 16px; font-weight: 700; flex-shrink: 0; max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mwi .m { font-size: 12px; color: var(--text2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mwi.done { background: var(--success-light); border-color: #c5ecd9; }
+  .mwi.done .w { color: var(--success); }
+  .m-img { position: relative; padding: 0; overflow: hidden; min-height: 220px; display: flex; }
+  .m-img img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; inset: 0; }
+  .m-img img[hidden] { display: none; }
+  .m-img-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; margin: 10px; border: 2px dashed var(--pink-mid); border-radius: 12px; color: var(--text2); font-size: 12px; cursor: pointer; background: var(--surface2); }
+  .m-img-empty:hover { background: var(--accent-light); }
+  .m-img-empty b { font-size: 26px; color: var(--accent); line-height: 1; }
+  .m-img-empty small { font-size: 10px; color: var(--text3); }
+  .m-img-empty[hidden] { display: none; }
+  .m-img-acts { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+  .m-img:hover .m-img-acts { opacity: 1; }
+  @media (hover: none) { .m-img-acts { opacity: 1; } }
+  .m-img-acts[hidden] { display: none; }
+  .m-img-acts .btn { background: rgba(255,255,255,.92); }
+  /* 공휴일 */
+  .mcell.hol .dn, .wk-day.hol .wk-date b, .wk-day.hol .wk-date span, .mw-day.hol .mw-h span, .mw-day.hol .mw-h b { color: #e0526b; }
+  .mcell.today.hol .dn { color: #fff; }
+  .hname { display: block; font-size: 9.5px; font-weight: 700; color: #e0526b; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mcell .hname { display: inline; margin-left: 3px; }
+  .wk-date .hname { display: inline; font-style: normal; margin-left: 2px; }
+  @media (max-width: 520px) { .mcell .hname { display: block; margin: 0; font-size: 8px; } }
+  .hol-pill { font-size: 10px; font-weight: 700; color: #e0526b; background: #ffe9ec; border-radius: 99px; padding: 1px 8px; margin-left: 4px; vertical-align: 2px; }
   /* ── 홈 (빈 화면) ── */
   .main-empty { text-align: center; padding: 60px 20px; color: var(--text3); }
   .main-empty .big { font-size: 40px; margin-bottom: 8px; }
@@ -1020,12 +1050,20 @@
       </div>
       <div class="mweek" id="mWeek"></div>
     </div>
-    <div class="card">
-      <div class="card-h">
-        <h2>오늘 외울 단어 <span class="sub" id="mTodaySub"></span></h2>
-        <div class="acts"><button class="btn sm primary" id="mCardToday">🃏 카드로 외우기</button><button class="btn sm" id="mGoWords">단어장 ›</button></div>
+    <div class="m-row">
+      <div class="card m-words">
+        <div class="card-h">
+          <h2>오늘 외울 단어 <span class="sub" id="mTodaySub"></span></h2>
+          <div class="acts"><button class="btn sm primary" id="mCardToday">🃏 카드</button><button class="btn sm" id="mGoWords">단어장 ›</button></div>
+        </div>
+        <div class="mwl" id="mTodayList"></div>
       </div>
-      <div class="wlist" id="mTodayList"></div>
+      <div class="card m-img" id="mImgBox">
+        <div class="m-img-empty" id="mImgEmpty"><b>＋</b>원하는 이미지를 넣어 보세요<small>사진·배경화면·좋아하는 그림 등</small></div>
+        <img id="mImg" alt="" hidden>
+        <div class="m-img-acts" id="mImgActs" hidden><button class="btn sm" id="mImgChange">바꾸기</button><button class="btn sm danger" id="mImgDel">삭제</button></div>
+        <input type="file" id="mImgFile" accept="image/*" hidden>
+      </div>
     </div>
   </section>
 
@@ -4218,7 +4256,7 @@ let sb = null, sbUser = null;
 const SYNC_COLLS = ['events', 'dayMemos', 'todos', 'tblocks'];
 function wordSig(w) { const { mt, ...rest } = w; return JSON.stringify(rest); }
 function metaOf() {
-  return { tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder, motto: S.motto || '',
+  return { tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder, motto: S.motto || '', homeImg: S.homeImg || '',
     music: { list: S.music.list, repeat: S.music.repeat, shuffle: S.music.shuffle } };
 }
 const logsSig = () => JSON.stringify([S.reviewLog, S.quizLog]);
@@ -4316,7 +4354,7 @@ function applyPayload(P) {
   if (Array.isArray(m.tags)) S.tags = m.tags;
   if (Array.isArray(m.folders)) S.folders = m.folders;
   if (m.tagFolder && typeof m.tagFolder === 'object') S.tagFolder = m.tagFolder;
-  for (const k of ['goal', 'autoSpeak', 'pageSize', 'bulkOrder', 'motto']) if (m[k] !== undefined) S[k] = m[k];
+  for (const k of ['goal', 'autoSpeak', 'pageSize', 'bulkOrder', 'motto', 'homeImg']) if (m[k] !== undefined) S[k] = m[k];
   if (m.listen) Object.assign(S.listen, m.listen);
   if (m.music) {
     const curId = curItem()?.id;
@@ -4601,6 +4639,49 @@ const MOODS = [
   { k: 2, l: '별로', c: '#9fc7e8' }, { k: 1, l: '힘듦', c: '#b7a6d9' }];
 const moodOf = k => MOODS.find(m => m.k === k);
 // 할 일도 일정과 같은 S.events에 들어감 (todo: true, dn: 완료한 날짜들). 반복·색·메모 모두 일정과 같음
+// ── 공휴일 (대한민국) ──
+// 양력 공휴일은 매년 계산, 설날·추석·부처님오신날(음력)은 2024~2030년 표. 대체공휴일은 규칙대로 계산.
+// 선거일·임시공휴일처럼 정부가 그때그때 정하는 휴일은 들어 있지 않음
+const LUNAR_HOL = {
+  2024: { seol: '02-10', chu: '09-17', bud: '05-15' }, 2025: { seol: '01-29', chu: '10-06', bud: '05-05' },
+  2026: { seol: '02-17', chu: '09-25', bud: '05-24' }, 2027: { seol: '02-07', chu: '09-15', bud: '05-13' },
+  2028: { seol: '01-27', chu: '10-03', bud: '05-02' }, 2029: { seol: '02-13', chu: '09-22', bud: '05-20' },
+  2030: { seol: '02-03', chu: '09-12', bud: '05-09' }
+};
+const holCache = {};
+function holidaysOf(y) {
+  if (holCache[y]) return holCache[y];
+  const H = {}, add = (d, n) => { (H[d] = H[d] || []).push(n); };
+  const ymd = md => `${y}-${md}`;
+  const singles = [['01-01', '신정', 0], ['03-01', '삼일절', 1], ['05-05', '어린이날', 1], ['06-06', '현충일', 0],
+    ['08-15', '광복절', 1], ['10-03', '개천절', 1], ['10-09', '한글날', 1], ['12-25', '성탄절', 1]];
+  singles.forEach(([md, n]) => add(ymd(md), n));
+  const L = LUNAR_HOL[y], groups = [];
+  if (L) {
+    for (const [k, n] of [['seol', '설날'], ['chu', '추석']]) {
+      const c = ymd(L[k]), g = [calAdd(c, -1), c, calAdd(c, 1)];
+      g.forEach((d, i) => add(d, i === 1 ? n : n + ' 연휴')); groups.push(g);
+    }
+    add(ymd(L.bud), '부처님오신날');
+  }
+  const isHol = d => !!H[d], dow = d => pd(d).getDay();
+  const nextFree = d => { let x = calAdd(d, 1); while (isHol(x) || dow(x) === 0 || dow(x) === 6) x = calAdd(x, 1); return x; };
+  const inGroup = new Set(groups.flat());
+  const subs = [];
+  // 설날·추석: 연휴 중 일요일이 있거나 다른 공휴일과 겹치면 연휴 다음 첫 평일
+  for (const g of groups) if (g.some(d => dow(d) === 0 || H[d].length > 1)) subs.push(g[2]);
+  // 그 밖의 대체 대상 공휴일: 토·일이거나 다른 공휴일과 겹치면 다음 첫 평일 (날짜마다 1번)
+  const subOK = new Set(['삼일절', '어린이날', '광복절', '개천절', '한글날', '성탄절', '부처님오신날']);
+  for (const d of Object.keys(H)) {
+    if (inGroup.has(d) || !H[d].some(n => subOK.has(n))) continue;
+    if (dow(d) === 0 || dow(d) === 6 || H[d].length > 1) subs.push(d);
+  }
+  subs.sort().forEach(d => add(nextFree(d), '대체공휴일'));
+  for (const d of Object.keys(H)) H[d] = H[d].join(' · ');
+  return (holCache[y] = H);
+}
+const holidayOf = d => holidaysOf(+d.slice(0, 4))[d] || '';
+
 // 생일은 🎂 붙여서 표시
 const evName = ev => (ev.bday ? '🎂 ' : '') + esc(ev.title);
 const isDone = (ev, s) => !!(ev.dn && ev.dn.includes(s));
@@ -4657,8 +4738,8 @@ function monthHtml() {
   for (let i = 0; i < weeks * 7; i++) {
     const d = calAdd(start, i), dt = pd(d), wd = dt.getDay(), [evs, tds] = splitEv(eventsOn(d));
     const max = 3, tmax = Math.max(2, 5 - Math.min(evs.length, max));   // 일정+할 일 합쳐 칸에 5줄쯤
-    cells += `<div class="mcell${dt.getMonth() !== m ? ' out' : ''}${d === today ? ' today' : ''}${d === C.sel ? ' sel' : ''}${wd === 0 ? ' sun' : wd === 6 ? ' sat' : ''}" data-day="${d}">
-      <span class="dn">${dt.getDate()}</span>${memoOf(d)?.mood ? `<span class="mood-dot" style="--c:${moodOf(memoOf(d).mood).c}" title="기분: ${moodOf(memoOf(d).mood).l}"></span>` : ''}${memoOf(d)?.text ? '<span class="memo-dot" title="메모 있음"></span>' : ''}
+    cells += `<div class="mcell${dt.getMonth() !== m ? ' out' : ''}${d === today ? ' today' : ''}${d === C.sel ? ' sel' : ''}${wd === 0 ? ' sun' : wd === 6 ? ' sat' : ''}${holidayOf(d) ? ' hol' : ''}" data-day="${d}">
+      <span class="dn">${dt.getDate()}</span>${holidayOf(d) ? `<span class="hname">${holidayOf(d)}</span>` : ''}${memoOf(d)?.mood ? `<span class="mood-dot" style="--c:${moodOf(memoOf(d).mood).c}" title="기분: ${moodOf(memoOf(d).mood).l}"></span>` : ''}${memoOf(d)?.text ? '<span class="memo-dot" title="메모 있음"></span>' : ''}
       ${evs.slice(0, max).map(evChip).join('')}${evs.length > max ? `<div class="more">+${evs.length - max}개</div>` : ''}
       ${tds.slice(0, tmax).map(mTodo).join('')}${tds.length > tmax ? `<div class="more">할 일 +${tds.length - tmax}</div>` : ''}</div>`;
   }
@@ -4667,7 +4748,7 @@ function monthHtml() {
 function dayPanel(d) {
   const [evs, tds] = splitEv(eventsOn(d)), mm = memoOf(d), mood = mm?.mood && moodOf(mm.mood);
   return `<div class="card dpanel">
-    <h3>${mdLabel(d)}${d === dkey() ? '<small>오늘</small>' : ''}${mood ? `<span class="mood-pill" style="--c:${mood.c}">${mood.l}</span>` : ''}</h3>
+    <h3>${mdLabel(d)}${d === dkey() ? '<small>오늘</small>' : ''}${holidayOf(d) ? `<span class="hol-pill">${holidayOf(d)}</span>` : ''}${mood ? `<span class="mood-pill" style="--c:${mood.c}">${mood.l}</span>` : ''}</h3>
     <div class="wk-sub">일정</div>
     <div class="dlist">${evs.length ? evs.map(dItem).join('') : '<div class="empty">일정이 없어요 · 날짜를 두 번 누르면 바로 추가돼요</div>'}</div>
     <div class="wk-sub">할 일 <span class="muted">${tds.filter(o => isDone(o.ev, o.s)).length}/${tds.length}</span></div>
@@ -4710,8 +4791,8 @@ function weekHtml() {
   const cards = days.map(d => {
     const dt = pd(d), wd = dt.getDay(), [evs, tds] = splitEv(eventsOn(d)), mm = memoOf(d);
     evN += evs.length; tdAll += tds.length; tdDone += tds.filter(o => isDone(o.ev, o.s)).length;
-    return `<div class="wk-day${d === today ? ' today' : ''}${wd === 0 ? ' sun' : wd === 6 ? ' sat' : ''}">
-      <div class="wk-h"><button class="wk-date" data-goday="${d}" title="이날 자세히 보기"><b>${dt.getDate()}</b><span>${DOW[wd]}요일</span></button>
+    return `<div class="wk-day${d === today ? ' today' : ''}${wd === 0 ? ' sun' : wd === 6 ? ' sat' : ''}${holidayOf(d) ? ' hol' : ''}">
+      <div class="wk-h"><button class="wk-date" data-goday="${d}" title="이날 자세히 보기"><b>${dt.getDate()}</b><span>${DOW[wd]}요일</span>${holidayOf(d) ? `<i class="hname">${holidayOf(d)}</i>` : ''}</button>
         ${mm?.mood ? `<span class="mood-pill" style="--c:${moodOf(mm.mood).c}">${moodOf(mm.mood).l}</span>` : ''}
         <button class="wk-add" data-cadd-day="${d}" title="일정 · 할 일 추가">＋</button></div>
       ${evs.length ? `<div class="wk-evs">${evs.map(o => `<div class="wk-ev" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}"><span class="t">${o.ev.allDay ? '종일' : o.ev.start}</span><span class="n">${evName(o.ev)}</span></div>`).join('')}</div>` : ''}
@@ -4744,7 +4825,7 @@ function dayHtml() {
   const d = C.sel, mm = memoOf(d), [evs, tds] = splitEv(eventsOn(d)), done = tds.filter(o => isDone(o.ev, o.s)).length;
   const left = leftovers(d).length, mood = mm?.mood && moodOf(mm.mood);
   const pct = tds.length ? Math.round(done / tds.length * 100) : 0;
-  return calBar(mdLabel(d), `${pd(d).getFullYear()}년${d === dkey() ? ' · 오늘' : ''}`) +
+  return calBar(mdLabel(d) + (holidayOf(d) ? ` <span class="hol-pill">${holidayOf(d)}</span>` : ''), `${pd(d).getFullYear()}년${d === dkey() ? ' · 오늘' : ''}`) +
     `<div class="day-sum">
       <div><b>${evs.length}</b><span>일정</span></div>
       <div><b>${done}/${tds.length}</b><span>할 일</span><i class="bar"><i style="width:${pct}%"></i></i></div>
@@ -5089,8 +5170,9 @@ function renderMainHome() {
   $('#mwRange').textContent = `${a.getMonth() + 1}/${a.getDate()} – ${b.getMonth() + 1}/${b.getDate()}`;
   $('#mWeek').innerHTML = days.map(d => {
     const dt = pd(d), wd = dt.getDay(), [evs, tds] = splitEv(eventsOn(d));
-    return `<div class="mw-day${d === today ? ' today' : ''}${wd === 0 ? ' sun' : wd === 6 ? ' sat' : ''}" data-mwday="${d}" title="눌러서 이날 자세히 보기">
+    return `<div class="mw-day${d === today ? ' today' : ''}${wd === 0 ? ' sun' : wd === 6 ? ' sat' : ''}${holidayOf(d) ? ' hol' : ''}" data-mwday="${d}" title="눌러서 이날 자세히 보기">
       <div class="mw-h"><span>${DOW[wd]}</span><b>${dt.getDate()}</b>${d === today ? '<em>오늘</em>' : ''}</div>
+      ${holidayOf(d) ? `<div class="hname">${holidayOf(d)}</div>` : ''}
       ${evs.map(o => `<div class="mw-ev" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}"><span class="t">${o.ev.allDay ? '' : o.ev.start}</span>${evName(o.ev)}</div>`).join('')}
       ${tds.map(o => `<div class="mw-td${isDone(o.ev, o.s) ? ' done' : ''}" style="--c:${o.ev.color}"><button class="ck" data-done="${o.ev.id}" data-s="${o.s}" aria-label="완료"></button><span data-ev="${o.ev.id}" data-s="${o.s}">${evName(o.ev)}</span></div>`).join('')}
       ${!evs.length && !tds.length ? '<div class="mw-empty">·</div>' : ''}</div>`;
@@ -5098,7 +5180,11 @@ function renderMainHome() {
   const ws = pickToday().map(byId).filter(Boolean), doneN = ws.filter(w => w.memorized).length;
   $('#mTodaySub').textContent = ws.length ? `${doneN} / ${ws.length} 완료` : '';
   $('#mCardToday').disabled = !ws.length;
-  $('#mTodayList').innerHTML = listHtml(ws, {}, S.words.length ? '못 외운 단어가 없어요! 🎉' : '단어장에 단어를 먼저 등록해 주세요');
+  $('#mTodayList').innerHTML = ws.length ? ws.map(w => `<div class="mwi${w.memorized ? ' done' : ''}"><span class="w jp">${esc(w.word)}</span><span class="m">${esc(w.meaning)}</span></div>`).join('')
+    : `<div class="empty">${S.words.length ? '못 외운 단어가 없어요! 🎉' : '단어장에 단어를 먼저 등록해 주세요'}</div>`;
+  const img = S.homeImg || '';
+  $('#mImg').hidden = !img; $('#mImgActs').hidden = !img; $('#mImgEmpty').hidden = !!img;
+  if (img && $('#mImg').getAttribute('src') !== img) $('#mImg').src = img;
   const mw = $('#mWeek'), w = $('#mWeek .today');      // 폰(가로 스크롤)에선 오늘 칸이 가운데 오게
   if (w && mw.scrollWidth > mw.clientWidth) mw.scrollLeft = w.offsetLeft - mw.offsetLeft - (mw.clientWidth - w.offsetWidth) / 2;
 }
@@ -5118,6 +5204,19 @@ $('#page-main').addEventListener('click', e => {
   if (day) { C.sel = day.dataset.mwday; return setCalView('day'); }
 });
 $('#mCardToday').addEventListener('click', () => $('#cardToday').click());
+// 홈 이미지: 폰 사진도 넣을 수 있게 줄여서(최대 1200px) 저장, 동기화에도 포함
+$('#mImgEmpty').addEventListener('click', () => $('#mImgFile').click());
+$('#mImgChange').addEventListener('click', () => $('#mImgFile').click());
+$('#mImgFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try { S.homeImg = (await loadImg(f)).src; store.save(); renderMainHome(); toast('이미지를 넣었어요'); }
+  catch { toast('이미지를 열 수 없어요'); }
+});
+$('#mImgDel').addEventListener('click', async () => {
+  const v = await ask({ title: '홈 이미지를 지울까요?', html: '다시 넣고 싶으면 언제든 새로 고르면 돼요.', choices: [{ v: 'del', label: '🗑 삭제', cls: 'solid-danger' }] });
+  if (!v) return;
+  S.homeImg = ''; store.save(); renderMainHome();
+});
 $('#mGoWords').addEventListener('click', () => showTab('home'));
 
 /* ═════════════════ 메인 메뉴 (왼쪽) ═════════════════ */
