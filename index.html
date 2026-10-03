@@ -665,7 +665,12 @@
   }
   .snav-date { padding: 4px 10px 12px; border-bottom: 1px dashed var(--border); margin-bottom: 8px; }
   .snav-date b { display: block; font-size: 20px; color: var(--accent); line-height: 1.2; }
-  .snav-date span { font-size: 11px; color: var(--text3); }
+  .snav-date .sd-y { font-size: 11px; color: var(--text3); }
+  .sd-clock { display: flex; align-items: baseline; gap: 3px; margin-top: 6px; color: var(--text); font-variant-numeric: tabular-nums; }
+  .sd-clock .ap { font-size: 11px; font-weight: 700; color: var(--accent-dark); margin-right: 2px; }
+  .sd-clock .hm { font-size: 22px; font-weight: 700; letter-spacing: .5px; line-height: 1; }
+  .sd-clock .sec { font-size: 12px; color: var(--text3); }
+  .sd-clock em { font-style: normal; font-size: 9px; color: var(--text3); border: 1px solid var(--border); border-radius: 99px; padding: 0 5px; margin-left: auto; align-self: center; }
   .snav-item {
     display: flex; align-items: center; gap: 10px; width: 100%; border: none; background: none;
     padding: 9px 12px; border-radius: 12px; font-size: 13px; font-weight: 700; color: var(--text2); text-align: left;
@@ -5208,10 +5213,21 @@ const SEC_ICON = {"main": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"cur
 const SEC_LOGO = { main: '<b>홈</b>', cal: '<b>캘린더</b>', words: '<b>日本語</b> 단어장' };
 let lastWordTab = 'home';
 try { lastWordTab = sessionStorage.getItem('jpWordTab') || 'home'; } catch {}
+// 왼쪽 메뉴 위 날짜·시계: 기기 시간대와 상관없이 한국 시간(KST) 기준
+const KST_FMT = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short', hour: 'numeric', minute: '2-digit', second: '2-digit', hourCycle: 'h23' });
+const KST_DOW = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
 function renderSnavDate() {
-  const d = new Date();
-  $('#snavDate').innerHTML = `<b>${d.getMonth() + 1}월 ${d.getDate()}일</b><span>${d.getFullYear()}년 · ${DOW[d.getDay()]}요일</span>`;
+  const p = Object.fromEntries(KST_FMT.formatToParts(new Date()).map(x => [x.type, x.value]));
+  const h = +p.hour, ap = h < 12 ? '오전' : '오후', h12 = h % 12 || 12;
+  const el = $('#snavDate');
+  if (!el.firstChild) el.innerHTML = '<b class="sd-d"></b><span class="sd-y"></span><div class="sd-clock"><span class="ap"></span><span class="hm"></span><span class="sec"></span><em>KST</em></div>';
+  el.querySelector('.sd-d').textContent = `${p.month}월 ${p.day}일`;
+  el.querySelector('.sd-y').textContent = `${p.year}년 · ${DOW[KST_DOW[p.weekday]]}요일`;
+  el.querySelector('.ap').textContent = ap;
+  el.querySelector('.hm').textContent = `${h12}:${p.minute}`;
+  el.querySelector('.sec').textContent = `:${p.second}`;
 }
+setInterval(renderSnavDate, 1000);
 function openSnav(on) { $('#snav').classList.toggle('open', on); $('#snavBack').hidden = !on; }
 $('#menuBtn').addEventListener('click', () => openSnav(!$('#snav').classList.contains('open')));
 $('#snavBack').addEventListener('click', () => openSnav(false));
