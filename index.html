@@ -713,7 +713,7 @@
   .logo-l { display: flex; align-items: center; min-width: 0; }
   .tabs[hidden] { display: none; }
   .tabs .tab[hidden] { display: none; }
-  body[data-sec="main"] header, body[data-sec="review"] header { padding-bottom: 6px; }
+  body[data-sec="main"] header { padding-bottom: 6px; }
   .tab-dict {
     flex: 0 0 auto; align-self: center; margin-left: 6px; border-radius: 99px; padding: 4px 12px;
     font-weight: 700; font-size: 12px; border: 1.5px solid var(--accent); background: #fff; color: var(--accent-dark);
@@ -721,17 +721,13 @@
   .tab-dict.on, .tab-dict:hover { background: var(--accent); color: #fff; }
   .tab-dict[hidden] { display: none; }
   @media (max-width: 480px) { .tab-dict span { display: none; } .tab-dict { padding: 4px 9px; } .tab { font-size: 13px; } }
-  main:has(#page-cal.active), body:has(#page-cal.active) .head-inner,
-  main:has(#page-review.active), body:has(#page-review.active) .head-inner { max-width: 1100px; }
+  main:has(#page-cal.active), body:has(#page-cal.active) .head-inner { max-width: 1100px; }
 
   /* ── 홈 (빈 화면) ── */
   .main-empty { text-align: center; padding: 60px 20px; color: var(--text3); }
   .main-empty .big { font-size: 40px; margin-bottom: 8px; }
   .main-empty b { display: block; color: var(--text2); font-size: 14px; margin-bottom: 4px; }
 
-  /* ── 리뷰 (입덕티켓) ── */
-  #page-review.active { display: block; }
-  #reviewFrame { display: block; width: 100%; border: 1px solid var(--border); border-radius: 14px; background: var(--bg); box-shadow: var(--shadow); }
 
   /* ═════════ 캘린더 ═════════ */
   .cal-bar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -938,12 +934,6 @@
   .rep-box[hidden] { display: none; }
   .ev-note { font-size: 10px; color: var(--text3); }
 
-  body[data-sec="review"] { padding-bottom: var(--player-h); }
-  body[data-sec="review"] main { padding-bottom: 6px; }
-  @media (max-width: 640px) {
-    body[data-sec="review"] main { padding: 0; }
-    body[data-sec="review"] #reviewFrame { border: none; border-radius: 0; box-shadow: none; }
-  }
 </style>
 </head>
 <body>
@@ -953,7 +943,6 @@
   <button class="snav-item" data-sec="main"><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.2 12 3.5l8.5 6.7"/><path d="M5.5 8.8V19a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5V8.8"/><path d="M12 17.2s-3.2-1.9-3.2-3.9a1.7 1.7 0 0 1 3.2-.8 1.7 1.7 0 0 1 3.2.8c0 2-3.2 3.9-3.2 3.9z"/></svg></span>홈</button>
   <button class="snav-item" data-sec="cal"><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/><path d="M12 17.6s-2.4-1.4-2.4-2.9a1.25 1.25 0 0 1 2.4-.6 1.25 1.25 0 0 1 2.4.6c0 1.5-2.4 2.9-2.4 2.9z"/></svg></span>캘린더</button>
   <button class="snav-item" data-sec="words"><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.6C10 5.1 7 4.6 3.5 5.1v13.6c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5.1C17 4.6 14 5.1 12 6.6z"/><path d="M12 6.6v13.6"/><path d="M6.5 9.2c1.2-.1 2.3.1 3.2.5M6.5 12.2c1.2-.1 2.3.1 3.2.5"/></svg></span>단어장</button>
-  <button class="snav-item" data-sec="review"><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2.5 2.5 0 0 0 0 5v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2.5 2.5 0 0 0 0-5z"/><path d="m12 9.2.95 1.9 2.1.3-1.52 1.48.36 2.1L12 14l-1.9 1 .37-2.1-1.53-1.48 2.1-.3z"/></svg></span>리뷰</button>
   <div class="snav-foot">
     <button class="snav-item" id="appSettings"><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>설정<span class="sync-st" id="syncBtn" hidden title="동기화"></span></button>
   </div>
@@ -999,8 +988,6 @@
   <!-- ═══════════ 캘린더 ═══════════ -->
   <section class="page" id="page-cal"><div id="calRoot"></div></section>
 
-  <!-- ═══════════ 리뷰 (입덕티켓) ═══════════ -->
-  <section class="page" id="page-review"><iframe id="reviewFrame" title="리뷰 · 입덕티켓"></iframe></section>
 
   <!-- ═══════════ 단어장 · 학습홈 ═══════════ -->
   <section class="page" id="page-home">
@@ -1893,7 +1880,7 @@ document.addEventListener('click', e => {
 
 /* ─────────────── 탭 ─────────────── */
 $$('.tab').forEach(t => t.addEventListener('click', () => t.dataset.cv ? setCalView(t.dataset.cv) : showTab(t.dataset.tab)));
-// 메인 메뉴(홈·캘린더·단어장·리뷰) 안의 화면 전환. 단어장은 학습홈·단어목록·퀴즈·노트패드
+// 메인 메뉴(홈·캘린더·단어장) 안의 화면 전환. 단어장은 학습홈·단어목록·퀴즈·노트패드
 function showTab(name) {
   if (!SEC_OF[name]) name = 'main';
   if ($('main').contains(document.activeElement)) document.activeElement.blur();   // 쓰던 메모는 저장하고 화면 전환
@@ -1912,7 +1899,6 @@ function showTab(name) {
   try { sessionStorage.setItem('jpTab', name); } catch {}
   renderAll();
   window.scrollTo(0, 0);
-  if (sec === 'review') ensureReview();
 }
 
 /* ─────────────── 홈 ─────────────── */
@@ -4984,9 +4970,9 @@ $('#eDel').addEventListener('click', async () => {
 });
 
 /* ═════════════════ 메인 메뉴 (왼쪽) ═════════════════ */
-const SEC_OF = { main: 'main', cal: 'cal', review: 'review', home: 'words', words: 'words', quiz: 'words', notes: 'words' };
-const SEC_ICON = {"main": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3.5 10.2 12 3.5l8.5 6.7\"/><path d=\"M5.5 8.8V19a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5V8.8\"/><path d=\"M12 17.2s-3.2-1.9-3.2-3.9a1.7 1.7 0 0 1 3.2-.8 1.7 1.7 0 0 1 3.2.8c0 2-3.2 3.9-3.2 3.9z\"/></svg>", "cal": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3.5\" y=\"5\" width=\"17\" height=\"15.5\" rx=\"3.5\"/><path d=\"M3.5 10h17M8.5 3v4M15.5 3v4\"/><path d=\"M12 17.6s-2.4-1.4-2.4-2.9a1.25 1.25 0 0 1 2.4-.6 1.25 1.25 0 0 1 2.4.6c0 1.5-2.4 2.9-2.4 2.9z\"/></svg>", "words": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 6.6C10 5.1 7 4.6 3.5 5.1v13.6c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5.1C17 4.6 14 5.1 12 6.6z\"/><path d=\"M12 6.6v13.6\"/><path d=\"M6.5 9.2c1.2-.1 2.3.1 3.2.5M6.5 12.2c1.2-.1 2.3.1 3.2.5\"/></svg>", "review": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 7.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2.5 2.5 0 0 0 0 5v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2.5 2.5 0 0 0 0-5z\"/><path d=\"m12 9.2.95 1.9 2.1.3-1.52 1.48.36 2.1L12 14l-1.9 1 .37-2.1-1.53-1.48 2.1-.3z\"/></svg>"};
-const SEC_LOGO = { main: '<b>홈</b>', cal: '<b>캘린더</b>', words: '<b>日本語</b> 단어장', review: '<b>리뷰</b>' };
+const SEC_OF = { main: 'main', cal: 'cal', home: 'words', words: 'words', quiz: 'words', notes: 'words' };
+const SEC_ICON = {"main": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3.5 10.2 12 3.5l8.5 6.7\"/><path d=\"M5.5 8.8V19a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5V8.8\"/><path d=\"M12 17.2s-3.2-1.9-3.2-3.9a1.7 1.7 0 0 1 3.2-.8 1.7 1.7 0 0 1 3.2.8c0 2-3.2 3.9-3.2 3.9z\"/></svg>", "cal": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3.5\" y=\"5\" width=\"17\" height=\"15.5\" rx=\"3.5\"/><path d=\"M3.5 10h17M8.5 3v4M15.5 3v4\"/><path d=\"M12 17.6s-2.4-1.4-2.4-2.9a1.25 1.25 0 0 1 2.4-.6 1.25 1.25 0 0 1 2.4.6c0 1.5-2.4 2.9-2.4 2.9z\"/></svg>", "words": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 6.6C10 5.1 7 4.6 3.5 5.1v13.6c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5.1C17 4.6 14 5.1 12 6.6z\"/><path d=\"M12 6.6v13.6\"/><path d=\"M6.5 9.2c1.2-.1 2.3.1 3.2.5M6.5 12.2c1.2-.1 2.3.1 3.2.5\"/></svg>"};
+const SEC_LOGO = { main: '<b>홈</b>', cal: '<b>캘린더</b>', words: '<b>日本語</b> 단어장' };
 let lastWordTab = 'home';
 try { lastWordTab = sessionStorage.getItem('jpWordTab') || 'home'; } catch {}
 function renderSnavDate() {
@@ -5002,20 +4988,6 @@ $('#snav').addEventListener('click', e => {
   const sec = b.dataset.sec;
   showTab(sec === 'words' ? lastWordTab : sec);
 });
-// 리뷰: 입덕티켓(review.html)을 처음 열 때 불러오고, 화면 높이에 맞춤
-function sizeReview() {
-  const f = $('#reviewFrame');
-  if (!f || !$('#page-review').classList.contains('active')) return;
-  const top = f.getBoundingClientRect().top + scrollY;
-  const ph = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--player-h')) || 52;
-  f.style.height = Math.max(360, innerHeight - top - ph - parseFloat(getComputedStyle($('main')).paddingBottom)) + 'px';
-}
-function ensureReview() {
-  const f = $('#reviewFrame');
-  if (!f.getAttribute('src')) f.src = 'review.html';
-  sizeReview();
-}
-addEventListener('resize', sizeReview);
 
 /* ─────────────── 시작 ─────────────── */
 function renderAll() {
