@@ -1050,9 +1050,13 @@
   .ditem { display: flex; gap: 8px; align-items: flex-start; padding: 6px 8px; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); cursor: pointer; border-left: 4px solid var(--c); }
   .ditem:hover { border-color: var(--accent); border-left-color: var(--c); }
   .ditem .tm { font-size: 10px; color: var(--text2); white-space: nowrap; min-width: 52px; padding-top: 1px; }
-  .ditem .nm { font-size: 12px; font-weight: 700; word-break: break-all; }
+  .ditem .dbody { flex: 1; min-width: 0; }
+  .ditem .nm { font-size: 12px; font-weight: 700; }
   .ditem .rp { font-size: 10px; color: var(--text3); font-weight: 400; margin-left: 3px; }
-  .ditem .mm { font-size: 11px; color: var(--text2); white-space: pre-wrap; font-weight: 400; margin-top: 1px; }
+  .ditem .mm { font-size: 11px; color: var(--text2); font-weight: 400; margin-top: 1px; }
+  .clip { white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; min-width: 0; word-break: normal !important; }
+  .full-tip { position: fixed; z-index: 99; max-width: 280px; padding: 7px 10px; border-radius: 10px; background: rgba(74,58,64,.94); color: #fff; font-size: 11.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; pointer-events: none; box-shadow: 0 4px 16px rgba(0,0,0,.18); }
+  .full-tip[hidden] { display: none; }
   .dmemo-prev { font-size: 11px; color: var(--text2); white-space: pre-wrap; background: #fffbe6; border: 1px solid #f7e2a0; border-radius: 10px; padding: 7px 9px; cursor: pointer; max-height: 120px; overflow: hidden; }
   .dpanel .acts { display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -4895,14 +4899,16 @@ function goalList(key) {
 }
 
 // ── 그리기 ──
-const evChip = o => `<span class="ev ${o.ev.allDay ? 'allday' : ''}" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}" title="${evName(o.ev)}">${o.ev.allDay ? '' : `<span class="t">${o.ev.start}</span>`}${evName(o.ev)}</span>`;
-const mTodo = o => `<span class="mtd lab${isDone(o.ev, o.s) ? ' done' : ''}" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}" title="${esc(o.ev.title)}">${esc(o.ev.title)}</span>`;
+// 길면 한 줄로 자르고(…), 마우스를 올리면 전체 내용을 말풍선으로 (data-full)
+const fullTip = ev => esc((ev.bday ? '🎂 ' : '') + ev.title + (isRep(ev) ? ` · ${repLabel(ev)}` : '') + (ev.memo ? `\n${ev.memo}` : ''));
+const evChip = o => `<span class="ev ${o.ev.allDay ? 'allday' : ''}" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}" data-full="${fullTip(o.ev)}">${o.ev.allDay ? '' : `<span class="t">${o.ev.start}</span>`}${evName(o.ev)}</span>`;
+const mTodo = o => `<span class="mtd lab${isDone(o.ev, o.s) ? ' done' : ''}" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}" data-full="${fullTip(o.ev)}">${esc(o.ev.title)}</span>`;
 const dItem = o => `<div class="ditem" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}">
   <div class="tm">${tmLabel(o.ev)}</div>
-  <div><div class="nm">${evName(o.ev)}${isRep(o.ev) ? `<span class="rp">· ${repLabel(o.ev)}</span>` : ''}</div>${o.ev.memo ? `<div class="mm">${esc(o.ev.memo)}</div>` : ''}</div></div>`;
+  <div class="dbody"><div class="nm clip" data-full="${fullTip(o.ev)}">${evName(o.ev)}${isRep(o.ev) ? `<span class="rp">· ${repLabel(o.ev)}</span>` : ''}</div>${o.ev.memo ? `<div class="mm clip" data-full="${esc(o.ev.memo)}">${esc(o.ev.memo)}</div>` : ''}</div></div>`;
 const todoRow = o => `<li class="lab${isDone(o.ev, o.s) ? ' done' : ''}" style="--c:${o.ev.color}">
     <button class="ck" data-done="${o.ev.id}" data-s="${o.s}" aria-label="${isDone(o.ev, o.s) ? '완료 취소' : '완료'}"></button>
-    <span class="tx" data-ev="${o.ev.id}" data-s="${o.s}" title="눌러서 수정">${o.ev.allDay ? '' : `<em>${o.ev.start}</em>`}${esc(o.ev.title)}${isRep(o.ev) ? ' <i class="rpi" title="' + esc(repLabel(o.ev)) + '">반복</i>' : ''}</span></li>`;
+    <span class="tx clip" data-ev="${o.ev.id}" data-s="${o.s}" data-full="${fullTip(o.ev)}">${o.ev.allDay ? '' : `<em>${o.ev.start}</em>`}${esc(o.ev.title)}${isRep(o.ev) ? ' <i class="rpi" title="' + esc(repLabel(o.ev)) + '">반복</i>' : ''}</span></li>`;
 const todoBlock = (list, d, addBtn = true) => `<ul class="todo">${list.map(todoRow).join('')}</ul>${addBtn ? `<button class="td-new" data-cadd-todo="${d}">＋ 할 일</button>` : ''}`;
 function calBar(title, sub = '') {
   return `<div class="cal-bar">
@@ -4983,7 +4989,7 @@ function weekHtml() {
       <div class="wk-h"><button class="wk-date" data-goday="${d}" title="이날 자세히 보기"><b>${dt.getDate()}</b><span>${DOW[wd]}요일</span>${holidayOf(d) ? `<i class="hname">${holidayOf(d)}</i>` : ''}</button>
         ${mm?.mood ? `<span class="mood-pill" style="--c:${moodOf(mm.mood).c}">${moodOf(mm.mood).l}</span>` : ''}
         <button class="wk-add" data-cadd-day="${d}" title="일정 · 할 일 추가">＋</button></div>
-      ${evs.length ? `<div class="wk-evs">${evs.map(o => `<div class="wk-ev" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}"><span class="t">${o.ev.allDay ? '종일' : o.ev.start}</span><span class="n">${evName(o.ev)}</span></div>`).join('')}</div>` : ''}
+      ${evs.length ? `<div class="wk-evs">${evs.map(o => `<div class="wk-ev" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}"><span class="t">${o.ev.allDay ? '종일' : o.ev.start}</span><span class="n" data-full="${fullTip(o.ev)}">${evName(o.ev)}</span></div>`).join('')}</div>` : ''}
       ${tds.length ? `<ul class="todo">${tds.map(todoRow).join('')}</ul>` : ''}
       ${mm?.text ? `<div class="wk-memo" data-goday="${d}">${esc(mm.text)}</div>` : ''}
     </div>`;
@@ -5371,8 +5377,8 @@ function renderMainHome() {
     return `<div class="mw-day${d === today ? ' today' : ''}${wd === 0 ? ' sun' : wd === 6 ? ' sat' : ''}${holidayOf(d) ? ' hol' : ''}" data-mwday="${d}" title="눌러서 이날 자세히 보기">
       <div class="mw-h"><span>${DOW[wd]}</span><b>${dt.getDate()}</b>${d === today ? '<em>오늘</em>' : ''}</div>
       ${holidayOf(d) ? `<div class="hname">${holidayOf(d)}</div>` : ''}
-      ${evs.map(o => `<div class="mw-ev" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}"><span class="t">${o.ev.allDay ? '' : o.ev.start}</span>${evName(o.ev)}</div>`).join('')}
-      ${tds.map(o => `<div class="mw-td${isDone(o.ev, o.s) ? ' done' : ''}" style="--c:${o.ev.color}"><button class="ck" data-done="${o.ev.id}" data-s="${o.s}" aria-label="완료"></button><span data-ev="${o.ev.id}" data-s="${o.s}">${evName(o.ev)}</span></div>`).join('')}
+      ${evs.map(o => `<div class="mw-ev" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}" data-full="${fullTip(o.ev)}"><span class="t">${o.ev.allDay ? '' : o.ev.start}</span>${evName(o.ev)}</div>`).join('')}
+      ${tds.map(o => `<div class="mw-td${isDone(o.ev, o.s) ? ' done' : ''}" style="--c:${o.ev.color}"><button class="ck" data-done="${o.ev.id}" data-s="${o.s}" aria-label="완료"></button><span data-ev="${o.ev.id}" data-s="${o.s}" data-full="${fullTip(o.ev)}">${evName(o.ev)}</span></div>`).join('')}
       ${!evs.length && !tds.length ? '<div class="mw-empty">·</div>' : ''}</div>`;
   }).join('');
   const ws = pickToday().map(byId).filter(Boolean), doneN = ws.filter(w => w.memorized).length;
@@ -5773,6 +5779,19 @@ $('#hlReset').addEventListener('click', () => { S.homeLayout = null; store.save(
 $('#hlClose').addEventListener('click', closeHomeLayout);
 $('#hlModal').addEventListener('click', e => { if (e.target.id === 'hlModal') closeHomeLayout(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#hlModal').hidden) closeHomeLayout(); });
+
+/* ── 잘린 글자 말풍선: [data-full] 요소가 실제로 잘려 있을 때만 전체 내용 표시 ── */
+const fullTipEl = Object.assign(document.createElement('div'), { className: 'full-tip', hidden: true });
+document.body.appendChild(fullTipEl);
+document.addEventListener('mouseover', e => {
+  const el = e.target.closest?.('[data-full]');
+  if (!el || el.scrollWidth <= el.clientWidth + 1) { fullTipEl.hidden = true; return; }
+  fullTipEl.textContent = el.dataset.full; fullTipEl.hidden = false;
+  const r = el.getBoundingClientRect(), w = fullTipEl.offsetWidth, h = fullTipEl.offsetHeight;
+  fullTipEl.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left)) + 'px';
+  fullTipEl.style.top = (r.bottom + h + 8 > innerHeight ? r.top - h - 6 : r.bottom + 6) + 'px';
+});
+['scroll', 'mousedown', 'keydown'].forEach(ev => addEventListener(ev, () => { fullTipEl.hidden = true; }, true));
 
 /* ═════════════════ 메인 메뉴 (왼쪽) ═════════════════ */
 const SEC_OF = { main: 'main', cal: 'cal', money: 'money', home: 'words', words: 'words', quiz: 'words', notes: 'words' };
