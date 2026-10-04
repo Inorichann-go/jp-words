@@ -1,6 +1,6 @@
 // 오프라인 지원: 앱 화면은 저장해 두고, 인터넷이 되면 항상 최신 버전으로 갱신
-const CACHE = 'jp-words-v6';
-const APP = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
+const CACHE = 'jp-words-v7';
+const APP = ['./', './index.html', './manifest.webmanifest', './icon-192.png?v=2', './icon-512.png?v=2', './apple-touch-icon.png?v=2'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(APP)).then(() => self.skipWaiting()));
@@ -15,6 +15,12 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   // 앱 화면: 인터넷 먼저(최신 반영), 안 되면 저장본
+  // 앱 이름·아이콘 정보(manifest)도 인터넷 먼저 → 이름을 바꾸면 바로 반영
+  if (url.origin === location.origin && url.pathname.endsWith('.webmanifest')) {
+    e.respondWith(fetch(req).then(res => { const copy = res.clone(); if (res.ok) caches.open(CACHE).then(c => c.put(req, copy)); return res; })
+      .catch(() => caches.match(req)));
+    return;
+  }
   if (req.mode === 'navigate' || (url.origin === location.origin && url.pathname.endsWith('/index.html'))) {
     const key = './index.html';
     e.respondWith(fetch(req).then(res => {
