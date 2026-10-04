@@ -853,6 +853,13 @@
   .mn-cats { display: flex; flex-wrap: wrap; gap: 5px; }
   .mn-cats button { border: 1px solid color-mix(in srgb, var(--c) 40%, #fff); background: #fff; color: var(--text2); border-radius: 99px; padding: 4px 10px; font-size: 11px; }
   .mn-cats button.on { background: var(--c); border-color: var(--c); color: #fff; font-weight: 700; }
+  .mn-pays button { --c: #a98b97; }
+  .mn-pays button.on { --c: var(--accent-dark); }
+  .mn-pays button.add { border-style: dashed; color: var(--accent-dark); }
+  .mn-pay-add { display: flex; gap: 6px; margin-top: 6px; }
+  .mn-pay-add input { flex: 1; min-width: 0; border: 1px solid var(--border); border-radius: 99px; padding: 4px 10px; }
+  .mn-pay-add[hidden], #mnPayWrap[hidden] { display: none; }
+  .pay { font-size: 10px; color: var(--text2); border: 1px solid var(--border); border-radius: 99px; padding: 1px 7px; white-space: nowrap; background: #fff; justify-self: start; }
 
   /* 캘린더 검색 · 회고 */
   .cal-q-btn.on { background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); }
@@ -1474,6 +1481,9 @@
       <label class="full">금액 * <span class="mn-amt"><input id="mnAmt" inputmode="numeric" placeholder="0"><b>원</b></span></label>
       <label class="full">날짜 <input type="date" id="mnDate"></label>
       <div class="full"><div class="mn-cats" id="mnCats"></div></div>
+      <div class="full" id="mnPayWrap"><div class="ev-note" style="margin-bottom:3px">결제 수단</div>
+        <div class="mn-cats mn-pays" id="mnPays"></div>
+        <div class="mn-pay-add" id="mnPayAdd" hidden><input id="mnPayName" placeholder="예) 국민 체크카드, 현대카드" maxlength="20"><button type="button" class="btn sm primary" id="mnPayOk">추가</button></div></div>
       <label class="full">메모 <input id="mnMemo" placeholder="예) 점심, 교통카드 충전" maxlength="60"></label>
       <div class="form-actions">
         <button type="button" class="btn danger" id="mnDel">🗑 삭제</button>
@@ -4441,7 +4451,7 @@ let sb = null, sbUser = null;
 const SYNC_COLLS = ['events', 'dayMemos', 'todos', 'tblocks', 'habits', 'money'];
 function wordSig(w) { const { mt, ...rest } = w; return JSON.stringify(rest); }
 function metaOf() {
-  return { tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder, motto: S.motto || '', calImg: S.calImg || '', homeLayout: S.homeLayout || null,
+  return { tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder, motto: S.motto || '', calImg: S.calImg || '', homeLayout: S.homeLayout || null, payMethods: S.payMethods || null,
     music: { list: S.music.list, repeat: S.music.repeat, shuffle: S.music.shuffle } };
 }
 const logsSig = () => JSON.stringify([S.reviewLog, S.quizLog]);
@@ -4541,7 +4551,7 @@ function applyPayload(P) {
   if (Array.isArray(m.tags)) S.tags = m.tags;
   if (Array.isArray(m.folders)) S.folders = m.folders;
   if (m.tagFolder && typeof m.tagFolder === 'object') S.tagFolder = m.tagFolder;
-  for (const k of ['goal', 'autoSpeak', 'pageSize', 'bulkOrder', 'motto', 'calImg', 'homeLayout']) if (m[k] !== undefined) S[k] = m[k];
+  for (const k of ['goal', 'autoSpeak', 'pageSize', 'bulkOrder', 'motto', 'calImg', 'homeLayout', 'payMethods']) if (m[k] !== undefined) S[k] = m[k];
   if (m.homeImg && !S.calImg) S.calImg = m.homeImg;         // 예전 버전 기기에서 온 홈 이미지
   if (m.listen) Object.assign(S.listen, m.listen);
   if (m.music) {
@@ -5581,6 +5591,10 @@ const MN_OUT = ['식비', '카페·간식', '교통', '쇼핑', '생활', '문�
 const MN_IN = ['월급', '용돈', '부수입', '기타'];
 const MN_COL = ['#e8739a', '#f08a4b', '#4a90d9', '#9b6bd6', '#4caf8a', '#e8b931', '#e0526b', '#5bb5c9', '#b08968', '#8a8a8a'];
 const catColor = (type, cat) => type === 'in' ? '#4caf8a' : MN_COL[Math.max(0, MN_OUT.indexOf(cat))] || '#8a8a8a';
+// 결제 수단: 기본 목록 + 직접 추가한 것 (S.payMethods, 동기화 포함). 마지막으로 쓴 수단을 다음에 기본으로
+const PAY_DEFAULT = ['현금', '체크카드', '신용카드', '계좌이체', '간편결제'];
+const payList = () => Array.isArray(S.payMethods) && S.payMethods.length ? S.payMethods : PAY_DEFAULT;
+const payTag = x => x.type === 'out' && x.pay ? `<span class="pay">${esc(x.pay)}</span>` : '';
 const won = n => (Math.round(n) || 0).toLocaleString('ko-KR') + '원';
 const MNS = { ym: dkey().slice(0, 7) };
 const moneyIn = ym => S.money.filter(x => x.date.startsWith(ym));
@@ -5591,6 +5605,9 @@ function renderMoney() {
   const byCat = {};
   list.filter(x => x.type === 'out').forEach(x => byCat[x.cat] = (byCat[x.cat] || 0) + (+x.amount || 0));
   const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]), max = cats[0]?.[1] || 1;
+  const byPay = {};
+  list.filter(x => x.type === 'out').forEach(x => { const k = x.pay || '미지정'; byPay[k] = (byPay[k] || 0) + (+x.amount || 0); });
+  const pays = Object.entries(byPay).sort((a, b) => b[1] - a[1]), pmax = pays[0]?.[1] || 1;
   const byDay = {};
   [...list].sort((a, b) => b.date.localeCompare(a.date) || (b.created || 0) - (a.created || 0)).forEach(x => (byDay[x.date] = byDay[x.date] || []).push(x));
   $('#moneyRoot').innerHTML = `
@@ -5608,10 +5625,12 @@ function renderMoney() {
       <div class="card"><div class="card-h"><h2>카테고리별 지출</h2></div>
         ${cats.length ? cats.map(([c, v]) => `<div class="mn-bar"><span class="c" style="--c:${catColor('out', c)}">${esc(c)}</span>
           <i><i style="width:${v / max * 100}%; background:${catColor('out', c)}"></i></i><b>${won(v)}</b><small>${Math.round(v / out * 100)}%</small></div>`).join('')
-          : '<div class="empty">이번 달 지출이 없어요</div>'}</div>
+          : '<div class="empty">이번 달 지출이 없어요</div>'}
+        ${pays.length ? `<div class="card-h" style="margin-top:14px"><h2>결제 수단별</h2></div>` + pays.map(([c, v]) => `<div class="mn-bar"><span class="pay">${esc(c)}</span>
+          <i><i style="width:${v / pmax * 100}%; background:var(--pink-mid)"></i></i><b>${won(v)}</b><small>${Math.round(v / out * 100)}%</small></div>`).join('') : ''}</div>
       <div class="card"><div class="card-h"><h2>내역 <span class="sub">${list.length}건</span></h2></div>
         ${Object.keys(byDay).length ? Object.entries(byDay).map(([d, xs]) => `<div class="mn-day"><div class="mn-dh"><b>${mdLabel(d)}</b><span>${sumOf(xs, 'out') ? '-' + won(sumOf(xs, 'out')) : ''}${sumOf(xs, 'in') ? ' +' + won(sumOf(xs, 'in')) : ''}</span></div>
-          ${xs.map(x => `<div class="mn-row" data-mn="${x.id}"><span class="c" style="--c:${catColor(x.type, x.cat)}">${esc(x.cat)}</span><span class="mm">${esc(x.memo || '')}</span><b class="${x.type}">${x.type === 'out' ? '-' : '+'}${won(x.amount)}</b></div>`).join('')}</div>`).join('')
+          ${xs.map(x => `<div class="mn-row" data-mn="${x.id}"><span class="c" style="--c:${catColor(x.type, x.cat)}">${esc(x.cat)}</span>${payTag(x)}<span class="mm">${esc(x.memo || '')}</span><b class="${x.type}">${x.type === 'out' ? '-' : '+'}${won(x.amount)}</b></div>`).join('')}</div>`).join('')
           : '<div class="empty">＋ 기록하기로 지출·수입을 적어 보세요</div>'}</div>
     </div>`;
 }
@@ -5632,7 +5651,8 @@ let MNE = null;
 function openMn(id) {
   const x = id ? S.money.find(v => v.id === id) : null;
   const today = dkey(), dflt = MNS.ym === today.slice(0, 7) ? today : MNS.ym + '-01';
-  MNE = { edit: x, type: x ? x.type : 'out', cat: x ? x.cat : '식비' };
+  MNE = { edit: x, type: x ? x.type : 'out', cat: x ? x.cat : '식비', pay: x ? (x.pay || '') : (S.lastPay || '') };
+  $('#mnPayAdd').hidden = true;
   $('#mnTitle').textContent = x ? '✏️ 기록 수정' : '＋ 가계부 기록';
   $('#mnAmt').value = x ? (+x.amount).toLocaleString('ko-KR') : '';
   $('#mnDate').value = x ? x.date : dflt;
@@ -5647,7 +5667,25 @@ function syncMnForm() {
   if (!cats.includes(MNE.cat)) MNE.cat = cats[0];
   $$('#mnKind [data-k]').forEach(b => b.classList.toggle('on', b.dataset.k === MNE.type));
   $('#mnCats').innerHTML = cats.map(c => `<button type="button" class="${c === MNE.cat ? 'on' : ''}" style="--c:${catColor(MNE.type, c)}" data-cat="${c}">${c}</button>`).join('');
+  $('#mnPayWrap').hidden = MNE.type !== 'out';              // 결제 수단은 지출일 때만
+  const pl = payList(), extra = MNE.pay && !pl.includes(MNE.pay) ? [MNE.pay] : [];
+  $('#mnPays').innerHTML = [...pl, ...extra].map(c => `<button type="button" class="${c === MNE.pay ? 'on' : ''}" data-pay="${esc(c)}">${esc(c)}</button>`).join('')
+    + `<button type="button" class="add" data-pay-add title="결제 수단 직접 추가">＋ 직접 추가</button>`;
 }
+$('#mnPays').addEventListener('click', e => {
+  if (e.target.closest('[data-pay-add]')) { $('#mnPayAdd').hidden = false; return $('#mnPayName').focus(); }
+  const b = e.target.closest('[data-pay]'); if (!b) return;
+  MNE.pay = MNE.pay === b.dataset.pay ? '' : b.dataset.pay; syncMnForm();
+});
+function addPayMethod() {
+  const n = $('#mnPayName').value.trim(); if (!n) return;
+  const pl = [...payList()];
+  if (!pl.includes(n)) pl.push(n);
+  S.payMethods = pl; MNE.pay = n; $('#mnPayName').value = ''; $('#mnPayAdd').hidden = true;
+  store.save(); syncMnForm();
+}
+$('#mnPayOk').addEventListener('click', addPayMethod);
+$('#mnPayName').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addPayMethod(); } });
 function closeMn() { $('#mnModal').hidden = true; MNE = null; if ($$('.modal').every(m => m.hidden)) document.body.classList.remove('modal-open'); }
 $('#mnKind').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) { MNE.type = b.dataset.k; syncMnForm(); } });
 $('#mnCats').addEventListener('click', e => { const b = e.target.closest('[data-cat]'); if (b) { MNE.cat = b.dataset.cat; syncMnForm(); } });
@@ -5663,7 +5701,8 @@ $('#mnForm').addEventListener('submit', e => {
   e.preventDefault();
   const amount = +$('#mnAmt').value.replace(/[^\d]/g, '');
   if (!amount) { toast('금액을 적어 주세요'); return $('#mnAmt').focus(); }
-  const data = { type: MNE.type, amount, cat: MNE.cat, date: $('#mnDate').value || dkey(), memo: $('#mnMemo').value.trim() };
+  const data = { type: MNE.type, amount, cat: MNE.cat, pay: MNE.type === 'out' ? MNE.pay : '', date: $('#mnDate').value || dkey(), memo: $('#mnMemo').value.trim() };
+  if (data.pay) S.lastPay = data.pay;
   if (MNE.edit) Object.assign(MNE.edit, data);
   else S.money.push({ id: uid(), created: Date.now(), ...data });
   MNS.ym = data.date.slice(0, 7);
@@ -5683,7 +5722,7 @@ function homeMoneyHtml() {
       <div><span>이번 달 지출</span><b class="out">${won(sumOf(list, 'out'))}</b></div>
       <div><span>오늘 쓴 돈</span><b class="out">${won(sumOf(S.money.filter(x => x.date === today), 'out'))}</b></div>
       <div><span>이번 달 수입</span><b class="in">${won(sumOf(list, 'in'))}</b></div></div>
-    ${recent.map(x => `<div class="mn-row" data-mn="${x.id}"><span class="c" style="--c:${catColor(x.type, x.cat)}">${esc(x.cat)}</span><span class="mm">${pd(x.date).getMonth() + 1}/${pd(x.date).getDate()} ${esc(x.memo || '')}</span><b class="${x.type}">${x.type === 'out' ? '-' : '+'}${won(x.amount)}</b></div>`).join('')}`;
+    ${recent.map(x => `<div class="mn-row" data-mn="${x.id}"><span class="c" style="--c:${catColor(x.type, x.cat)}">${esc(x.cat)}</span>${payTag(x)}<span class="mm">${pd(x.date).getMonth() + 1}/${pd(x.date).getDate()} ${esc(x.memo || '')}</span><b class="${x.type}">${x.type === 'out' ? '-' : '+'}${won(x.amount)}</b></div>`).join('')}`;
 }
 
 /* ═════════════════ 캘린더 검색 · 월간 회고 ═════════════════ */
