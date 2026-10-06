@@ -929,6 +929,7 @@
   .rv-air { font-size: 11px; color: #e0526b; }
   .rv-stars { letter-spacing: -1px; font-size: 12px; }
   .rv-stars i { font-style: normal; color: #e7d9de; } .rv-stars i.on { color: var(--star); }
+  .rv-stars i.half, .rf-star.half { background: linear-gradient(90deg, var(--star) 50%, #e7d9de 50%); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .rv-cps { display: flex; flex-wrap: wrap; gap: 4px; }
   .rv-cps span { font-size: 10px; font-weight: 700; color: var(--accent-dark); background: var(--accent-light); border-radius: 99px; padding: 1px 8px; }
   .rv-view-box { max-width: 560px; }
@@ -958,8 +959,10 @@
   .rf-top-i { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
   .ev-form .row > label input { width: 100%; }
   .rf-stars { display: flex; align-items: center; gap: 2px; }
-  .rf-stars button { border: none; background: none; font-size: 24px; color: #e7d9de; padding: 0 1px; line-height: 1; }
-  .rf-stars button.on { color: var(--star); }
+  .rf-star { position: relative; font-size: 26px; line-height: 1; color: #e7d9de; padding: 0 1px; user-select: none; }
+  .rf-star.on { color: var(--star); }
+  .rf-star button { position: absolute; top: 0; bottom: 0; width: 50%; border: none; background: none; padding: 0; cursor: pointer; }
+  .rf-star button:first-of-type { left: 0; } .rf-star button:last-of-type { right: 0; }
   .rf-stars span { font-size: 11px; color: var(--text2); margin-left: 6px; }
   .rf-cast { display: flex; gap: 5px; margin-bottom: 5px; }
   .rf-cast input { flex: 1; min-width: 0; border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; }
@@ -6019,7 +6022,9 @@ const RV_ST_CLS = { 시청예정: 'plan', 방영중: 'air', 시청중: 'watch', 
 const airLabel = r => r.status === '방영중' && (r.airDays || []).length ? ' · ' + [1, 2, 3, 4, 5, 6, 0].filter(i => r.airDays.includes(i)).map(i => DOW[i]).join('') : '';
 const rvStatus = r => r.status ? `<span class="rv-st st-${RV_ST_CLS[r.status] || 'etc'}">${esc(r.status)}${airLabel(r)}</span>` : '';
 const RV = { q: '', status: '', kw: '', sort: 'new' };
-const rvStars = n => `<span class="rv-stars" title="${n || 0}점">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= n ? 'on' : ''}">★</i>`).join('')}</span>`;
+// 별점: 0.5 단위 (반 별은 왼쪽 절반만 채움)
+const starCls = (i, n) => i <= n ? 'on' : i - 0.5 === n ? 'half' : '';
+const rvStars = n => `<span class="rv-stars" title="${n || 0}점">${[1, 2, 3, 4, 5].map(i => `<i class="${starCls(i, n)}">★</i>`).join('')}</span>`;
 const rvPoster = (r, cls = '') => `<div class="rv-poster ${cls}">${r.poster
   ? `<img src="${esc(r.poster)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.remove()">` : ''}<span>${esc((r.title || '?').slice(0, 1))}</span></div>`;
 const allRvKeywords = () => { const m = new Map(); S.reviews.forEach(r => (r.keywords || []).forEach(k => m.set(k, (m.get(k) || 0) + 1))); return [...m].sort((a, b) => b[1] - a[1]); };
@@ -6118,7 +6123,7 @@ function renderRvForm() {
   }
   $('#rfAirInfo').innerHTML = info;
   $('#rfAir').innerHTML = [1, 2, 3, 4, 5, 6, 0].map(i => `<button type="button" data-air="${i}" class="${RVF.air.includes(i) ? 'on' : ''}">${DOW[i]}</button>`).join('');
-  $('#rfStars').innerHTML = [1, 2, 3, 4, 5].map(i => `<button type="button" data-star="${i}" class="${i <= RVF.rating ? 'on' : ''}">★</button>`).join('') + `<span>${RVF.rating ? RVF.rating + '점' : '별점 없음'}</span>`;
+  $('#rfStars').innerHTML = [1, 2, 3, 4, 5].map(i => `<span class="rf-star ${starCls(i, RVF.rating)}">★<button type="button" data-star="${i - 0.5}" aria-label="${i - 0.5}점"></button><button type="button" data-star="${i}" aria-label="${i}점"></button></span>`).join('') + `<span>${RVF.rating ? RVF.rating + '점' : '별점 없음'}</span>`;
   $('#rfCast').innerHTML = RVF.cast.map((c, i) => `<div class="rf-cast">
     <input data-ci="${i}" data-cf="actor" value="${esc(c.actor)}" placeholder="배우 이름">
     <input data-ci="${i}" data-cf="role" value="${esc(c.role)}" placeholder="역할 (극 중 이름)">
