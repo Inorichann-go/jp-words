@@ -1584,7 +1584,6 @@
         </div>
       </div>
       <div class="full row">
-        <label>국가 <input id="rfCountry" list="rfCountries" maxlength="20" placeholder="태국"><datalist id="rfCountries"></datalist></label>
         <label>연도 <input id="rfYear" inputmode="numeric" maxlength="4" placeholder="2025"></label>
         <label>회차 <input id="rfEps" inputmode="numeric" maxlength="4" placeholder="12"></label>
         <label>상태 <select id="rfStatus"><option>시청예정</option><option>시청중</option><option>완결</option><option>보류</option><option>하차</option></select></label>
@@ -5979,7 +5978,7 @@ document.addEventListener('mouseover', e => {
 ['scroll', 'mousedown', 'keydown'].forEach(ev => addEventListener(ev, () => { fullTipEl.hidden = true; }, true));
 
 /* ═════════════════ 드라마 리뷰 ═════════════════
-   S.reviews: {id, title, orig, poster(이미지 주소), country, year, eps, status, rating(0~5), cast:[{actor, role}],
+   S.reviews: {id, title, orig, poster(이미지 주소), year, eps, status, rating(0~5), cast:[{actor, role}],
                cps:[CP명], keywords:[키워드], synopsis, review, created, mt}  — 로그인 동기화(본인만 보기)에 포함 */
 const RV_STATUS = ['시청예정', '시청중', '완결', '보류', '하차'];
 const RV = { q: '', status: '', kw: '', sort: 'new' };
@@ -6005,7 +6004,7 @@ function renderReviews() {
         <div class="rv-info">
           <b class="clip" data-full="${esc(r.title)}">${esc(r.title)}</b>
           ${r.orig ? `<small class="clip" data-full="${esc(r.orig)}">${esc(r.orig)}</small>` : ''}
-          <div class="rv-meta">${[r.country, r.year, r.eps ? r.eps + '부작' : ''].filter(Boolean).map(esc).join(' · ')}</div>
+          <div class="rv-meta">${[r.year, r.eps ? r.eps + '부작' : ''].filter(Boolean).map(esc).join(' · ')}</div>
           <div class="rv-row">${r.status ? `<span class="rv-st st-${RV_STATUS.indexOf(r.status)}">${esc(r.status)}</span>` : ''}${r.rating ? rvStars(r.rating) : ''}</div>
           ${(r.cps || []).length ? `<div class="rv-cps">${r.cps.slice(0, 2).map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
         </div></div>`).join('')}</div>`
@@ -6034,7 +6033,7 @@ function openRvView(id) {
     <div class="rv-hero">${rvPoster(r, 'big')}
       <div class="rv-hero-i">
         <h3>${esc(r.title)}</h3>${r.orig ? `<div class="muted">${esc(r.orig)}</div>` : ''}
-        <div class="rv-meta">${[r.country, r.year, r.eps ? r.eps + '부작' : ''].filter(Boolean).map(esc).join(' · ')}</div>
+        <div class="rv-meta">${[r.year, r.eps ? r.eps + '부작' : ''].filter(Boolean).map(esc).join(' · ')}</div>
         <div class="rv-row">${r.status ? `<span class="rv-st st-${RV_STATUS.indexOf(r.status)}">${esc(r.status)}</span>` : ''}${rvStars(r.rating || 0)}</div>
         ${(r.cps || []).length ? `<div class="rv-sec">CP</div><div class="rv-cps">${r.cps.map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
       </div></div>
@@ -6062,9 +6061,8 @@ function openRvForm(id) {
     cps: r ? [...(r.cps || [])] : [], keywords: r ? [...(r.keywords || [])] : [], rating: r ? r.rating || 0 : 0 };
   $('#rvFormTitle').textContent = r ? '✏️ 리뷰 수정' : '＋ 리뷰 쓰기';
   $('#rfPoster').value = r?.poster || ''; $('#rfTitle').value = r?.title || ''; $('#rfOrig').value = r?.orig || '';
-  $('#rfCountry').value = r?.country || ''; $('#rfYear').value = r?.year || ''; $('#rfEps').value = r?.eps || '';
+  $('#rfYear').value = r?.year || ''; $('#rfEps').value = r?.eps || '';
   $('#rfStatus').value = r?.status || '완결'; $('#rfSyn').value = r?.synopsis || ''; $('#rfReview').value = r?.review || '';
-  $('#rfCountries').innerHTML = [...new Set(['한국', '태국', '일본', '중국', '대만', '필리핀', '베트남', ...S.reviews.map(x => x.country).filter(Boolean)])].map(c => `<option value="${esc(c)}">`).join('');
   $('#rfCpList').innerHTML = rvNames('cps').map(([c]) => `<option value="${esc(c)}">`).join('');
   renderRvForm(); rvPosterPreview();
   $('#rvForm').hidden = false; document.body.classList.add('modal-open');
@@ -6123,7 +6121,7 @@ $('#rvFormEl').addEventListener('submit', e => {
   const title = $('#rfTitle').value.trim(); if (!title) { toast('드라마 제목을 적어 주세요'); return $('#rfTitle').focus(); }
   if ($('#rfCpIn').value.trim()) addChips('cps', '#rfCpIn');            // 입력칸에 쓰다 만 것도 넣기
   if ($('#rfKwIn').value.trim()) addChips('keywords', '#rfKwIn');
-  const data = { title, orig: $('#rfOrig').value.trim(), poster: $('#rfPoster').value.trim(), country: $('#rfCountry').value.trim(),
+  const data = { title, orig: $('#rfOrig').value.trim(), poster: $('#rfPoster').value.trim(),
     year: $('#rfYear').value.trim(), eps: $('#rfEps').value.trim(), status: $('#rfStatus').value, rating: RVF.rating,
     cast: RVF.cast.map(c => ({ actor: c.actor.trim(), role: c.role.trim() })).filter(c => c.actor || c.role),
     cps: RVF.cps, keywords: RVF.keywords, synopsis: $('#rfSyn').value.trim(), review: $('#rfReview').value.trim() };
