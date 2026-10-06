@@ -728,7 +728,8 @@
   @media (max-width: 480px) { .tab-dict span { display: none; } .tab-dict { padding: 4px 9px; } .tab { font-size: 13px; } }
   main:has(#page-cal.active), body:has(#page-cal.active) .head-inner,
   main:has(#page-main.active), body:has(#page-main.active) .head-inner,
-  main:has(#page-money.active), body:has(#page-money.active) .head-inner { max-width: 1100px; }
+  main:has(#page-money.active), body:has(#page-money.active) .head-inner,
+  main:has(#page-review.active), body:has(#page-review.active) .head-inner { max-width: 1100px; }
 
   /* ── 홈 ── */
   .motto { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; padding: 14px 18px; border-radius: 16px;
@@ -895,6 +896,73 @@
   .rv-hab .dots i { width: 7px; height: 7px; border-radius: 2px; background: #efe3e8; }
   .rv-hab .dots i.on { background: var(--c); }
   .rv-hab .dots i.fut { opacity: .35; }
+
+  /* ═════════ 드라마 리뷰 ═════════ */
+  .rv-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  .rv-bar input { flex: 1; min-width: 160px; border: 1.5px solid var(--border); border-radius: 99px; padding: 7px 14px; font-size: 12px; background: var(--surface); }
+  .rv-bar input:focus { outline: none; border-color: var(--accent); }
+  .rv-bar select { border: 1px solid var(--border); border-radius: 99px; padding: 6px 10px; background: var(--surface); font-size: 12px; }
+  .rv-bar .sp { flex: 0; }
+  .rv-kws { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+  .rv-kw { border: 1px solid var(--border); background: var(--surface); border-radius: 99px; padding: 3px 10px; font-size: 11px; color: var(--text2); }
+  button.rv-kw:hover { border-color: var(--accent); color: var(--accent-dark); }
+  .rv-kw.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .rv-kw small { color: var(--text3); font-size: 9.5px; }
+  .rv-count { font-size: 11px; color: var(--text3); margin: 0 0 6px 2px; }
+  .rv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .rv-card { display: flex; gap: 12px; padding: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); cursor: pointer; transition: transform .15s, border-color .15s; min-width: 0; }
+  .rv-card:hover { transform: translateY(-2px); border-color: var(--pink-mid); }
+  .rv-poster { position: relative; width: 78px; aspect-ratio: 3 / 4; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: linear-gradient(150deg, var(--pink-mid), var(--accent)); display: grid; place-items: center; }
+  .rv-poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .rv-poster span { color: #fff; font-size: 26px; font-weight: 700; }
+  .rv-poster.big { width: 130px; }
+  .rv-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .rv-info > b { font-size: 14px; display: block; }
+  .rv-info > small { font-size: 11px; color: var(--text3); display: block; }
+  .rv-meta { font-size: 11px; color: var(--text2); }
+  .rv-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .rv-st { font-size: 10px; font-weight: 700; border-radius: 99px; padding: 1px 8px; background: #eee; color: #777; }
+  .rv-st.st-0 { background: #e8f1fc; color: #3a74c4; } .rv-st.st-1 { background: var(--accent-light); color: var(--accent-dark); }
+  .rv-st.st-2 { background: var(--success-light); color: #3f9a74; } .rv-st.st-3 { background: #fff6e0; color: #c08a12; }
+  .rv-stars { letter-spacing: -1px; font-size: 12px; }
+  .rv-stars i { font-style: normal; color: #e7d9de; } .rv-stars i.on { color: var(--star); }
+  .rv-cps { display: flex; flex-wrap: wrap; gap: 4px; }
+  .rv-cps span { font-size: 10px; font-weight: 700; color: var(--accent-dark); background: var(--accent-light); border-radius: 99px; padding: 1px 8px; }
+  .rv-view-box { max-width: 560px; }
+  .rv-view-box .card-h { gap: 4px; }
+  .rv-hero { display: flex; gap: 14px; margin-bottom: 6px; }
+  .rv-hero-i { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .rv-hero-i h3 { font-size: 18px; }
+  .rv-sec { font-size: 11px; font-weight: 700; color: var(--accent-dark); margin: 10px 0 4px; }
+  .rv-cast { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 5px; }
+  .rv-cast div { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 5px 9px; font-size: 12px; }
+  .rv-cast span { display: block; font-size: 10.5px; color: var(--text2); }
+  .rv-text { white-space: pre-wrap; font-size: 12.5px; line-height: 1.7; background: var(--surface2); border-radius: 10px; padding: 9px 11px; }
+  .rv-text.mine { background: #fffbe6; border: 1px solid #f7e2a0; }
+  .rv-form-box { max-width: 560px; }
+  .rf-top { display: flex; gap: 12px; }
+  .rf-poster { width: 96px; aspect-ratio: 3 / 4; border-radius: 10px; overflow: hidden; flex-shrink: 0; border: 1.5px dashed var(--pink-mid); display: grid; place-items: center; background: var(--surface2); position: relative; }
+  .rf-poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .rf-poster span { font-size: 10px; color: var(--text3); text-align: center; }
+  .rf-poster.bad::after { content: '이미지를 못 불러왔어요'; font-size: 10px; color: var(--danger); text-align: center; padding: 4px; }
+  .rf-top-i { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .ev-form .row > label input { width: 100%; }
+  .rf-stars { display: flex; align-items: center; gap: 2px; }
+  .rf-stars button { border: none; background: none; font-size: 24px; color: #e7d9de; padding: 0 1px; line-height: 1; }
+  .rf-stars button.on { color: var(--star); }
+  .rf-stars span { font-size: 11px; color: var(--text2); margin-left: 6px; }
+  .rf-cast { display: flex; gap: 5px; margin-bottom: 5px; }
+  .rf-cast input { flex: 1; min-width: 0; border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; }
+  .rf-cast .ic { width: 26px; height: auto; flex-shrink: 0; }
+  .rf-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
+  .chip-x { display: inline-flex; align-items: center; gap: 3px; background: var(--accent-light); color: var(--accent-dark); border-radius: 99px; padding: 2px 4px 2px 10px; font-size: 11px; font-weight: 700; }
+  .chip-x button { border: none; background: none; color: var(--accent-dark); font-size: 10px; padding: 0 4px; }
+  .rf-add { display: flex; gap: 5px; }
+  .rf-add input { flex: 1; min-width: 0; border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; }
+  .rf-sug { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+  .rf-sug button { border: 1px dashed var(--border); background: none; border-radius: 99px; padding: 1px 8px; font-size: 10.5px; color: var(--text2); }
+  .rf-sug button:hover { border-color: var(--accent); color: var(--accent-dark); }
+  @media (max-width: 520px) { .rv-grid { grid-template-columns: 1fr; } .rf-top { flex-direction: column; align-items: center; } .rf-top-i { width: 100%; } .rv-poster.big { width: 100px; } }
   /* 공휴일 */
   .mcell.hol .dn, .wk-day.hol .wk-date b, .wk-day.hol .wk-date span, .mw-day.hol .mw-h span, .mw-day.hol .mw-h b { color: #e0526b; }
   .mcell.today.hol .dn { color: #fff; }
@@ -1131,6 +1199,7 @@
   <button class="snav-item" data-sec="cal"><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/><path d="M12 17.6s-2.4-1.4-2.4-2.9a1.25 1.25 0 0 1 2.4-.6 1.25 1.25 0 0 1 2.4.6c0 1.5-2.4 2.9-2.4 2.9z"/></svg></span>캘린더</button>
   <button class="snav-item" data-sec="words"><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.6C10 5.1 7 4.6 3.5 5.1v13.6c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5.1C17 4.6 14 5.1 12 6.6z"/><path d="M12 6.6v13.6"/><path d="M6.5 9.2c1.2-.1 2.3.1 3.2.5M6.5 12.2c1.2-.1 2.3.1 3.2.5"/></svg></span>단어장</button>
   <button class="snav-item" data-sec="money"><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7.5V6.8A1.8 1.8 0 0 1 6.8 5h9.4A1.8 1.8 0 0 1 18 6.8v.7"/><rect x="3.5" y="7.5" width="17" height="12" rx="3"/><path d="M20.5 11.5h-3.2a2 2 0 0 0 0 4h3.2"/><circle cx="17.4" cy="13.5" r=".6" fill="currentColor"/></svg></span>가계부</button>
+  <button class="snav-item" data-sec="review"><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2.5 2.5 0 0 0 0 5v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2.5 2.5 0 0 0 0-5z"/><path d="m12 9.2.95 1.9 2.1.3-1.52 1.48.36 2.1L12 14l-1.9 1 .37-2.1-1.53-1.48 2.1-.3z"/></svg></span>리뷰</button>
   <div class="snav-foot">
     <button class="snav-item" id="appSettings"><span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>설정<span class="sync-st" id="syncBtn" hidden title="동기화"></span></button>
   </div>
@@ -1222,6 +1291,22 @@
 
   <!-- ═══════════ 가계부 ═══════════ -->
   <section class="page" id="page-money"><div id="moneyRoot"></div></section>
+
+  <!-- ═══════════ 드라마 리뷰 ═══════════ -->
+  <section class="page" id="page-review"><div id="reviewRoot">
+    <div class="rv-bar">
+      <input id="rvQ" placeholder="🔍 제목 · 배우 · CP · 키워드 검색">
+      <select id="rvStatus"></select>
+      <select id="rvSort"><option value="new">최근 추가순</option><option value="rating">별점순</option><option value="title">제목순</option><option value="year">연도순</option></select>
+      <span class="sp"></span>
+      <button class="btn sm" data-rv-import title="예전 입덕티켓 앱에서 내보낸 백업 파일(.json) 불러오기">📂 입덕티켓 백업 불러오기</button>
+      <button class="btn primary" data-rv-add>＋ 리뷰 쓰기</button>
+    </div>
+    <div class="rv-kws" id="rvKwBox"></div>
+    <div class="rv-count" id="rvCount"></div>
+    <div id="rvList"></div>
+    <input type="file" id="rvImportFile" accept=".json,application/json" hidden>
+  </div></section>
 
   <!-- ═══════════ 캘린더 ═══════════ -->
   <section class="page" id="page-cal"><div id="calRoot"></div><input type="file" id="calImgFile" accept="image/*" hidden></section>
@@ -1465,6 +1550,49 @@
 </main>
 
 <!-- ═══════════ 단어 추가/수정 팝업 ═══════════ -->
+<div class="modal" id="rvView" hidden>
+  <div class="modal-box rv-view-box" role="dialog" aria-modal="true" aria-label="드라마 리뷰">
+    <div class="card-h"><h2>🎬 드라마 리뷰</h2><span style="flex:1"></span><button class="btn sm" id="rvViewEdit">✏️ 수정</button><button class="btn sm danger" id="rvViewDel">🗑</button><button class="ic" id="rvViewClose" title="닫기">✕</button></div>
+    <div id="rvViewBody"></div>
+  </div>
+</div>
+<div class="modal" id="rvForm" hidden>
+  <div class="modal-box rv-form-box" role="dialog" aria-modal="true" aria-labelledby="rvFormTitle">
+    <div class="card-h"><h2 id="rvFormTitle">＋ 리뷰 쓰기</h2><button class="ic" id="rvFormClose" title="닫기">✕</button></div>
+    <form class="form ev-form" id="rvFormEl" autocomplete="off">
+      <div class="full rf-top">
+        <div class="rf-poster" id="rfPosterPrev"></div>
+        <div class="rf-top-i">
+          <label>포스터 이미지 주소 <input id="rfPoster" placeholder="https://… (이미지 주소 붙여넣기)"></label>
+          <label>드라마 제목 * <input id="rfTitle" maxlength="80" placeholder="예) 두앙윗유"></label>
+          <label>원제 <input id="rfOrig" maxlength="120" placeholder="예) Duang With You"></label>
+        </div>
+      </div>
+      <div class="full row">
+        <label>국가 <input id="rfCountry" list="rfCountries" maxlength="20" placeholder="태국"><datalist id="rfCountries"></datalist></label>
+        <label>연도 <input id="rfYear" inputmode="numeric" maxlength="4" placeholder="2025"></label>
+        <label>회차 <input id="rfEps" inputmode="numeric" maxlength="4" placeholder="12"></label>
+        <label>상태 <select id="rfStatus"><option>시청예정</option><option>시청중</option><option>완결</option><option>보류</option><option>하차</option></select></label>
+      </div>
+      <div class="full"><div class="ev-note">내 별점</div><div class="rf-stars" id="rfStars"></div></div>
+      <div class="full"><div class="ev-note">출연진</div><div id="rfCast"></div><button type="button" class="td-new" id="rfCastAdd">＋ 출연진 추가</button></div>
+      <div class="full"><div class="ev-note">CP명</div>
+        <div class="rf-chips" id="rfCps"></div>
+        <div class="rf-add"><input id="rfCpIn" list="rfCpList" placeholder="예) 띠띠뻐 (Enter로 추가, 여러 개 가능)"><datalist id="rfCpList"></datalist><button type="button" class="btn sm" id="rfCpAdd">추가</button></div></div>
+      <div class="full"><div class="ev-note">키워드</div>
+        <div class="rf-chips" id="rfKws"></div>
+        <div class="rf-add"><input id="rfKwIn" placeholder="예) 현대물, 대학물 (쉼표·Enter로 추가)"><button type="button" class="btn sm" id="rfKwAdd">추가</button></div>
+        <div class="rf-sug" id="rfKwSug"></div></div>
+      <label class="full">줄거리 <textarea id="rfSyn" rows="4" placeholder="줄거리"></textarea></label>
+      <label class="full">내 리뷰 <textarea id="rfReview" rows="4" placeholder="보고 난 감상, 명장면, 한 줄 평…"></textarea></label>
+      <div class="form-actions">
+        <span style="flex:1"></span>
+        <button type="button" class="btn" id="rfCancel">취소</button>
+        <button class="btn primary">저장</button>
+      </div>
+    </form>
+  </div>
+</div>
 <div class="modal" id="habModal" hidden>
   <div class="modal-box" role="dialog" aria-modal="true" aria-label="습관 관리" style="max-width:420px">
     <div class="card-h"><h2>습관 관리</h2><button class="ic" id="habClose" title="닫기">✕</button></div>
@@ -1922,6 +2050,7 @@ const S = Object.assign({
   events: [],         // 캘린더 일정 (아래 캘린더 참고)
   dayMemos: [],       // 캘린더 일별 메모·기분
   habits: [],         // 습관 {id, name, color, done:{날짜:1}}
+  reviews: [],        // 드라마 리뷰 (아래 리뷰 참고)
   money: [],          // 가계부 {id, date, type:'out'|'in', amount, cat, memo}
   tblocks: [],        // 일별 타임라인 (일정과 따로) {id, date, title, start, end, color, memo, mt}
   todos: [],          // 캘린더 할 일 {id, key:날짜|'w:주 시작일', text, done, created, mt}
@@ -2534,7 +2663,7 @@ function addSamples() {
   store.save(); renderAll(); toast('예시 단어를 추가했어요');
 }
 $('#exportBtn').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify({ words: S.words, notes: S.notes, events: S.events, dayMemos: S.dayMemos, todos: S.todos, tblocks: S.tblocks, habits: S.habits, money: S.money, goal: S.goal, tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, reviewLog: S.reviewLog, quizLog: S.quizLog }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ words: S.words, notes: S.notes, events: S.events, dayMemos: S.dayMemos, todos: S.todos, tblocks: S.tblocks, habits: S.habits, money: S.money, reviews: S.reviews, goal: S.goal, tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, reviewLog: S.reviewLog, quizLog: S.quizLog }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `일본어단어장_${dkey()}.json`;
@@ -4448,7 +4577,7 @@ const SY = store.sync;
 let sb = null, sbUser = null;
 
 // ── 변경 추적: 저장할 때마다 바뀐 단어에 수정 시각을 찍고, 사라진 단어는 삭제 기록 ──
-const SYNC_COLLS = ['events', 'dayMemos', 'todos', 'tblocks', 'habits', 'money'];
+const SYNC_COLLS = ['events', 'dayMemos', 'todos', 'tblocks', 'habits', 'money', 'reviews'];
 function wordSig(w) { const { mt, ...rest } = w; return JSON.stringify(rest); }
 function metaOf() {
   return { tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder, motto: S.motto || '', calImg: S.calImg || '', homeLayout: S.homeLayout || null, payMethods: S.payMethods || null,
@@ -4498,7 +4627,7 @@ function onLocalSaved() { if (SY.dirty && sbUser) schedulePush(); }
 
 // ── 합치기 ──
 function payload() {
-  return { v: 1, words: S.words, notes: S.notes, events: S.events, dayMemos: S.dayMemos, todos: S.todos, tblocks: S.tblocks, habits: S.habits, money: S.money, deleted: S.deleted, reviewLog: S.reviewLog, quizLog: S.quizLog, meta: metaOf(), metaMt: S.metaMt || 0 };
+  return { v: 1, words: S.words, notes: S.notes, events: S.events, dayMemos: S.dayMemos, todos: S.todos, tblocks: S.tblocks, habits: S.habits, money: S.money, reviews: S.reviews, deleted: S.deleted, reviewLog: S.reviewLog, quizLog: S.quizLog, meta: metaOf(), metaMt: S.metaMt || 0 };
 }
 function maxMerge(a = {}, b = {}) {
   const o = { ...a };
@@ -4530,7 +4659,7 @@ function mergePayload(L, R) {
   };
   const remoteMeta = (R.metaMt || 0) > (L.metaMt || 0);
   return {
-    v: 1, words, notes, deleted, events: coll(L.events, R.events), dayMemos: coll(L.dayMemos, R.dayMemos), todos: coll(L.todos, R.todos), tblocks: coll(L.tblocks, R.tblocks), habits: coll(L.habits, R.habits), money: coll(L.money, R.money),
+    v: 1, words, notes, deleted, events: coll(L.events, R.events), dayMemos: coll(L.dayMemos, R.dayMemos), todos: coll(L.todos, R.todos), tblocks: coll(L.tblocks, R.tblocks), habits: coll(L.habits, R.habits), money: coll(L.money, R.money), reviews: coll(L.reviews, R.reviews),
     reviewLog: maxMerge(L.reviewLog, R.reviewLog), quizLog: maxMerge(L.quizLog, R.quizLog),
     meta: remoteMeta ? R.meta : L.meta, metaMt: Math.max(L.metaMt || 0, R.metaMt || 0)
   };
@@ -4545,6 +4674,7 @@ function applyPayload(P) {
   if (Array.isArray(P.tblocks)) S.tblocks = P.tblocks;
   if (Array.isArray(P.habits)) S.habits = P.habits;
   if (Array.isArray(P.money)) S.money = P.money;
+  if (Array.isArray(P.reviews)) S.reviews = P.reviews;
   migrateTodos();
   S.deleted = P.deleted; S.reviewLog = P.reviewLog; S.quizLog = P.quizLog; S.metaMt = P.metaMt;
   const m = P.meta || {};
@@ -5832,10 +5962,182 @@ document.addEventListener('mouseover', e => {
 });
 ['scroll', 'mousedown', 'keydown'].forEach(ev => addEventListener(ev, () => { fullTipEl.hidden = true; }, true));
 
+/* ═════════════════ 드라마 리뷰 ═════════════════
+   S.reviews: {id, title, orig, poster(이미지 주소), country, year, eps, status, rating(0~5), cast:[{actor, role}],
+               cps:[CP명], keywords:[키워드], synopsis, review, created, mt}  — 로그인 동기화(본인만 보기)에 포함 */
+const RV_STATUS = ['시청예정', '시청중', '완결', '보류', '하차'];
+const RV = { q: '', status: '', kw: '', sort: 'new' };
+const rvStars = n => `<span class="rv-stars" title="${n || 0}점">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= n ? 'on' : ''}">★</i>`).join('')}</span>`;
+const rvPoster = (r, cls = '') => `<div class="rv-poster ${cls}">${r.poster
+  ? `<img src="${esc(r.poster)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.remove()">` : ''}<span>${esc((r.title || '?').slice(0, 1))}</span></div>`;
+const allRvKeywords = () => { const m = new Map(); S.reviews.forEach(r => (r.keywords || []).forEach(k => m.set(k, (m.get(k) || 0) + 1))); return [...m].sort((a, b) => b[1] - a[1]); };
+const allRvCps = () => [...new Set(S.reviews.flatMap(r => r.cps || []))];
+function renderReviews() {
+  const q = RV.q.trim().toLowerCase(), hit = s => String(s || '').toLowerCase().includes(q);
+  let list = S.reviews.filter(r => (!RV.status || r.status === RV.status) && (!RV.kw || (r.keywords || []).includes(RV.kw))
+    && (!q || hit(r.title) || hit(r.orig) || (r.cast || []).some(c => hit(c.actor) || hit(c.role)) || (r.cps || []).some(hit) || (r.keywords || []).some(hit)));
+  const by = { new: (a, b) => (b.created || 0) - (a.created || 0), rating: (a, b) => (b.rating || 0) - (a.rating || 0) || (b.created || 0) - (a.created || 0),
+    title: (a, b) => a.title.localeCompare(b.title, 'ko'), year: (a, b) => String(b.year || '').localeCompare(String(a.year || '')) };
+  list = list.sort(by[RV.sort] || by.new);
+  const kws = allRvKeywords().slice(0, 30);
+  // 검색칸은 다시 그리지 않음 (한글 입력 중 끊기지 않게) — 아래 목록만 갱신
+  $('#rvStatus').innerHTML = `<option value="">상태 전체</option>${RV_STATUS.map(s => `<option ${s === RV.status ? 'selected' : ''}>${s}</option>`).join('')}`;
+  $('#rvSort').value = RV.sort;
+  $('#rvKwBox').innerHTML = kws.length ? `${RV.kw ? `<button class="rv-kw on" data-rv-kw="">✕ ${esc(RV.kw)}</button>` : ''}${kws.filter(([k]) => k !== RV.kw).map(([k, n]) => `<button class="rv-kw" data-rv-kw="${esc(k)}">${esc(k)} <small>${n}</small></button>`).join('')}` : '';
+  $('#rvCount').textContent = `${list.length}편${list.length !== S.reviews.length ? ` / 전체 ${S.reviews.length}편` : ''}`;
+  $('#rvList').innerHTML = list.length ? `<div class="rv-grid">${list.map(r => `<div class="rv-card" data-rv="${r.id}">
+        ${rvPoster(r)}
+        <div class="rv-info">
+          <b class="clip" data-full="${esc(r.title)}">${esc(r.title)}</b>
+          ${r.orig ? `<small class="clip" data-full="${esc(r.orig)}">${esc(r.orig)}</small>` : ''}
+          <div class="rv-meta">${[r.country, r.year, r.eps ? r.eps + '부작' : ''].filter(Boolean).map(esc).join(' · ')}</div>
+          <div class="rv-row">${r.status ? `<span class="rv-st st-${RV_STATUS.indexOf(r.status)}">${esc(r.status)}</span>` : ''}${r.rating ? rvStars(r.rating) : ''}</div>
+          ${(r.cps || []).length ? `<div class="rv-cps">${r.cps.slice(0, 2).map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
+        </div></div>`).join('')}</div>`
+      : `<div class="card empty" style="padding:40px 10px">${S.reviews.length ? '조건에 맞는 리뷰가 없어요' : '＋ 리뷰 쓰기로 첫 드라마 리뷰를 남겨 보세요 🎬'}</div>`;
+}
+$('#rvQ').addEventListener('input', e => { RV.q = e.target.value; renderReviews(); });
+$('#reviewRoot').addEventListener('change', e => {
+  if (e.target.id === 'rvStatus') { RV.status = e.target.value; renderReviews(); }
+  if (e.target.id === 'rvSort') { RV.sort = e.target.value; renderReviews(); }
+});
+$('#reviewRoot').addEventListener('click', e => {
+  const t = e.target;
+  if (t.closest('[data-rv-add]')) return openRvForm();
+  if (t.closest('[data-rv-import]')) return $('#rvImportFile').click();
+  const kw = t.closest('[data-rv-kw]');
+  if (kw) { RV.kw = kw.dataset.rvKw; return renderReviews(); }
+  const c = t.closest('[data-rv]');
+  if (c) openRvView(c.dataset.rv);
+});
+// ── 자세히 보기 ──
+let RVV = null;
+function openRvView(id) {
+  const r = S.reviews.find(x => x.id === id); if (!r) return;
+  RVV = r;
+  $('#rvViewBody').innerHTML = `
+    <div class="rv-hero">${rvPoster(r, 'big')}
+      <div class="rv-hero-i">
+        <h3>${esc(r.title)}</h3>${r.orig ? `<div class="muted">${esc(r.orig)}</div>` : ''}
+        <div class="rv-meta">${[r.country, r.year, r.eps ? r.eps + '부작' : ''].filter(Boolean).map(esc).join(' · ')}</div>
+        <div class="rv-row">${r.status ? `<span class="rv-st st-${RV_STATUS.indexOf(r.status)}">${esc(r.status)}</span>` : ''}${rvStars(r.rating || 0)}</div>
+        ${(r.cps || []).length ? `<div class="rv-sec">CP</div><div class="rv-cps">${r.cps.map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
+      </div></div>
+    ${(r.cast || []).length ? `<div class="rv-sec">출연진</div><div class="rv-cast">${r.cast.map(c => `<div><b>${esc(c.actor)}</b>${c.role ? `<span>${esc(c.role)} 역</span>` : ''}</div>`).join('')}</div>` : ''}
+    ${(r.keywords || []).length ? `<div class="rv-sec">키워드</div><div class="rv-kws">${r.keywords.map(k => `<span class="rv-kw">${esc(k)}</span>`).join('')}</div>` : ''}
+    ${r.synopsis ? `<div class="rv-sec">줄거리</div><div class="rv-text">${esc(r.synopsis)}</div>` : ''}
+    ${r.review ? `<div class="rv-sec">내 리뷰</div><div class="rv-text mine">${esc(r.review)}</div>` : ''}`;
+  $('#rvView').hidden = false; document.body.classList.add('modal-open');
+}
+function closeRvView() { $('#rvView').hidden = true; RVV = null; if ($$('.modal').every(m => m.hidden)) document.body.classList.remove('modal-open'); }
+$('#rvViewClose').addEventListener('click', closeRvView);
+$('#rvView').addEventListener('click', e => { if (e.target.id === 'rvView') closeRvView(); });
+$('#rvViewEdit').addEventListener('click', () => { const id = RVV.id; closeRvView(); openRvForm(id); });
+$('#rvViewDel').addEventListener('click', async () => {
+  const r = RVV; if (!r) return;
+  const v = await ask({ title: `'${r.title}' 리뷰를 삭제할까요?`, html: '삭제하면 되돌릴 수 없어요.' + syncWarn(), choices: [{ v: 'del', label: '🗑 삭제', cls: 'solid-danger' }] });
+  if (!v) return;
+  S.reviews = S.reviews.filter(x => x !== r); store.save(); closeRvView(); renderReviews(); toast('삭제했어요');
+});
+// ── 쓰기 · 고치기 ──
+let RVF = null;            // {edit, cast:[], cps:[], keywords:[], rating}
+function openRvForm(id) {
+  const r = id ? S.reviews.find(x => x.id === id) : null;
+  RVF = { edit: r, cast: r ? (r.cast || []).map(c => ({ ...c })) : [{ actor: '', role: '' }, { actor: '', role: '' }],
+    cps: r ? [...(r.cps || [])] : [], keywords: r ? [...(r.keywords || [])] : [], rating: r ? r.rating || 0 : 0 };
+  $('#rvFormTitle').textContent = r ? '✏️ 리뷰 수정' : '＋ 리뷰 쓰기';
+  $('#rfPoster').value = r?.poster || ''; $('#rfTitle').value = r?.title || ''; $('#rfOrig').value = r?.orig || '';
+  $('#rfCountry').value = r?.country || ''; $('#rfYear').value = r?.year || ''; $('#rfEps').value = r?.eps || '';
+  $('#rfStatus').value = r?.status || '완결'; $('#rfSyn').value = r?.synopsis || ''; $('#rfReview').value = r?.review || '';
+  $('#rfCountries').innerHTML = [...new Set(['한국', '태국', '일본', '중국', '대만', '필리핀', '베트남', ...S.reviews.map(x => x.country).filter(Boolean)])].map(c => `<option value="${esc(c)}">`).join('');
+  $('#rfCpList').innerHTML = allRvCps().map(c => `<option value="${esc(c)}">`).join('');
+  renderRvForm(); rvPosterPreview();
+  $('#rvForm').hidden = false; document.body.classList.add('modal-open');
+  setTimeout(() => (r ? $('#rfTitle') : $('#rfPoster')).focus(), 30);
+}
+function renderRvForm() {
+  $('#rfStars').innerHTML = [1, 2, 3, 4, 5].map(i => `<button type="button" data-star="${i}" class="${i <= RVF.rating ? 'on' : ''}">★</button>`).join('') + `<span>${RVF.rating ? RVF.rating + '점' : '별점 없음'}</span>`;
+  $('#rfCast').innerHTML = RVF.cast.map((c, i) => `<div class="rf-cast">
+    <input data-ci="${i}" data-cf="actor" value="${esc(c.actor)}" placeholder="배우 이름">
+    <input data-ci="${i}" data-cf="role" value="${esc(c.role)}" placeholder="역할 (극 중 이름)">
+    <button type="button" class="ic" data-cdel="${i}" title="빼기">✕</button></div>`).join('');
+  $('#rfCps').innerHTML = RVF.cps.map((c, i) => `<span class="chip-x">${esc(c)}<button type="button" data-cpdel="${i}">✕</button></span>`).join('');
+  $('#rfKws').innerHTML = RVF.keywords.map((k, i) => `<span class="chip-x">${esc(k)}<button type="button" data-kwdel="${i}">✕</button></span>`).join('');
+  const sug = allRvKeywords().map(([k]) => k).filter(k => !RVF.keywords.includes(k)).slice(0, 24);
+  $('#rfKwSug').innerHTML = sug.map(k => `<button type="button" data-kwadd="${esc(k)}">＋ ${esc(k)}</button>`).join('');
+}
+function rvPosterPreview() {
+  const u = $('#rfPoster').value.trim();
+  $('#rfPosterPrev').innerHTML = u ? `<img src="${esc(u)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('bad'); this.remove()">` : '<span>포스터<br>미리보기</span>';
+  $('#rfPosterPrev').classList.remove('bad');
+}
+let rvPT = null;
+$('#rfPoster').addEventListener('input', () => { clearTimeout(rvPT); rvPT = setTimeout(rvPosterPreview, 300); });
+const addChips = (key, inputSel) => {
+  const inp = $(inputSel), vals = inp.value.split(/[,，]/).map(v => v.trim()).filter(Boolean);
+  vals.forEach(v => { if (!RVF[key].includes(v)) RVF[key].push(v); });
+  inp.value = ''; renderRvForm();
+};
+$('#rfCpIn').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addChips('cps', '#rfCpIn'); } });
+$('#rfKwIn').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addChips('keywords', '#rfKwIn'); } });
+$('#rfCpAdd').addEventListener('click', () => addChips('cps', '#rfCpIn'));
+$('#rfKwAdd').addEventListener('click', () => addChips('keywords', '#rfKwIn'));
+$('#rfCastAdd').addEventListener('click', () => { RVF.cast.push({ actor: '', role: '' }); renderRvForm(); $$('#rfCast input[data-cf=actor]').at(-1)?.focus(); });
+$('#rvFormEl').addEventListener('input', e => { const i = e.target.dataset.ci; if (i !== undefined) RVF.cast[+i][e.target.dataset.cf] = e.target.value; });
+$('#rvFormEl').addEventListener('click', e => {
+  const t = e.target;
+  const st = t.closest('[data-star]'); if (st) { const n = +st.dataset.star; RVF.rating = RVF.rating === n ? 0 : n; return renderRvForm(); }
+  const cd = t.closest('[data-cdel]'); if (cd) { RVF.cast.splice(+cd.dataset.cdel, 1); return renderRvForm(); }
+  const pd_ = t.closest('[data-cpdel]'); if (pd_) { RVF.cps.splice(+pd_.dataset.cpdel, 1); return renderRvForm(); }
+  const kd = t.closest('[data-kwdel]'); if (kd) { RVF.keywords.splice(+kd.dataset.kwdel, 1); return renderRvForm(); }
+  const ka = t.closest('[data-kwadd]'); if (ka) { RVF.keywords.push(ka.dataset.kwadd); return renderRvForm(); }
+});
+function closeRvForm() { $('#rvForm').hidden = true; RVF = null; if ($$('.modal').every(m => m.hidden)) document.body.classList.remove('modal-open'); }
+$('#rvFormClose').addEventListener('click', closeRvForm);
+$('#rfCancel').addEventListener('click', closeRvForm);
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || !$('#askModal').hidden) return;
+  if (!$('#rvForm').hidden) closeRvForm(); else if (!$('#rvView').hidden) closeRvView();
+});
+$('#rvFormEl').addEventListener('submit', e => {
+  e.preventDefault();
+  const title = $('#rfTitle').value.trim(); if (!title) { toast('드라마 제목을 적어 주세요'); return $('#rfTitle').focus(); }
+  if ($('#rfCpIn').value.trim()) addChips('cps', '#rfCpIn');            // 입력칸에 쓰다 만 것도 넣기
+  if ($('#rfKwIn').value.trim()) addChips('keywords', '#rfKwIn');
+  const data = { title, orig: $('#rfOrig').value.trim(), poster: $('#rfPoster').value.trim(), country: $('#rfCountry').value.trim(),
+    year: $('#rfYear').value.trim(), eps: $('#rfEps').value.trim(), status: $('#rfStatus').value, rating: RVF.rating,
+    cast: RVF.cast.map(c => ({ actor: c.actor.trim(), role: c.role.trim() })).filter(c => c.actor || c.role),
+    cps: RVF.cps, keywords: RVF.keywords, synopsis: $('#rfSyn').value.trim(), review: $('#rfReview').value.trim() };
+  let id;
+  if (RVF.edit) { Object.assign(RVF.edit, data); id = RVF.edit.id; }
+  else { id = uid(); S.reviews.push({ id, created: Date.now(), ...data }); }
+  store.save(); closeRvForm(); renderReviews(); toast('리뷰를 저장했어요');
+});
+// ── 예전 '입덕티켓' 백업 파일 불러오기 (브라우저 안에서만 읽음, 저장소에는 안 올라감) ──
+$('#rvImportFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  let d; try { d = JSON.parse(await f.text()); } catch { return toast('파일을 읽을 수 없어요'); }
+  if (!d || !Array.isArray(d.dramas)) return toast('입덕티켓 백업 파일이 아니에요');
+  const kw = Object.fromEntries((d.keywords || []).map(k => [k.id, k.label]));
+  const cp = Object.fromEntries((d.cps || []).map(c => [c.id, c.nickname || c.name || '']));
+  const have = new Set(S.reviews.map(r => r.id));
+  const add = d.dramas.filter(x => x && x.title && !have.has('ipd-' + x.id)).map(x => ({
+    id: 'ipd-' + x.id, title: x.title, orig: x.originalTitle || '', poster: x.poster && !String(x.poster).startsWith('data:') ? x.poster : (x.poster || ''),
+    country: x.country || '', year: x.year || '', eps: x.episodes || '', status: RV_STATUS.includes(x.status) ? x.status : (x.status === '시청포기' ? '하차' : x.status === '방영중' || x.status === '방영예정' ? '시청예정' : x.status || ''),
+    rating: Math.round(+x.myRating || 0), cast: (x.cast || []).map(c => ({ actor: c.actor || '', role: c.role || '' })).filter(c => c.actor || c.role),
+    cps: (x.cpIds || []).map(i => cp[i]).filter(Boolean), keywords: (x.keywordIds || []).map(i => kw[i]).filter(Boolean),
+    synopsis: x.synopsis || '', review: x.review || '', created: Date.parse(x.dateAdded) || Date.now() }));
+  if (!add.length) return toast('새로 불러올 드라마가 없어요 (이미 다 들어 있어요)');
+  const v = await ask({ title: `드라마 ${add.length}편을 불러올까요?`, html: `지금 리뷰 ${S.reviews.length}편은 그대로 두고, 없는 것만 더해요.<br>포스터 · 제목 · 원제 · 출연진 · CP · 키워드 · 줄거리 · 별점 · 상태를 가져와요.`, choices: [{ v: 'ok', label: '📂 불러오기', cls: 'primary' }] });
+  if (!v) return;
+  S.reviews.push(...add); store.save(); renderReviews(); toast(`${add.length}편을 불러왔어요`);
+});
+
 /* ═════════════════ 메인 메뉴 (왼쪽) ═════════════════ */
-const SEC_OF = { main: 'main', cal: 'cal', money: 'money', home: 'words', words: 'words', quiz: 'words', notes: 'words' };
+const SEC_OF = { main: 'main', cal: 'cal', money: 'money', review: 'review', home: 'words', words: 'words', quiz: 'words', notes: 'words' };
 const SEC_ICON = {"main": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3.5 10.2 12 3.5l8.5 6.7\"/><path d=\"M5.5 8.8V19a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5V8.8\"/><path d=\"M12 17.2s-3.2-1.9-3.2-3.9a1.7 1.7 0 0 1 3.2-.8 1.7 1.7 0 0 1 3.2.8c0 2-3.2 3.9-3.2 3.9z\"/></svg>", "cal": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3.5\" y=\"5\" width=\"17\" height=\"15.5\" rx=\"3.5\"/><path d=\"M3.5 10h17M8.5 3v4M15.5 3v4\"/><path d=\"M12 17.6s-2.4-1.4-2.4-2.9a1.25 1.25 0 0 1 2.4-.6 1.25 1.25 0 0 1 2.4.6c0 1.5-2.4 2.9-2.4 2.9z\"/></svg>", "words": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 6.6C10 5.1 7 4.6 3.5 5.1v13.6c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5.1C17 4.6 14 5.1 12 6.6z\"/><path d=\"M12 6.6v13.6\"/><path d=\"M6.5 9.2c1.2-.1 2.3.1 3.2.5M6.5 12.2c1.2-.1 2.3.1 3.2.5\"/></svg>"};
-const SEC_LOGO = { main: '<b>홈</b>', cal: '<b>캘린더</b>', words: '<b>日本語</b> 단어장', money: '<b>가계부</b>' };
+const SEC_LOGO = { main: '<b>홈</b>', cal: '<b>캘린더</b>', words: '<b>日本語</b> 단어장', money: '<b>가계부</b>', review: '<b>드라마 리뷰</b>' };
+SEC_ICON.review = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2.5 2.5 0 0 0 0 5v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2.5 2.5 0 0 0 0-5z"/><path d="m12 9.2.95 1.9 2.1.3-1.52 1.48.36 2.1L12 14l-1.9 1 .37-2.1-1.53-1.48 2.1-.3z"/></svg>`;
 SEC_ICON.money = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7.5V6.8A1.8 1.8 0 0 1 6.8 5h9.4A1.8 1.8 0 0 1 18 6.8v.7"/><rect x="3.5" y="7.5" width="17" height="12" rx="3"/><path d="M20.5 11.5h-3.2a2 2 0 0 0 0 4h3.2"/><circle cx="17.4" cy="13.5" r=".6" fill="currentColor"/></svg>`;
 let lastWordTab = 'home';
 try { lastWordTab = sessionStorage.getItem('jpWordTab') || 'home'; } catch {}
@@ -5871,6 +6173,7 @@ function renderAll() {
   if ($('#page-cal').classList.contains('active')) renderCal({ passive: true });
   if ($('#page-main').classList.contains('active')) renderMainHome();
   if ($('#page-money').classList.contains('active')) renderMoney();
+  if ($('#page-review').classList.contains('active')) renderReviews();
   if (Q && $('#quizResult').style.display !== 'none') renderResultWrong();
 }
 initPlayer();
