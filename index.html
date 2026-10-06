@@ -6164,7 +6164,23 @@ function renderRvSeq() {
 }
 $('#rfSeq').addEventListener('change', renderRvSeq);
 $('#rfSeqQ').addEventListener('input', renderRvSeq);
-$('#rfPrev').addEventListener('change', e => { RVF.prev = e.target.value; renderRvSeq(); });
+// 이전 작품을 고르면 출연진·CP·키워드를 그 작품에서 가져옴 (이미 적어 둔 건 그대로 두고, 없는 것만 더함)
+$('#rfPrev').addEventListener('change', e => {
+  RVF.prev = e.target.value;
+  const src = rvById(RVF.prev);
+  if (src) {
+    RVF.cast = RVF.cast.filter(c => c.actor.trim() || c.role.trim());
+    const have = new Set(RVF.cast.map(c => c.actor.trim()));
+    const addCast = (src.cast || []).filter(c => c.actor && !have.has(c.actor)).map(c => ({ actor: c.actor, role: c.role || '' }));
+    RVF.cast.push(...addCast);
+    if (!RVF.cast.length) RVF.cast.push({ actor: '', role: '' });
+    const addCp = (src.cps || []).filter(c => !RVF.cps.includes(c)), addKw = (src.keywords || []).filter(k => !RVF.keywords.includes(k));
+    RVF.cps.push(...addCp); RVF.keywords.push(...addKw);
+    renderRvForm();
+    const got = [addCast.length && `출연진 ${addCast.length}명`, addCp.length && `CP ${addCp.length}개`, addKw.length && `키워드 ${addKw.length}개`].filter(Boolean);
+    if (got.length) toast(`'${src.title}'에서 ${got.join(', ')}를 가져왔어요`);
+  } else renderRvSeq();
+});
 function renderRvForm() {
   renderRvSeq();
   $('#rfAirWrap').hidden = $('#rfStatus').value !== '방영중';
