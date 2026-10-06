@@ -922,8 +922,9 @@
   .rv-meta { font-size: 11px; color: var(--text2); }
   .rv-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .rv-st { font-size: 10px; font-weight: 700; border-radius: 99px; padding: 1px 8px; background: #eee; color: #777; }
-  .rv-st.st-0 { background: #e8f1fc; color: #3a74c4; } .rv-st.st-1 { background: var(--accent-light); color: var(--accent-dark); }
-  .rv-st.st-2 { background: var(--success-light); color: #3f9a74; } .rv-st.st-3 { background: #fff6e0; color: #c08a12; }
+  .rv-st.st-plan { background: #e8f1fc; color: #3a74c4; } .rv-st.st-air { background: #ffe9ec; color: #e0526b; } .rv-st.st-watch { background: var(--accent-light); color: var(--accent-dark); }
+  .rv-st.st-done { background: var(--success-light); color: #3f9a74; } .rv-st.st-hold { background: #fff6e0; color: #c08a12; }
+  .rf-air[hidden] { display: none; }
   .rv-stars { letter-spacing: -1px; font-size: 12px; }
   .rv-stars i { font-style: normal; color: #e7d9de; } .rv-stars i.on { color: var(--star); }
   .rv-cps { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -1586,8 +1587,9 @@
       <div class="full row">
         <label>연도 <input id="rfYear" inputmode="numeric" maxlength="4" placeholder="2025"></label>
         <label>회차 <input id="rfEps" inputmode="numeric" maxlength="4" placeholder="12"></label>
-        <label>상태 <select id="rfStatus"><option>시청예정</option><option>시청중</option><option>완결</option><option>보류</option><option>하차</option></select></label>
+        <label>상태 <select id="rfStatus"><option>시청예정</option><option>방영중</option><option>시청중</option><option>완결</option><option>보류</option><option>하차</option></select></label>
       </div>
+      <div class="full rf-air" id="rfAirWrap" hidden><div class="ev-note">방영 요일 (여러 개 고를 수 있어요)</div><div class="wdays" id="rfAir"></div></div>
       <div class="full"><div class="ev-note">내 별점</div><div class="rf-stars" id="rfStars"></div></div>
       <div class="full"><div class="ev-note">출연진</div><div id="rfCast"></div><button type="button" class="td-new" id="rfCastAdd">＋ 출연진 추가</button></div>
       <div class="full"><div class="ev-note">CP명 <button type="button" class="rf-mgr" data-rf-mgr="cps">관리</button></div>
@@ -5980,7 +5982,11 @@ document.addEventListener('mouseover', e => {
 /* ═════════════════ 드라마 리뷰 ═════════════════
    S.reviews: {id, title, orig, poster(이미지 주소), year, eps, status, rating(0~5), cast:[{actor, role}],
                cps:[CP명], keywords:[키워드], synopsis, review, created, mt}  — 로그인 동기화(본인만 보기)에 포함 */
-const RV_STATUS = ['시청예정', '시청중', '완결', '보류', '하차'];
+const RV_STATUS = ['시청예정', '방영중', '시청중', '완결', '보류', '하차'];
+const RV_ST_CLS = { 시청예정: 'plan', 방영중: 'air', 시청중: 'watch', 완결: 'done', 보류: 'hold', 하차: 'drop' };
+// 방영중이면 방영 요일(airDays: 0=일 … 6=토)도 같이 표시. 월~일 순서로 보여줌
+const airLabel = r => r.status === '방영중' && (r.airDays || []).length ? ' · ' + [1, 2, 3, 4, 5, 6, 0].filter(i => r.airDays.includes(i)).map(i => DOW[i]).join('') : '';
+const rvStatus = r => r.status ? `<span class="rv-st st-${RV_ST_CLS[r.status] || 'etc'}">${esc(r.status)}${airLabel(r)}</span>` : '';
 const RV = { q: '', status: '', kw: '', sort: 'new' };
 const rvStars = n => `<span class="rv-stars" title="${n || 0}점">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= n ? 'on' : ''}">★</i>`).join('')}</span>`;
 const rvPoster = (r, cls = '') => `<div class="rv-poster ${cls}">${r.poster
@@ -6005,7 +6011,7 @@ function renderReviews() {
           <b class="clip" data-full="${esc(r.title)}">${esc(r.title)}</b>
           ${r.orig ? `<small class="clip" data-full="${esc(r.orig)}">${esc(r.orig)}</small>` : ''}
           <div class="rv-meta">${[r.year, r.eps ? r.eps + '부작' : ''].filter(Boolean).map(esc).join(' · ')}</div>
-          <div class="rv-row">${r.status ? `<span class="rv-st st-${RV_STATUS.indexOf(r.status)}">${esc(r.status)}</span>` : ''}${r.rating ? rvStars(r.rating) : ''}</div>
+          <div class="rv-row">${rvStatus(r)}${r.rating ? rvStars(r.rating) : ''}</div>
           ${(r.cps || []).length ? `<div class="rv-cps">${r.cps.slice(0, 2).map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
         </div></div>`).join('')}</div>`
       : `<div class="card empty" style="padding:40px 10px">${S.reviews.length ? '조건에 맞는 리뷰가 없어요' : '＋ 리뷰 쓰기로 첫 드라마 리뷰를 남겨 보세요 🎬'}</div>`;
@@ -6034,7 +6040,7 @@ function openRvView(id) {
       <div class="rv-hero-i">
         <h3>${esc(r.title)}</h3>${r.orig ? `<div class="muted">${esc(r.orig)}</div>` : ''}
         <div class="rv-meta">${[r.year, r.eps ? r.eps + '부작' : ''].filter(Boolean).map(esc).join(' · ')}</div>
-        <div class="rv-row">${r.status ? `<span class="rv-st st-${RV_STATUS.indexOf(r.status)}">${esc(r.status)}</span>` : ''}${rvStars(r.rating || 0)}</div>
+        <div class="rv-row">${rvStatus(r)}${rvStars(r.rating || 0)}</div>
         ${(r.cps || []).length ? `<div class="rv-sec">CP</div><div class="rv-cps">${r.cps.map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
       </div></div>
     ${(r.cast || []).length ? `<div class="rv-sec">출연진</div><div class="rv-cast">${r.cast.map(c => `<div><b>${esc(c.actor)}</b>${c.role ? `<span>${esc(c.role)} 역</span>` : ''}</div>`).join('')}</div>` : ''}
@@ -6057,7 +6063,7 @@ $('#rvViewDel').addEventListener('click', async () => {
 let RVF = null;            // {edit, cast:[], cps:[], keywords:[], rating}
 function openRvForm(id) {
   const r = id ? S.reviews.find(x => x.id === id) : null;
-  RVF = { edit: r, cast: r ? (r.cast || []).map(c => ({ ...c })) : [{ actor: '', role: '' }, { actor: '', role: '' }],
+  RVF = { edit: r, air: r ? [...(r.airDays || [])] : [], cast: r ? (r.cast || []).map(c => ({ ...c })) : [{ actor: '', role: '' }, { actor: '', role: '' }],
     cps: r ? [...(r.cps || [])] : [], keywords: r ? [...(r.keywords || [])] : [], rating: r ? r.rating || 0 : 0 };
   $('#rvFormTitle').textContent = r ? '✏️ 리뷰 수정' : '＋ 리뷰 쓰기';
   $('#rfPoster').value = r?.poster || ''; $('#rfTitle').value = r?.title || ''; $('#rfOrig').value = r?.orig || '';
@@ -6069,6 +6075,8 @@ function openRvForm(id) {
   setTimeout(() => (r ? $('#rfTitle') : $('#rfPoster')).focus(), 30);
 }
 function renderRvForm() {
+  $('#rfAirWrap').hidden = $('#rfStatus').value !== '방영중';
+  $('#rfAir').innerHTML = [1, 2, 3, 4, 5, 6, 0].map(i => `<button type="button" data-air="${i}" class="${RVF.air.includes(i) ? 'on' : ''}">${DOW[i]}</button>`).join('');
   $('#rfStars').innerHTML = [1, 2, 3, 4, 5].map(i => `<button type="button" data-star="${i}" class="${i <= RVF.rating ? 'on' : ''}">★</button>`).join('') + `<span>${RVF.rating ? RVF.rating + '점' : '별점 없음'}</span>`;
   $('#rfCast').innerHTML = RVF.cast.map((c, i) => `<div class="rf-cast">
     <input data-ci="${i}" data-cf="actor" value="${esc(c.actor)}" placeholder="배우 이름">
@@ -6087,6 +6095,7 @@ function rvPosterPreview() {
   $('#rfPosterPrev').classList.remove('bad');
 }
 let rvPT = null;
+$('#rfStatus').addEventListener('change', () => renderRvForm());
 $('#rfPoster').addEventListener('input', () => { clearTimeout(rvPT); rvPT = setTimeout(rvPosterPreview, 300); });
 const addChips = (key, inputSel) => {
   const inp = $(inputSel), vals = inp.value.split(/[,，]/).map(v => v.trim()).filter(Boolean);
@@ -6105,6 +6114,7 @@ $('#rvFormEl').addEventListener('click', e => {
   const cd = t.closest('[data-cdel]'); if (cd) { RVF.cast.splice(+cd.dataset.cdel, 1); return renderRvForm(); }
   const pd_ = t.closest('[data-cpdel]'); if (pd_) { RVF.cps.splice(+pd_.dataset.cpdel, 1); return renderRvForm(); }
   const kd = t.closest('[data-kwdel]'); if (kd) { RVF.keywords.splice(+kd.dataset.kwdel, 1); return renderRvForm(); }
+  const ai = t.closest('[data-air]'); if (ai) { const i = +ai.dataset.air; RVF.air = RVF.air.includes(i) ? RVF.air.filter(x => x !== i) : [...RVF.air, i]; return renderRvForm(); }
   const ka = t.closest('[data-kwadd]'); if (ka) { RVF.keywords.push(ka.dataset.kwadd); return renderRvForm(); }
   const ca = t.closest('[data-cpadd]'); if (ca) { RVF.cps.push(ca.dataset.cpadd); return renderRvForm(); }
   const mg = t.closest('[data-rf-mgr]'); if (mg) return openRvMgr(mg.dataset.rfMgr);
@@ -6122,7 +6132,7 @@ $('#rvFormEl').addEventListener('submit', e => {
   if ($('#rfCpIn').value.trim()) addChips('cps', '#rfCpIn');            // 입력칸에 쓰다 만 것도 넣기
   if ($('#rfKwIn').value.trim()) addChips('keywords', '#rfKwIn');
   const data = { title, orig: $('#rfOrig').value.trim(), poster: $('#rfPoster').value.trim(),
-    year: $('#rfYear').value.trim(), eps: $('#rfEps').value.trim(), status: $('#rfStatus').value, rating: RVF.rating,
+    year: $('#rfYear').value.trim(), eps: $('#rfEps').value.trim(), status: $('#rfStatus').value, airDays: $('#rfStatus').value === '방영중' ? [...RVF.air].sort() : [], rating: RVF.rating,
     cast: RVF.cast.map(c => ({ actor: c.actor.trim(), role: c.role.trim() })).filter(c => c.actor || c.role),
     cps: RVF.cps, keywords: RVF.keywords, synopsis: $('#rfSyn').value.trim(), review: $('#rfReview').value.trim() };
   let id;
