@@ -925,6 +925,8 @@
   .rv-st.st-plan { background: #e8f1fc; color: #3a74c4; } .rv-st.st-air { background: #ffe9ec; color: #e0526b; } .rv-st.st-watch { background: var(--accent-light); color: var(--accent-dark); }
   .rv-st.st-done { background: var(--success-light); color: #3f9a74; } .rv-st.st-hold { background: #fff6e0; color: #c08a12; }
   .rf-air[hidden] { display: none; }
+  .rf-air-info { font-size: 11px; color: var(--text2); margin-top: 6px; background: var(--surface2); border-radius: 8px; padding: 5px 8px; }
+  .rv-air { font-size: 11px; color: #e0526b; }
   .rv-stars { letter-spacing: -1px; font-size: 12px; }
   .rv-stars i { font-style: normal; color: #e7d9de; } .rv-stars i.on { color: var(--star); }
   .rv-cps { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -1589,7 +1591,10 @@
         <label>회차 <input id="rfEps" inputmode="numeric" maxlength="4" placeholder="12"></label>
         <label>상태 <select id="rfStatus"><option>시청예정</option><option>방영중</option><option>시청중</option><option>완결</option><option>보류</option><option>하차</option></select></label>
       </div>
-      <div class="full rf-air" id="rfAirWrap" hidden><div class="ev-note">방영 요일 (여러 개 고를 수 있어요)</div><div class="wdays" id="rfAir"></div></div>
+      <div class="full rf-air" id="rfAirWrap" hidden>
+        <div class="row"><label>방영 시작일 (1화) <input type="date" id="rfAirStart"></label></div>
+        <div class="ev-note" style="margin:6px 0 3px">방영 요일 (여러 개 고를 수 있어요)</div><div class="wdays" id="rfAir"></div>
+        <div class="rf-air-info" id="rfAirInfo"></div></div>
       <div class="full"><div class="ev-note">내 별점</div><div class="rf-stars" id="rfStars"></div></div>
       <div class="full"><div class="ev-note">출연진</div><div id="rfCast"></div><button type="button" class="td-new" id="rfCastAdd">＋ 출연진 추가</button></div>
       <div class="full"><div class="ev-note">CP명 <button type="button" class="rf-mgr" data-rf-mgr="cps">관리</button></div>
@@ -4950,15 +4955,40 @@ function isStart(ev, d) {
   }
 }
 // 그날 보이는 일정들 (여러 날 일정은 시작한 날(s)도 같이)
+// ── 방영중 드라마 → 캘린더 (리뷰의 방영 시작일 · 방영 요일 · 회차로 EP 계산, 저장하지 않고 그때그때 만듦) ──
+let dramaCache = { sig: null, map: {} };
+function dramaSchedule(r) {          // [[날짜, 회차]] — 시작일부터 방영 요일마다 한 회씩, 회차 수만큼 (회차를 모르면 최대 2년)
+  const days = r.airDays?.length ? r.airDays : [pd(r.airStart).getDay()];
+  const total = Math.max(0, parseInt(r.eps) || 0), out = [];
+  for (let d = r.airStart, n = 0, guard = 0; guard < 730 && (!total || n < total); d = calAdd(d, 1), guard++)
+    if (days.includes(pd(d).getDay())) out.push([d, ++n]);
+  return out;
+}
+function dramasOn(d) {
+  const airing = S.reviews.filter(r => r.status === '방영중' && r.airStart);
+  const sig = airing.map(r => [r.id, r.title, r.airStart, (r.airDays || []).join(''), r.eps].join('|')).join('/');
+  if (dramaCache.sig !== sig) {
+    const map = {};
+    airing.forEach((r, i) => {
+      const sch = dramaSchedule(r), last = parseInt(r.eps) || 0;
+      sch.forEach(([day, n]) => (map[day] = map[day] || []).push({
+        id: 'rv-' + r.id, title: `${r.title} EP${n}${last && n === last ? ' (마지막화)' : ''}`, allDay: true, drama: true,
+        color: ['#e0526b', '#9b6bd6', '#4a90d9', '#f08a4b', '#4caf8a', '#e8b931'][i % 6], memo: '', rep: { f: 'none' } }));
+    });
+    dramaCache = { sig, map };
+  }
+  return dramaCache.map[d] || [];
+}
+const dramaNext = r => r.status === '방영중' && r.airStart ? dramaSchedule(r) : [];
 function eventsOn(d) {
-  const out = [];
+  const out = dramasOn(d).map(ev => ({ ev, s: d }));
   for (const ev of S.events) {
     const len = evLen(ev);
     for (let k = 0; k <= len; k++) { const s = k ? calAdd(d, -k) : d; if (isStart(ev, s)) { out.push({ ev, s }); break; } }
   }
   return out.sort((x, y) => (y.ev.allDay - x.ev.allDay) || (x.ev.start || '').localeCompare(y.ev.start || '') || x.ev.title.localeCompare(y.ev.title));
 }
-const tmLabel = ev => ev.allDay ? (evLen(ev) ? `${pd(ev.endDate).getMonth() + 1}/${pd(ev.endDate).getDate()}까지` : '하루 종일') : `${ev.start}${ev.end ? '–' + ev.end : ''}`;
+const tmLabel = ev => ev.drama ? '📺 방영' : ev.allDay ? (evLen(ev) ? `${pd(ev.endDate).getMonth() + 1}/${pd(ev.endDate).getDate()}까지` : '하루 종일') : `${ev.start}${ev.end ? '–' + ev.end : ''}`;
 function repLabel(ev) {
   const r = ev.rep || {}, n = Math.max(1, r.n || 1), a = pd(ev.date);
   const base = {
@@ -5146,7 +5176,7 @@ function weekHtml() {
       <div class="wk-h"><button class="wk-date" data-goday="${d}" title="이날 자세히 보기"><b>${dt.getDate()}</b><span>${DOW[wd]}요일</span>${holidayOf(d) ? `<i class="hname">${holidayOf(d)}</i>` : ''}</button>
         ${mm?.mood ? `<span class="mood-pill" style="--c:${moodOf(mm.mood).c}">${moodOf(mm.mood).l}</span>` : ''}
         <button class="wk-add" data-cadd-day="${d}" title="일정 · 할 일 추가">＋</button></div>
-      ${evs.length ? `<div class="wk-evs">${evs.map(o => `<div class="wk-ev" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}"><span class="t">${o.ev.allDay ? '종일' : o.ev.start}</span><span class="n" data-full="${fullTip(o.ev)}">${evName(o.ev)}</span></div>`).join('')}</div>` : ''}
+      ${evs.length ? `<div class="wk-evs">${evs.map(o => `<div class="wk-ev" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}"><span class="t">${o.ev.drama ? '방영' : o.ev.allDay ? '종일' : o.ev.start}</span><span class="n" data-full="${fullTip(o.ev)}">${evName(o.ev)}</span></div>`).join('')}</div>` : ''}
       ${tds.length ? `<ul class="todo">${tds.map(todoRow).join('')}</ul>` : ''}
       ${mm?.text ? `<div class="wk-memo" data-goday="${d}">${esc(mm.text)}</div>` : ''}
     </div>`;
@@ -5416,6 +5446,7 @@ let EVD = null;            // 편집 중인 값 (종류·색·요일)
 const kindName = () => EVD?.todo ? '할 일' : '일정';
 function openEv(id, day, preset = {}) {
   const ev = id ? S.events.find(x => x.id === id) : null;
+  if (id && id.startsWith('rv-')) return openRvView(id.slice(3));   // 드라마 방영 → 리뷰 보기
   if (id && !ev) return;
   if (ev?.bday) return openBd(ev.id);           // 생일은 생일 창에서 고치기
   C.edit = ev; C.occ = day;
@@ -6041,6 +6072,8 @@ function openRvView(id) {
         <h3>${esc(r.title)}</h3>${r.orig ? `<div class="muted">${esc(r.orig)}</div>` : ''}
         <div class="rv-meta">${[r.year, r.eps ? r.eps + '부작' : ''].filter(Boolean).map(esc).join(' · ')}</div>
         <div class="rv-row">${rvStatus(r)}${rvStars(r.rating || 0)}</div>
+        ${(() => { const sch = dramaNext(r); if (!sch.length) return ''; const today = dkey(), nx = sch.find(x => x[0] >= today), last = parseInt(r.eps) ? sch.at(-1) : null;
+          return `<div class="rv-air">${nx ? `다음 방영 <b>${mdLabel(nx[0])} EP${nx[1]}</b>` : '방영 끝'}${last ? ` · 마지막화 ${mdLabel(last[0])}` : ''}</div>`; })()}
         ${(r.cps || []).length ? `<div class="rv-sec">CP</div><div class="rv-cps">${r.cps.map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
       </div></div>
     ${(r.cast || []).length ? `<div class="rv-sec">출연진</div><div class="rv-cast">${r.cast.map(c => `<div><b>${esc(c.actor)}</b>${c.role ? `<span>${esc(c.role)} 역</span>` : ''}</div>`).join('')}</div>` : ''}
@@ -6068,7 +6101,7 @@ function openRvForm(id) {
   $('#rvFormTitle').textContent = r ? '✏️ 리뷰 수정' : '＋ 리뷰 쓰기';
   $('#rfPoster').value = r?.poster || ''; $('#rfTitle').value = r?.title || ''; $('#rfOrig').value = r?.orig || '';
   $('#rfYear').value = r?.year || ''; $('#rfEps').value = r?.eps || '';
-  $('#rfStatus').value = r?.status || '완결'; $('#rfSyn').value = r?.synopsis || ''; $('#rfReview').value = r?.review || '';
+  $('#rfStatus').value = r?.status || '완결'; $('#rfAirStart').value = r?.airStart || ''; $('#rfSyn').value = r?.synopsis || ''; $('#rfReview').value = r?.review || '';
   $('#rfCpList').innerHTML = rvNames('cps').map(([c]) => `<option value="${esc(c)}">`).join('');
   renderRvForm(); rvPosterPreview();
   $('#rvForm').hidden = false; document.body.classList.add('modal-open');
@@ -6076,6 +6109,14 @@ function openRvForm(id) {
 }
 function renderRvForm() {
   $('#rfAirWrap').hidden = $('#rfStatus').value !== '방영중';
+  const st = $('#rfAirStart').value, eps = parseInt($('#rfEps').value) || 0;
+  if (st && !RVF.air.length) RVF.air = [pd(st).getDay()];          // 요일을 안 골랐으면 시작일 요일로
+  let info = '방영 시작일을 넣으면 캘린더에 회차별로 표시돼요';
+  if (st) {
+    const sch = dramaSchedule({ airStart: st, airDays: RVF.air, eps });
+    info = eps ? `📅 캘린더에 EP1~EP${eps} 표시 · <b>마지막화 ${mdLabel(sch.at(-1)[0])}</b>` : '📅 회차를 넣으면 마지막화까지 계산해서 표시해요 (지금은 계속 표시)';
+  }
+  $('#rfAirInfo').innerHTML = info;
   $('#rfAir').innerHTML = [1, 2, 3, 4, 5, 6, 0].map(i => `<button type="button" data-air="${i}" class="${RVF.air.includes(i) ? 'on' : ''}">${DOW[i]}</button>`).join('');
   $('#rfStars').innerHTML = [1, 2, 3, 4, 5].map(i => `<button type="button" data-star="${i}" class="${i <= RVF.rating ? 'on' : ''}">★</button>`).join('') + `<span>${RVF.rating ? RVF.rating + '점' : '별점 없음'}</span>`;
   $('#rfCast').innerHTML = RVF.cast.map((c, i) => `<div class="rf-cast">
@@ -6096,6 +6137,7 @@ function rvPosterPreview() {
 }
 let rvPT = null;
 $('#rfStatus').addEventListener('change', () => renderRvForm());
+['rfAirStart', 'rfEps'].forEach(id => $('#' + id).addEventListener('input', () => { if (!$('#rfAirWrap').hidden) renderRvForm(); }));
 $('#rfPoster').addEventListener('input', () => { clearTimeout(rvPT); rvPT = setTimeout(rvPosterPreview, 300); });
 const addChips = (key, inputSel) => {
   const inp = $(inputSel), vals = inp.value.split(/[,，]/).map(v => v.trim()).filter(Boolean);
@@ -6132,7 +6174,7 @@ $('#rvFormEl').addEventListener('submit', e => {
   if ($('#rfCpIn').value.trim()) addChips('cps', '#rfCpIn');            // 입력칸에 쓰다 만 것도 넣기
   if ($('#rfKwIn').value.trim()) addChips('keywords', '#rfKwIn');
   const data = { title, orig: $('#rfOrig').value.trim(), poster: $('#rfPoster').value.trim(),
-    year: $('#rfYear').value.trim(), eps: $('#rfEps').value.trim(), status: $('#rfStatus').value, airDays: $('#rfStatus').value === '방영중' ? [...RVF.air].sort() : [], rating: RVF.rating,
+    year: $('#rfYear').value.trim(), eps: $('#rfEps').value.trim(), status: $('#rfStatus').value, airDays: $('#rfStatus').value === '방영중' ? [...RVF.air].sort() : [], airStart: $('#rfStatus').value === '방영중' ? $('#rfAirStart').value : '', rating: RVF.rating,
     cast: RVF.cast.map(c => ({ actor: c.actor.trim(), role: c.role.trim() })).filter(c => c.actor || c.role),
     cps: RVF.cps, keywords: RVF.keywords, synopsis: $('#rfSyn').value.trim(), review: $('#rfReview').value.trim() };
   let id;
