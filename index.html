@@ -994,6 +994,9 @@
   .hname { display: block; font-size: 9.5px; font-weight: 700; color: #e0526b; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mcell .hname { display: inline; margin-left: 3px; }
   .wk-date .hname { display: inline; font-style: normal; margin-left: 2px; }
+  .mw-h .hname { display: inline-block; font-style: normal; min-width: 0; flex: 0 1 auto; margin-left: 2px; }
+  .mw-h { min-width: 0; }
+  .mw-h em { flex-shrink: 0; }
   @media (max-width: 520px) { .mcell .hname { display: block; margin: 0; font-size: 8px; } }
   .hol-pill { font-size: 10px; font-weight: 700; color: #e0526b; background: #ffe9ec; border-radius: 99px; padding: 1px 8px; margin-left: 4px; vertical-align: 2px; }
   /* ── 홈 (빈 화면) ── */
@@ -5586,8 +5589,7 @@ function renderMainHome() {
   $('#mWeek').innerHTML = days.map(d => {
     const dt = pd(d), wd = dt.getDay(), [evs, tds] = splitEv(eventsOn(d));
     return `<div class="mw-day${d === today ? ' today' : ''}${wd === 0 ? ' sun' : wd === 6 ? ' sat' : ''}${holidayOf(d) ? ' hol' : ''}" data-mwday="${d}" title="눌러서 이날 자세히 보기">
-      <div class="mw-h"><span>${DOW[wd]}</span><b>${dt.getDate()}</b>${d === today ? '<em>오늘</em>' : ''}</div>
-      ${holidayOf(d) ? `<div class="hname">${holidayOf(d)}</div>` : ''}
+      <div class="mw-h"><span>${DOW[wd]}</span><b>${dt.getDate()}</b>${holidayOf(d) ? `<i class="hname" data-full="${holidayOf(d)}">${holidayOf(d)}</i>` : ''}${d === today ? '<em>오늘</em>' : ''}</div>
       ${evs.map(o => `<div class="mw-ev" style="--c:${o.ev.color}" data-ev="${o.ev.id}" data-s="${o.s}" data-full="${fullTip(o.ev)}"><span class="t">${o.ev.allDay ? '' : o.ev.start}</span>${evName(o.ev)}</div>`).join('')}
       ${tds.map(o => `<div class="mw-td${isDone(o.ev, o.s) ? ' done' : ''}" style="--c:${o.ev.color}"><button class="ck" data-done="${o.ev.id}" data-s="${o.s}" aria-label="완료"></button><span data-ev="${o.ev.id}" data-s="${o.s}" data-full="${fullTip(o.ev)}">${evName(o.ev)}</span></div>`).join('')}
       ${!evs.length && !tds.length ? '<div class="mw-empty">·</div>' : ''}</div>`;
