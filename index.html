@@ -933,6 +933,12 @@
   .rf-seq-pick select { border: 1px solid var(--border); border-radius: 8px; padding: 4px; background: #fff; font-size: 12px; }
   .rf-seq-pick select option { padding: 3px 6px; }
   .rv-seq { font-style: normal; font-size: 9.5px; font-weight: 700; color: #fff; background: #9b6bd6; border-radius: 99px; padding: 1px 6px; margin-right: 4px; vertical-align: 2px; }
+  .rv-seq.rl-orig { background: var(--accent); } .rv-seq.rl-sp { background: #e59a3c; } .rv-seq.rl-spin { background: #3aa99a; } .rv-seq.rl-uni { background: #5b8fd9; }
+  .rf-rel { display: flex; flex-wrap: wrap; gap: 4px; }
+  .rf-rel button { border: 1px solid var(--border); background: #fff; border-radius: 99px; padding: 3px 11px; font-size: 11.5px; color: var(--text2); }
+  .rf-rel button.on { background: #9b6bd6; border-color: #9b6bd6; color: #fff; font-weight: 700; }
+  .rv-series button .rv-seq { vertical-align: 0; padding: 0 5px; }
+  .rv-series button.on .rv-seq { background: #fff !important; color: #9b6bd6; }
   .rv-series { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; margin-top: 2px; }
   .rv-series button { border: 1px solid #d9c8ef; background: #f6f0fd; color: #7b4fc0; border-radius: 99px; padding: 2px 9px; font-size: 10.5px; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .rv-series button.on { background: #9b6bd6; border-color: #9b6bd6; color: #fff; font-weight: 700; cursor: default; }
@@ -1615,9 +1621,10 @@
         <label>상태 <select id="rfStatus"><option>시청예정</option><option>방영중</option><option>시청중</option><option>완결</option><option>보류</option><option>하차</option></select></label>
       </div>
       <div class="full rf-seq">
-        <label class="chk"><input type="checkbox" id="rfSeq"> 후속작이에요 (시즌 2, 스페셜 등)</label>
+        <label class="chk"><input type="checkbox" id="rfSeq"> 원작이 있는 작품이에요 (후속작·스핀오프 등)</label>
         <div class="rf-seq-pick" id="rfSeqWrap" hidden>
-          <input id="rfSeqQ" placeholder="🔍 이전 작품 찾기 (제목·원제)">
+          <div class="rf-rel" id="rfRel"></div>
+          <input id="rfSeqQ" placeholder="🔍 원작 찾기 (제목·원제)">
           <select id="rfPrev" size="5"></select>
           <div class="ev-note" id="rfSeqNote"></div>
         </div>
@@ -6051,11 +6058,22 @@ const RV = { q: '', status: '', kw: '', sort: 'new' };
 const rvById = id => S.reviews.find(x => x.id === id);
 const rvPrev = r => r.prev ? rvById(r.prev) : null;
 const rvNexts = r => S.reviews.filter(x => x.prev === r.id);
+// 원작과의 관계 (r.rel). 예전에 저장한 건 rel이 없으니 '후속작'
+const RV_REL = ['후속작', '스페셜', '스핀오프', '세계관 공유'];
+const RV_REL_CLS = { '후속작': 'seq', '스페셜': 'sp', '스핀오프': 'spin', '세계관 공유': 'uni' };
+const rvRel = r => rvPrev(r) ? (RV_REL.includes(r.rel) ? r.rel : '후속작') : rvNexts(r).length ? '원작' : '';
+const jong = w => { const c = (w || '').trim().slice(-1).charCodeAt(0) - 0xac00; return c >= 0 && c < 11172 && c % 28 > 0; };
+const rvRelText = (pt, rel) => rel === '세계관 공유' ? `${pt}${jong(pt) ? '과' : '와'} 세계관을 공유하는 작품` : `${pt}의 ${rel}`;
+const rvRelBadge = r => { const l = rvRel(r); return l ? `<i class="rv-seq rl-${l === '원작' ? 'orig' : RV_REL_CLS[l]}">${l}</i>` : ''; };
+// 시리즈 = 맨 처음 원작부터 이어진 작품 전부 (후속작·스페셜·스핀오프… 가지까지, 연도·등록순)
 function rvSeries(r) {
   let head = r; const seen = new Set([r.id]);
   while (rvPrev(head) && !seen.has(head.prev)) { seen.add(head.prev); head = rvPrev(head); }
-  const out = [head], walk = new Set([head.id]);
-  for (let cur = head; ;) { const n = rvNexts(cur).find(x => !walk.has(x.id)); if (!n) break; out.push(n); walk.add(n.id); cur = n; }
+  const out = [], walk = new Set();
+  const key = x => [String(x.year || '9999'), x.created || 0];
+  const go = x => { if (walk.has(x.id)) return; walk.add(x.id); out.push(x);
+    rvNexts(x).sort((a, b) => { const [ya, ca] = key(a), [yb, cb] = key(b); return ya.localeCompare(yb) || ca - cb; }).forEach(go); };
+  go(head);
   return out;
 }
 // 별점: 0.5 단위 (반 별은 왼쪽 절반만 채움)
@@ -6080,7 +6098,7 @@ function renderReviews() {
   $('#rvList').innerHTML = list.length ? `<div class="rv-grid">${list.map(r => `<div class="rv-card" data-rv="${r.id}">
         ${rvPoster(r)}
         <div class="rv-info">
-          <b class="clip" data-full="${esc(r.title)}">${rvPrev(r) ? '<i class="rv-seq">후속작</i>' : ''}${esc(r.title)}</b>
+          <b class="clip" data-full="${esc(r.title)}">${rvRelBadge(r)}${esc(r.title)}</b>
           ${r.orig ? `<small class="clip" data-full="${esc(r.orig)}">${esc(r.orig)}</small>` : ''}
           <div class="rv-meta">${[r.year, r.eps ? r.eps + '부작' : ''].filter(Boolean).map(esc).join(' · ')}</div>
           <div class="rv-row">${rvStatus(r)}${r.rating ? rvStars(r.rating) : ''}</div>
@@ -6114,7 +6132,7 @@ function openRvView(id) {
         <div class="rv-meta">${[r.year, r.eps ? r.eps + '부작' : ''].filter(Boolean).map(esc).join(' · ')}</div>
         <div class="rv-row">${rvStatus(r)}${rvStars(r.rating || 0)}</div>
         ${(() => { const sr = rvSeries(r); if (sr.length < 2) return '';
-          return `<div class="rv-series">${sr.map((x, i) => `${i ? '<span class="arr">›</span>' : ''}<button type="button" class="${x.id === r.id ? 'on' : ''}" data-rv-go="${x.id}" title="${esc(x.title)}">${i + 1}. ${esc(x.title)}</button>`).join('')}</div>`; })()}
+          return `<div class="rv-series">${sr.map(x => `<button type="button" class="${x.id === r.id ? 'on' : ''}" data-rv-go="${x.id}" title="${esc(rvPrev(x) ? `${x.title} — ${rvRelText(rvPrev(x).title, rvRel(x))}` : x.title)}">${rvRelBadge(x)}${esc(x.title)}</button>`).join('')}</div>`; })()}
         ${(() => { const sch = dramaNext(r); if (!sch.length) return ''; const today = dkey(), nx = sch.find(x => x[0] >= today), last = parseInt(r.eps) ? sch.at(-1) : null;
           return `<div class="rv-air">${nx ? `다음 방영 <b>${mdLabel(nx[0])} EP${nx[1]}</b>` : '방영 끝'}${last ? ` · 마지막화 ${mdLabel(last[0])}` : ''}</div>`; })()}
         ${(r.cps || []).length ? `<div class="rv-sec">CP</div><div class="rv-cps">${r.cps.map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
@@ -6140,7 +6158,7 @@ $('#rvViewDel').addEventListener('click', async () => {
 let RVF = null;            // {edit, cast:[], cps:[], keywords:[], rating}
 function openRvForm(id) {
   const r = id ? S.reviews.find(x => x.id === id) : null;
-  RVF = { edit: r, prev: r?.prev || '', air: r ? [...(r.airDays || [])] : [], cast: r ? (r.cast || []).map(c => ({ ...c })) : [{ actor: '', role: '' }, { actor: '', role: '' }],
+  RVF = { edit: r, prev: r?.prev || '', rel: RV_REL.includes(r?.rel) ? r.rel : '후속작', air: r ? [...(r.airDays || [])] : [], cast: r ? (r.cast || []).map(c => ({ ...c })) : [{ actor: '', role: '' }, { actor: '', role: '' }],
     cps: r ? [...(r.cps || [])] : [], keywords: r ? [...(r.keywords || [])] : [], rating: r ? r.rating || 0 : 0 };
   $('#rvFormTitle').textContent = r ? '✏️ 리뷰 수정' : '＋ 리뷰 쓰기';
   $('#rfPoster').value = r?.poster || ''; $('#rfTitle').value = r?.title || ''; $('#rfOrig').value = r?.orig || '';
@@ -6155,6 +6173,7 @@ function renderRvSeq() {
   const on = $('#rfSeq').checked;
   $('#rfSeqWrap').hidden = !on;
   if (!on) return;
+  $('#rfRel').innerHTML = RV_REL.map(l => `<button type="button" data-rel="${l}" class="${l === RVF.rel ? 'on' : ''}">${l}</button>`).join('');
   // 자기 자신과 자기 후속작(그 후속작들)은 고를 수 없게 — 순환 방지
   const self = RVF.edit, ban = new Set();
   if (self) { const stack = [self]; while (stack.length) { const x = stack.pop(); if (ban.has(x.id)) continue; ban.add(x.id); stack.push(...rvNexts(x)); } }
@@ -6164,10 +6183,11 @@ function renderRvSeq() {
   $('#rfPrev').innerHTML = list.length ? list.map(x => `<option value="${x.id}" ${x.id === RVF.prev ? 'selected' : ''}>${esc(x.title)}${x.year ? ` (${esc(x.year)})` : ''}</option>`).join('')
     : '<option disabled>등록된 작품이 없어요</option>';
   const p = rvById(RVF.prev);
-  $('#rfSeqNote').innerHTML = p ? `✔ <b>${esc(p.title)}</b>의 후속작으로 저장돼요` : '위 목록에서 이전 작품을 골라 주세요';
+  $('#rfSeqNote').innerHTML = p ? `✔ ${esc(rvRelText(p.title, RVF.rel))}${RVF.rel === '스페셜' || RVF.rel === '스핀오프' ? '로' : '으로'} 저장돼요 · <b>${esc(p.title)}</b>에는 '원작' 표시가 붙어요` : '위 목록에서 원작을 골라 주세요';
 }
 $('#rfSeq').addEventListener('change', renderRvSeq);
 $('#rfSeqQ').addEventListener('input', renderRvSeq);
+$('#rfRel').addEventListener('click', e => { const b = e.target.closest('[data-rel]'); if (b) { RVF.rel = b.dataset.rel; renderRvSeq(); } });
 // 이전 작품을 고르면 출연진·CP·키워드를 그 작품에서 가져옴 (이미 적어 둔 건 그대로 두고, 없는 것만 더함)
 $('#rfPrev').addEventListener('change', e => {
   RVF.prev = e.target.value;
@@ -6274,7 +6294,7 @@ $('#rvFormEl').addEventListener('submit', e => {
   if ($('#rfCpIn').value.trim()) addChips('cps', '#rfCpIn');            // 입력칸에 쓰다 만 것도 넣기
   if ($('#rfKwIn').value.trim()) addChips('keywords', '#rfKwIn');
   const data = { title, orig: $('#rfOrig').value.trim(), poster: $('#rfPoster').value.trim(),
-    prev: $('#rfSeq').checked ? (RVF.prev || '') : '',
+    prev: $('#rfSeq').checked ? (RVF.prev || '') : '', rel: $('#rfSeq').checked && RVF.prev ? RVF.rel : '',
     year: $('#rfYear').value.trim(), eps: $('#rfEps').value.trim(), status: $('#rfStatus').value, airDays: $('#rfStatus').value === '방영중' ? [...RVF.air].sort() : [], airStart: $('#rfStatus').value === '방영중' ? $('#rfAirStart').value : '', rating: RVF.rating,
     cast: RVF.cast.map(c => ({ actor: c.actor.trim(), role: c.role.trim() })).filter(c => c.actor || c.role),
     cps: RVF.cps, keywords: RVF.keywords, synopsis: $('#rfSyn').value.trim(), review: $('#rfReview').value.trim() };
