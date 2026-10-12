@@ -769,6 +769,11 @@
   .cal-img:hover .cal-img-acts { opacity: 1; }
   @media (hover: none) { .cal-img-acts { opacity: 1; } }
   .cal-img-acts .btn { background: rgba(255,255,255,.92); }
+  .cal-img img { cursor: zoom-in; }
+  .img-lb { position: fixed; inset: 0; z-index: 9000; background: rgba(30,18,24,.86); display: flex; align-items: center; justify-content: center; padding: 16px; cursor: zoom-out; }
+  .img-lb[hidden] { display: none; }
+  .img-lb img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 6px; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+  .img-lb button { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(255,255,255,.92); color: var(--text); font-size: 16px; cursor: pointer; }
   @media (max-width: 820px) { .cal-img { max-width: 320px; margin-left: auto; margin-right: auto; } }
 
   /* ═════════ 홈 칸 공통 · 꾸미기 ═════════ */
@@ -1347,6 +1352,7 @@
   </div></section>
 
   <!-- ═══════════ 캘린더 ═══════════ -->
+  <div class="img-lb" id="imgLb" hidden><img alt=""><button type="button" aria-label="닫기">✕</button></div>
   <section class="page" id="page-cal"><div id="calRoot"></div><input type="file" id="calImgFile" accept="image/*" hidden></section>
 
 
@@ -3699,6 +3705,10 @@ document.addEventListener('keydown', e => {
 });
 
 // ── 사진 ──
+// 이미지 크게 보기 (전체 화면, 잘림 없이 원래 비율). 아무 데나 누르거나 Esc로 닫기
+function openImgLb(src) { const lb = $('#imgLb'); lb.querySelector('img').src = src; lb.hidden = false; }
+$('#imgLb').addEventListener('click', () => { $('#imgLb').hidden = true; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#imgLb').hidden) { e.stopImmediatePropagation(); $('#imgLb').hidden = true; } }, true);
 function loadImg(file) {
   return new Promise((res, rej) => {
     const url = URL.createObjectURL(file), im = new Image();
@@ -5170,7 +5180,7 @@ function dayPanel(d) {
     ${mm?.text ? `<div class="wk-sub">메모</div><div class="dmemo-prev" data-goday="${d}" title="눌러서 메모 쓰기">${esc(mm.text)}</div>` : ''}
     <div class="acts" style="margin-top:10px"><button class="btn" data-cadd-day="${d}">＋ 일정 · 할 일</button><button class="btn" data-goday="${d}">이날 자세히 보기 ›</button></div>
     <div class="cal-img">${S.calImg
-      ? `<img src="${S.calImg}" alt=""><div class="cal-img-acts"><button class="btn sm" data-calimg="pick">바꾸기</button><button class="btn sm danger" data-calimg="del">삭제</button></div>`
+      ? `<img src="${S.calImg}" alt="" data-calimg="view" title="클릭하면 크게 보여요"><div class="cal-img-acts"><button class="btn sm" data-calimg="pick">바꾸기</button><button class="btn sm danger" data-calimg="del">삭제</button></div>`
       : '<div class="cal-img-empty" data-calimg="pick"><b>＋</b>원하는 이미지를 넣어 보세요<small>좋아하는 사진·그림 등</small></div>'}</div></div>`;
 }
 // 겹치는 일정은 옆으로 나란히
@@ -5313,6 +5323,7 @@ $('#calRoot').addEventListener('click', e => {
   const ci = t.closest('[data-calimg]');
   if (ci) {
     if (ci.dataset.calimg === 'pick') return $('#calImgFile').click();
+    if (ci.dataset.calimg === 'view') return openImgLb(S.calImg);
     return ask({ title: '이미지를 지울까요?', html: '다시 넣고 싶으면 언제든 새로 고르면 돼요.', choices: [{ v: 'del', label: '🗑 삭제', cls: 'solid-danger' }] })
       .then(v => { if (v) { S.calImg = ''; store.save(); renderCal(); } });
   }
