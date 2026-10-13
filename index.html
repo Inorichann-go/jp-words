@@ -525,7 +525,8 @@
   }
   .pl-panel[hidden] { display: none; }
   .pl-add { display: flex; gap: 6px; margin-bottom: 8px; }
-  .pl-tabs { display: flex; gap: 4px; overflow-x: auto; margin-bottom: 8px; padding-bottom: 2px; scrollbar-width: thin; }
+  .pl-tabs { display: flex; gap: 4px; overflow-x: auto; overflow-y: hidden; flex-shrink: 0; margin-bottom: 8px; padding: 1px 0 3px; scrollbar-width: thin; }
+  .pl-panel > .card-h, .pl-add { flex-shrink: 0; }
   .pl-tabs button { flex-shrink: 0; border: 1px solid var(--border); background: #fff; border-radius: 99px; padding: 3px 10px; font-size: 11px; color: var(--text2); white-space: nowrap; max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
   .pl-tabs button.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
   .pl-tabs button small { opacity: .75; margin-left: 3px; font-size: 9.5px; }
