@@ -525,6 +525,11 @@
   }
   .pl-panel[hidden] { display: none; }
   .pl-add { display: flex; gap: 6px; margin-bottom: 8px; }
+  .pl-tabs { display: flex; gap: 4px; overflow-x: auto; margin-bottom: 8px; padding-bottom: 2px; scrollbar-width: thin; }
+  .pl-tabs button { flex-shrink: 0; border: 1px solid var(--border); background: #fff; border-radius: 99px; padding: 3px 10px; font-size: 11px; color: var(--text2); white-space: nowrap; max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
+  .pl-tabs button.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .pl-tabs button small { opacity: .75; margin-left: 3px; font-size: 9.5px; }
+  .pl-tabs .pl-tab-act { border-style: dashed; color: var(--accent-dark); padding: 3px 8px; }
   .pl-add input { flex: 1; min-width: 0; border: 1px solid var(--border); border-radius: 99px; padding: 5px 12px; font-size: 11px; }
   .pl-rows { overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
   .pl-row { display: flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 8px; }
@@ -2068,6 +2073,7 @@
       <button class="ic" id="plClose" title="닫기">✕</button>
     </div>
   </div>
+  <div class="pl-tabs" id="plTabs"></div>
   <form class="pl-add" id="plAddForm" autocomplete="off">
     <input id="plUrl" placeholder="유튜브 영상·재생목록 링크 (여러 개는 띄어쓰기로)">
     <button class="btn primary">추가</button>
@@ -4122,6 +4128,13 @@ if (!Array.isArray(M.list)) {
   M.repeat = M.loop === false ? 'off' : 'all';
   delete M.url; delete M.loop;
 }
+// 재생목록 여러 개: M.pls = [{id, name, list}], M.plId = 지금 듣는 목록 (기기마다 따로)
+// M.list는 지금 목록의 곡들을 가리키는 바로가기 (저장 파일에는 pls만 들어감)
+if (!Array.isArray(M.pls) || !M.pls.length) M.pls = [{ id: uid(), name: '재생목록 1', list: Array.isArray(M.list) ? M.list : [] }];
+delete M.list;
+const curPl = () => M.pls.find(p => p.id === M.plId) || M.pls[0];
+M.plId = curPl().id;
+Object.defineProperty(M, 'list', { get: () => curPl().list, set: v => { curPl().list = v; }, enumerable: false, configurable: true });
 M.cur = Math.min(M.cur || 0, Math.max(0, M.list.length - 1));
 M.repeat = M.repeat || 'all';
 const curItem = () => M.list[M.cur];
@@ -4308,6 +4321,8 @@ function syncModeBtns() {
 function renderPlaylist() {
   syncModeBtns();
   $('#plCount').textContent = M.list.length ? `${M.list.length}곡` : '';
+  $('#plTabs').innerHTML = M.pls.map(p => `<button type="button" data-pl="${p.id}" class="${p.id === M.plId ? 'on' : ''}" title="${esc(p.name)}${p.id === M.plId ? ' · 한 번 더 누르면 이름 바꾸기·삭제' : ''}">${esc(p.name)}<small>${p.list.length}</small></button>`).join('')
+    + '<button type="button" class="pl-tab-act" data-pl-new title="새 재생목록 만들기">＋ 새 목록</button>';
   $('#plRows').innerHTML = M.list.length ? M.list.map((it, i) => {
     const info = parseYT(it.url) || {};
     const label = it.title || (info.list && !info.vid ? '유튜브 재생목록' : '') || it.url;
@@ -4377,6 +4392,35 @@ $('#plClear').addEventListener('click', () => {
   M.list = []; M.cur = 0; M.resume = null;
   try { yt?.destroy(); } catch {} yt = null; playing = false; $('#pPlay').textContent = '▶';
   store.save(); renderPlaylist(); setTitle('🎵 재생목록이 비었어요');
+});
+
+// 재생목록 바꾸기 / 만들기 / 이름 바꾸기·삭제
+function switchPl(id) {
+  if (id === M.plId) return;
+  const wasPlaying = playing;
+  M.plId = id; M.cur = 0; store.save(); renderPlaylist();
+  if (wasPlaying && M.list.length) return playItem(0);
+  try { yt?.destroy(); } catch {} yt = null; playing = false; $('#pPlay').textContent = '▶';   // 다음 ▶는 새 목록 첫 곡부터
+  setTitle(M.list.length ? `▶ 누르면 재생 · ${curPl().name} (${M.list.length}곡)` : '🎵 이 재생목록은 비어 있어요 · 링크를 추가해 보세요');
+}
+$('#plTabs').addEventListener('click', async e => {
+  if (e.target.closest('[data-pl-new]')) {
+    const name = (prompt('새 재생목록 이름', `재생목록 ${M.pls.length + 1}`) || '').trim(); if (!name) return;
+    const p = { id: uid(), name, list: [] }; M.pls.push(p); switchPl(p.id); $('#plUrl').focus();
+    return toast(`'${name}' 재생목록을 만들었어요`);
+  }
+  const b = e.target.closest('[data-pl]'); if (!b) return;
+  if (b.dataset.pl !== M.plId) return switchPl(b.dataset.pl);
+  const p = curPl();
+  const v = await ask({ title: `'${p.name}' 재생목록`, html: `${p.list.length}곡이 들어 있어요.`,
+    choices: [{ v: 'ren', label: '✏️ 이름 바꾸기', cls: '' }, ...(M.pls.length > 1 ? [{ v: 'del', label: '🗑 재생목록 삭제', cls: 'solid-danger' }] : [])] });
+  if (v === 'ren') { const n = (prompt('재생목록 이름', p.name) || '').trim(); if (n) { p.name = n; store.save(); renderPlaylist(); } }
+  if (v === 'del') {
+    M.pls = M.pls.filter(x => x.id !== p.id); M.plId = M.pls[0].id; M.cur = 0; M.resume = null;
+    try { yt?.destroy(); } catch {} yt = null; playing = false; $('#pPlay').textContent = '▶';
+    store.save(); renderPlaylist(); setTitle(M.list.length ? `▶ 누르면 재생 · ${curPl().name} (${M.list.length}곡)` : '🎵 재생목록이 비었어요');
+    toast(`'${p.name}' 재생목록을 지웠어요`);
+  }
 });
 
 /* ── 버튼 ── */
@@ -4649,7 +4693,7 @@ const SYNC_COLLS = ['events', 'dayMemos', 'todos', 'tblocks', 'habits', 'money',
 function wordSig(w) { const { mt, ...rest } = w; return JSON.stringify(rest); }
 function metaOf() {
   return { tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder, motto: S.motto || '', calImg: S.calImg || '', homeLayout: S.homeLayout || null, payMethods: S.payMethods || null, rvCps: S.rvCps || null, rvKeywords: S.rvKeywords || null,
-    music: { list: S.music.list, repeat: S.music.repeat, shuffle: S.music.shuffle } };
+    music: { list: S.music.list, pls: S.music.pls, repeat: S.music.repeat, shuffle: S.music.shuffle } };
 }
 const logsSig = () => JSON.stringify([S.reviewLog, S.quizLog]);
 function trackBaseline() {
@@ -4754,7 +4798,8 @@ function applyPayload(P) {
   if (m.listen) Object.assign(S.listen, m.listen);
   if (m.music) {
     const curId = curItem()?.id;
-    if (Array.isArray(m.music.list)) M.list = m.music.list;
+    if (Array.isArray(m.music.pls) && m.music.pls.length) { M.pls = m.music.pls; M.plId = curPl().id; }
+    else if (Array.isArray(m.music.list)) M.list = m.music.list;
     if (m.music.repeat) M.repeat = m.music.repeat;
     M.shuffle = !!m.music.shuffle;
     const i = M.list.findIndex(x => x.id === curId);
