@@ -984,6 +984,26 @@
   .rv-text.mine { background: #fffbe6; border: 1px solid #f7e2a0; }
   .rv-form-box { max-width: 560px; }
   .rvm-rows { max-height: 52vh; overflow-y: auto; }
+  .rvm-row select { border: 1px solid var(--border); border-radius: 6px; font-size: 11px; padding: 2px 4px; background: #fff; color: var(--text2); max-width: 92px; }
+  .rvm-gh { font-size: 11px; font-weight: 700; color: var(--accent-dark); margin: 10px 2px 2px; }
+  .rvm-gh:first-child { margin-top: 0; }
+  .rvm-groups { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+  .rvm-groups[hidden], #rvMgrGrp[hidden] { display: none; }
+  .rvm-groups button { border: 1px solid var(--border); background: #fff; border-radius: 99px; padding: 2px 10px; font-size: 11px; color: var(--text2); }
+  .rvm-groups button:hover { border-color: var(--accent); color: var(--accent-dark); }
+  .rvm-groups button small { color: var(--text3); margin-left: 2px; }
+  .rvm-groups .add { border-style: dashed; color: var(--accent-dark); }
+  #rvMgrGrp { border: 1px solid var(--border); border-radius: 99px; padding: 0 8px; font-size: 11.5px; background: #fff; }
+  .rv-kg-row, .rv-kg-items { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 5px; }
+  .rv-kg { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--pink-mid); background: var(--accent-light); border-radius: 99px; padding: 4px 8px 4px 12px; font-size: 11.5px; color: var(--accent-dark); }
+  .rv-kg .c { background: #fff; border-radius: 99px; padding: 0 6px; font-size: 10px; color: var(--text2); }
+  .rv-kg i { font-style: normal; font-size: 8px; transition: transform .15s; }
+  .rv-kg.open { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .rv-kg.open i { transform: rotate(90deg); }
+  .rv-kg-items { padding: 6px 2px 2px; }
+  .rv-kwg { display: flex; gap: 6px; align-items: baseline; margin-bottom: 4px; }
+  .rv-kwg > b { font-size: 10.5px; color: var(--text3); white-space: nowrap; min-width: 46px; }
+  .rv-kwg .rv-kws { margin-bottom: 0; }
   .rvm-row { display: flex; align-items: center; gap: 6px; padding: 4px 2px; border-bottom: 1px dashed var(--border); }
   .rvm-row input { flex: 1; min-width: 0; border: 1px solid transparent; border-radius: 6px; padding: 4px 6px; background: none; font-size: 12px; }
   .rvm-row input:hover, .rvm-row input:focus { border-color: var(--border); background: var(--surface); outline: none; }
@@ -1614,9 +1634,10 @@
   <div class="modal-box" role="dialog" aria-modal="true" aria-label="CP · 키워드 관리" style="max-width:420px">
     <div class="card-h"><h2>🏷 CP · 키워드 관리 <span class="sub" id="rvMgrCnt"></span></h2><button class="ic" id="rvMgrClose" title="닫기">✕</button></div>
     <div class="kind-seg" id="rvMgrTabs" style="margin-bottom:8px"><button type="button" data-k="cps">CP</button><button type="button" data-k="keywords">키워드</button></div>
-    <form class="tag-add" id="rvMgrAdd" autocomplete="off"><input id="rvMgrIn" maxlength="80"><button class="btn primary">추가</button></form>
+    <div class="rvm-groups" id="rvMgrGroups" hidden></div>
+    <form class="tag-add" id="rvMgrAdd" autocomplete="off"><input id="rvMgrIn" maxlength="80"><select id="rvMgrGrp" title="넣을 그룹" hidden></select><button class="btn primary">추가</button></form>
     <div id="rvMgrRows" class="rvm-rows"></div>
-    <div class="ev-note" style="margin-top:8px">이름을 고치면 그 이름이 붙은 리뷰도 모두 바뀌어요 (같은 이름이 있으면 합쳐져요) · 삭제하면 리뷰에서도 빠지지만 리뷰는 남아요.</div>
+    <div class="ev-note" style="margin-top:8px">키워드는 오른쪽 칸에서 그룹을 옮길 수 있고, 위 그룹 버튼을 누르면 이름 바꾸기·순서·삭제를 할 수 있어요 · 이름을 고치면 그 이름이 붙은 리뷰도 모두 바뀌어요 (같은 이름이 있으면 합쳐져요) · 삭제하면 리뷰에서도 빠지지만 리뷰는 남아요.</div>
   </div>
 </div>
 <div class="modal" id="rvView" hidden>
@@ -4707,7 +4728,7 @@ let sb = null, sbUser = null;
 const SYNC_COLLS = ['events', 'dayMemos', 'todos', 'tblocks', 'habits', 'money', 'reviews'];
 function wordSig(w) { const { mt, ...rest } = w; return JSON.stringify(rest); }
 function metaOf() {
-  return { tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder, motto: S.motto || '', calImg: S.calImg || '', homeLayout: S.homeLayout || null, payMethods: S.payMethods || null, rvCps: S.rvCps || null, rvKeywords: S.rvKeywords || null,
+  return { tags: S.tags, folders: S.folders, tagFolder: S.tagFolder, goal: S.goal, listen: S.listen, autoSpeak: S.autoSpeak, pageSize: S.pageSize, bulkOrder: S.bulkOrder, motto: S.motto || '', calImg: S.calImg || '', homeLayout: S.homeLayout || null, payMethods: S.payMethods || null, rvCps: S.rvCps || null, rvKeywords: S.rvKeywords || null, rvKwGroups: S.rvKwGroups || null, rvKwGroup: S.rvKwGroup || null,
     music: { list: S.music.list, pls: S.music.pls, repeat: S.music.repeat, shuffle: S.music.shuffle } };
 }
 const logsSig = () => JSON.stringify([S.reviewLog, S.quizLog]);
@@ -4808,7 +4829,7 @@ function applyPayload(P) {
   if (Array.isArray(m.tags)) S.tags = m.tags;
   if (Array.isArray(m.folders)) S.folders = m.folders;
   if (m.tagFolder && typeof m.tagFolder === 'object') S.tagFolder = m.tagFolder;
-  for (const k of ['goal', 'autoSpeak', 'pageSize', 'bulkOrder', 'motto', 'calImg', 'homeLayout', 'payMethods', 'rvCps', 'rvKeywords']) if (m[k] !== undefined) S[k] = m[k];
+  for (const k of ['goal', 'autoSpeak', 'pageSize', 'bulkOrder', 'motto', 'calImg', 'homeLayout', 'payMethods', 'rvCps', 'rvKeywords', 'rvKwGroups', 'rvKwGroup']) if (m[k] !== undefined && m[k] !== null) S[k] = m[k];
   if (m.homeImg && !S.calImg) S.calImg = m.homeImg;         // 예전 버전 기기에서 온 홈 이미지
   if (m.listen) Object.assign(S.listen, m.listen);
   if (m.music) {
@@ -6124,7 +6145,7 @@ const RV_ST_CLS = { 시청예정: 'plan', 방영중: 'air', 시청중: 'watch', 
 // 방영중이면 방영 요일(airDays: 0=일 … 6=토)도 같이 표시. 월~일 순서로 보여줌
 const airLabel = r => r.status === '방영중' && (r.airDays || []).length ? ' · ' + [1, 2, 3, 4, 5, 6, 0].filter(i => r.airDays.includes(i)).map(i => DOW[i]).join('') : '';
 const rvStatus = r => r.status ? `<span class="rv-st st-${RV_ST_CLS[r.status] || 'etc'}">${esc(r.status)}${airLabel(r)}</span>` : '';
-const RV = { q: '', status: '', kw: '', sort: 'new' };
+const RV = { q: '', status: '', kw: '', sort: 'new', kg: null };
 // 볼 수 있는 곳: r.platforms = ['넷플릭스', …] ('기타'는 r.platEtc 이름으로 표시), r.vpn = 우회 필요
 const RV_PLAT = ['유튜브', '아이치이', '헤븐리', '위티비', '넷플릭스', '웨이브', '티빙', '기타'];
 const rvPlatNames = r => (r.platforms || []).map(p => p === '기타' ? (r.platEtc || '기타') : p);
@@ -6164,11 +6185,15 @@ function renderReviews() {
   const by = { new: (a, b) => (b.created || 0) - (a.created || 0), rating: (a, b) => (b.rating || 0) - (a.rating || 0) || (b.created || 0) - (a.created || 0),
     title: (a, b) => a.title.localeCompare(b.title, 'ko'), year: (a, b) => String(b.year || '').localeCompare(String(a.year || '')) };
   list = list.sort(by[RV.sort] || by.new);
-  const kws = allRvKeywords().slice(0, 30);
+  const kws = allRvKeywords();
   // 검색칸은 다시 그리지 않음 (한글 입력 중 끊기지 않게) — 아래 목록만 갱신
   $('#rvStatus').innerHTML = `<option value="">상태 전체</option>${RV_STATUS.map(s => `<option ${s === RV.status ? 'selected' : ''}>${s}</option>`).join('')}`;
   $('#rvSort').value = RV.sort;
-  $('#rvKwBox').innerHTML = kws.length ? `${RV.kw ? `<button class="rv-kw on" data-rv-kw="">✕ ${esc(RV.kw)}</button>` : ''}${kws.filter(([k]) => k !== RV.kw).map(([k, n]) => `<button class="rv-kw" data-rv-kw="${esc(k)}">${esc(k)} <small>${n}</small></button>`).join('')}` : '';
+  // 키워드 필터: 그룹 버튼 → 누르면 그 그룹 키워드가 펼쳐짐
+  const kgs = rvKwGrouped(kws).filter(g => g.items.length), og = kgs.find(g => g.id === RV.kg);
+  $('#rvKwBox').innerHTML = kws.length ? `${RV.kw && !og?.items.some(([k]) => k === RV.kw) ? `<div class="rv-kg-row"><button class="rv-kw on" data-rv-kw="">✕ ${esc(RV.kw)}</button></div>` : ''}
+    <div class="rv-kg-row">${kgs.map(g => `<button class="rv-kg ${g === og ? 'open' : ''}" data-rv-kg="${g.id}">${esc(g.name)}<span class="c">${g.items.length}</span><i>▶</i></button>`).join('')}</div>
+    ${og ? `<div class="rv-kg-items">${og.items.map(([k, n]) => `<button class="rv-kw ${k === RV.kw ? 'on' : ''}" data-rv-kw="${k === RV.kw ? '' : esc(k)}">${k === RV.kw ? '✕ ' : ''}${esc(k)} <small>${n}</small></button>`).join('')}</div>` : ''}` : '';
   $('#rvCount').textContent = `${list.length}편${list.length !== S.reviews.length ? ` / 전체 ${S.reviews.length}편` : ''}`;
   $('#rvList').innerHTML = list.length ? `<div class="rv-grid">${list.map(r => `<div class="rv-card" data-rv="${r.id}">
         ${rvPoster(r)}
@@ -6191,6 +6216,8 @@ $('#reviewRoot').addEventListener('click', e => {
   const t = e.target;
   if (t.closest('[data-rv-add]')) return openRvForm();
   if (t.closest('[data-rv-mgr]')) return openRvMgr('cps');
+  const kg = t.closest('[data-rv-kg]');
+  if (kg) { RV.kg = RV.kg === kg.dataset.rvKg ? null : kg.dataset.rvKg; return renderReviews(); }
   const kw = t.closest('[data-rv-kw]');
   if (kw) { RV.kw = kw.dataset.rvKw; return renderReviews(); }
   const c = t.closest('[data-rv]');
@@ -6215,7 +6242,7 @@ function openRvView(id) {
         ${(r.cps || []).length ? `<div class="rv-sec">CP</div><div class="rv-cps">${r.cps.map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
       </div></div>
     ${(r.cast || []).length ? `<div class="rv-sec">출연진</div><div class="rv-cast">${r.cast.map(c => `<div><b>${esc(c.actor)}</b>${c.role ? `<span>${esc(c.role)} 역</span>` : ''}</div>`).join('')}</div>` : ''}
-    ${(r.keywords || []).length ? `<div class="rv-sec">키워드</div><div class="rv-kws">${r.keywords.map(k => `<span class="rv-kw">${esc(k)}</span>`).join('')}</div>` : ''}
+    ${(r.keywords || []).length ? `<div class="rv-sec">키워드</div>${rvKwGrouped(r.keywords.map(k => [k])).filter(g => g.items.length).map(g => `<div class="rv-kwg"><b>${esc(g.name)}</b><div class="rv-kws">${g.items.map(([k]) => `<span class="rv-kw">${esc(k)}</span>`).join('')}</div></div>`).join('')}` : ''}
     ${r.synopsis ? `<div class="rv-sec">줄거리</div><div class="rv-text">${esc(r.synopsis)}</div>` : ''}
     ${r.review ? `<div class="rv-sec">내 리뷰</div><div class="rv-text mine">${esc(r.review)}</div>` : ''}`;
   $('#rvView').hidden = false; document.body.classList.add('modal-open');
@@ -6322,16 +6349,17 @@ function rfSearch(key, inSel, ddSel) {
   let items = [], cur = 0;
   const close = () => { dd.hidden = true; dd.innerHTML = ''; items = []; };
   const paint = () => {
-    dd.innerHTML = items.length ? items.map((it, i) => `<button type="button" data-i="${i}" class="${i === cur ? 'on' : ''}${it.isNew ? ' new' : ''}">${it.isNew ? `＋ '${esc(it.v)}' 새로 추가` : `<span>${esc(it.v)}</span>${it.n ? `<span class="n">${it.n}편</span>` : ''}`}</button>`).join('')
+    dd.innerHTML = items.length ? items.map((it, i) => `<button type="button" data-i="${i}" class="${i === cur ? 'on' : ''}${it.isNew ? ' new' : ''}">${it.isNew ? `＋ '${esc(it.v)}' 새로 추가` : `<span>${esc(it.v)}</span>${it.n || it.g ? `<span class="n">${[it.g, it.n && it.n + '편'].filter(Boolean).map(esc).join(' · ')}</span>` : ''}`}</button>`).join('')
       : '<div class="empty">이미 다 추가했어요</div>';
     dd.querySelector('.on')?.scrollIntoView({ block: 'nearest' });
   };
   const update = () => {
     const q = inp.value.trim(); if (!q || !RVF) return close();
     const ql = q.toLowerCase(), all = rvNames(key);
-    const hits = all.filter(([v]) => !RVF[key].includes(v) && v.toLowerCase().includes(ql))
-      .sort((a, b) => (b[0].toLowerCase().startsWith(ql) - a[0].toLowerCase().startsWith(ql)) || b[1] - a[1] || a[0].localeCompare(b[0], 'ko'))
-      .slice(0, 8).map(([v, n]) => ({ v, n }));
+    const gn = v => key === 'keywords' ? kwGroupName(v) : '';      // 키워드는 그룹 이름으로도 찾기 (예: '장르')
+    const hits = all.filter(([v]) => !RVF[key].includes(v) && (v.toLowerCase().includes(ql) || gn(v).toLowerCase().includes(ql)))
+      .sort((a, b) => (b[0].toLowerCase().includes(ql) - a[0].toLowerCase().includes(ql)) || (b[0].toLowerCase().startsWith(ql) - a[0].toLowerCase().startsWith(ql)) || b[1] - a[1] || a[0].localeCompare(b[0], 'ko'))
+      .slice(0, 30).map(([v, n]) => ({ v, n, g: gn(v) }));
     if (!all.some(([v]) => v.toLowerCase() === ql)) hits.push({ v: q, isNew: true });
     items = hits; cur = 0; const was = dd.hidden; dd.hidden = false; paint(); if (was) dd.scrollIntoView({ block: 'nearest' });
   };
@@ -6387,6 +6415,20 @@ $('#rvFormEl').addEventListener('submit', e => {
 });
 // ── CP · 키워드 관리: 미리 만들어 둔 목록(S.rvCps / S.rvKeywords, 동기화) + 리뷰에서 쓰고 있는 것 ──
 const RV_LIST_KEY = { cps: 'rvCps', keywords: 'rvKeywords' };
+// 키워드 그룹: S.rvKwGroups = [{id, name}] (순서대로), S.rvKwGroup = {키워드: 그룹 id}. 그룹이 없는 키워드는 '미분류'
+const RV_KG_DEF = ['장르', '관계', '인물(공)', '인물(수)', '소재', '분위기', '기타'];
+function rvKg() {
+  if (!Array.isArray(S.rvKwGroups)) S.rvKwGroups = RV_KG_DEF.map((name, i) => ({ id: 'g' + i, name }));
+  if (!S.rvKwGroup || typeof S.rvKwGroup !== 'object') S.rvKwGroup = {};
+  return S.rvKwGroups;
+}
+const kwGroupOf = k => { const g = rvKg() && S.rvKwGroup[k]; return S.rvKwGroups.some(x => x.id === g) ? g : ''; };
+const kwGroupName = k => S.rvKwGroups.find(x => x.id === kwGroupOf(k))?.name || '';
+function rvKwGrouped(pairs) {             // [[키워드, n]] → [{id, name, items}] (미분류는 맨 끝, 있을 때만)
+  const gs = rvKg().map(g => ({ ...g, items: [] })), none = { id: '', name: '미분류', items: [] };
+  pairs.forEach(p => (gs.find(g => g.id === kwGroupOf(p[0])) || none).items.push(p));
+  return none.items.length ? [...gs, none] : gs;
+}
 function rvNames(k) {                       // [[이름, 쓰는 리뷰 수]] — 관리 목록 순서 먼저, 그다음 리뷰에만 있는 것
   const m = new Map((S[RV_LIST_KEY[k]] || []).map(x => [x, 0]));
   S.reviews.forEach(r => (r[k] || []).forEach(x => m.set(x, (m.get(x) || 0) + 1)));
@@ -6404,11 +6446,23 @@ function renderRvMgr() {
   const name = RVM === 'cps' ? 'CP' : '키워드', list = rvNames(RVM);
   $$('#rvMgrTabs [data-k]').forEach(b => b.classList.toggle('on', b.dataset.k === RVM));
   $('#rvMgrIn').placeholder = RVM === 'cps' ? '새 CP 이름 (예: 포스북) · 쉼표로 여러 개' : '새 키워드 (예: 현대물) · 쉼표로 여러 개';
-  $('#rvMgrRows').innerHTML = list.length ? list.map(([n, c], i) => `<div class="rvm-row">
+  const isKw = RVM === 'keywords';
+  $('#rvMgrGroups').hidden = $('#rvMgrGrp').hidden = !isKw;
+  const row = ([n, c]) => `<div class="rvm-row">
       <input data-rvm-name="${esc(n)}" value="${esc(n)}" maxlength="40">
+      ${isKw ? `<select data-rvm-grp="${esc(n)}" title="그룹 옮기기"><option value="">미분류</option>${rvKg().map(g => `<option value="${g.id}" ${kwGroupOf(n) === g.id ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}</select>` : ''}
       <span class="n">${c ? c + '편' : '안 씀'}</span>
-      <button class="ic" data-rvm-del="${i}" title="삭제">🗑</button></div>`).join('')
-    : `<div class="empty">아직 ${name}가 없어요</div>`;
+      <button class="ic" data-rvm-del="${esc(n)}" title="삭제">🗑</button></div>`;
+  if (isKw) {
+    const gs = rvKwGrouped(list);
+    $('#rvMgrGroups').innerHTML = gs.filter(g => g.id).map(g => `<button type="button" data-rvm-g="${g.id}" title="눌러서 이름 바꾸기·순서·삭제">${esc(g.name)}<small>${g.items.length}</small></button>`).join('')
+      + '<button type="button" class="add" data-rvm-gadd>＋ 그룹</button>';
+    const keep = $('#rvMgrGrp').value;
+    $('#rvMgrGrp').innerHTML = `<option value="">미분류</option>${rvKg().map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('')}`;
+    if ([...$('#rvMgrGrp').options].some(o => o.value === keep)) $('#rvMgrGrp').value = keep;
+    $('#rvMgrRows').innerHTML = list.length ? gs.filter(g => g.items.length).map(g => `<div class="rvm-gh">${esc(g.name)} · ${g.items.length}</div>${g.items.map(row).join('')}`).join('')
+      : `<div class="empty">아직 ${name}가 없어요</div>`;
+  } else $('#rvMgrRows').innerHTML = list.length ? list.map(row).join('') : `<div class="empty">아직 ${name}가 없어요</div>`;
   $('#rvMgrCnt').textContent = `${list.length}개`;
 }
 $('#rvMgrTabs').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) { RVM = b.dataset.k; renderRvMgr(); } });
@@ -6418,28 +6472,53 @@ $('#rvMgrAdd').addEventListener('submit', e => {
   const vals = [...new Set($('#rvMgrIn').value.split(/[,，]/).map(v => v.trim()).filter(Boolean))].filter(v => !cur.includes(v));
   if (!vals.length) return;
   S[key] = [...(S[key] || []), ...vals];
+  if (RVM === 'keywords' && $('#rvMgrGrp').value) { rvKg(); vals.forEach(v => { S.rvKwGroup[v] = $('#rvMgrGrp').value; }); }
   $('#rvMgrIn').value = ''; store.save(); renderRvMgr();
   toast(`${vals.length}개 추가했어요`);
 });
 // 이름 바꾸기: 그 이름을 쓰는 모든 리뷰도 함께 (같은 이름이 있으면 합쳐짐)
 $('#rvMgrRows').addEventListener('change', e => {
+  const gk = e.target.dataset.rvmGrp;
+  if (gk !== undefined) { rvKg(); if (e.target.value) S.rvKwGroup[gk] = e.target.value; else delete S.rvKwGroup[gk]; store.save(); return renderRvMgr(); }
   const from = e.target.dataset.rvmName; if (from === undefined) return;
   const to = e.target.value.trim(), key = RV_LIST_KEY[RVM];
   if (!to || to === from) { e.target.value = from; return; }
   S[key] = [...new Set((S[key] || []).map(x => x === from ? to : x))];
   S.reviews.forEach(r => { if ((r[RVM] || []).includes(from)) r[RVM] = [...new Set(r[RVM].map(x => x === from ? to : x))]; });
+  if (RVM === 'keywords') { rvKg(); if (S.rvKwGroup[from] && !S.rvKwGroup[to]) S.rvKwGroup[to] = S.rvKwGroup[from]; delete S.rvKwGroup[from]; }
   if (RV.kw === from) RV.kw = to;
   store.save(); renderRvMgr(); toast(`'${from}' → '${to}'로 바꿨어요`);
 });
 $('#rvMgrRows').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset.rvmName !== undefined) e.target.blur(); });
-$('#rvMgrRows').addEventListener('click', async e => {
+$('#rvMgr').addEventListener('click', async e => {   // 키워드 행 + 위쪽 그룹 버튼
+  if (e.target.closest('[data-rvm-gadd]')) {
+    const n = (prompt('새 키워드 그룹 이름', '') || '').trim(); if (!n) return;
+    if (rvKg().some(g => g.name === n)) return toast('같은 이름의 그룹이 있어요');
+    const g = { id: uid(), name: n }; S.rvKwGroups.push(g);
+    store.save(); renderRvMgr(); $('#rvMgrGrp').value = g.id; return;
+  }
+  const gb = e.target.closest('[data-rvm-g]');
+  if (gb) {
+    const g = rvKg().find(x => x.id === gb.dataset.rvmG); if (!g) return;
+    const cnt = Object.keys(S.rvKwGroup).filter(k => S.rvKwGroup[k] === g.id).length, i = S.rvKwGroups.indexOf(g);
+    const v = await ask({ title: `'${g.name}' 그룹`, html: `키워드 ${cnt}개가 들어 있어요.`, choices: [
+      { v: 'ren', label: '✏️ 이름 바꾸기', cls: '' },
+      ...(i > 0 ? [{ v: 'up', label: '◀ 앞으로', cls: '' }] : []), ...(i < S.rvKwGroups.length - 1 ? [{ v: 'down', label: '뒤로 ▶', cls: '' }] : []),
+      { v: 'del', label: '🗑 그룹 삭제', cls: 'solid-danger' }] });
+    if (v === 'ren') { const n = (prompt('그룹 이름', g.name) || '').trim(); if (n) g.name = n; }
+    if (v === 'up' || v === 'down') { const j = i + (v === 'up' ? -1 : 1); [S.rvKwGroups[i], S.rvKwGroups[j]] = [S.rvKwGroups[j], S.rvKwGroups[i]]; }
+    if (v === 'del') { S.rvKwGroups = S.rvKwGroups.filter(x => x !== g); Object.keys(S.rvKwGroup).forEach(k => { if (S.rvKwGroup[k] === g.id) delete S.rvKwGroup[k]; }); toast(`그룹을 지웠어요 · 키워드 ${cnt}개는 '미분류'로`); }
+    if (v) { store.save(); renderRvMgr(); }
+    return;
+  }
   const d = e.target.closest('[data-rvm-del]'); if (!d) return;
-  const [n, c] = rvNames(RVM)[+d.dataset.rvmDel], key = RV_LIST_KEY[RVM], name = RVM === 'cps' ? 'CP' : '키워드';
+  const n = d.dataset.rvmDel, c = (rvNames(RVM).find(x => x[0] === n) || [n, 0])[1], key = RV_LIST_KEY[RVM], name = RVM === 'cps' ? 'CP' : '키워드';
   const v = await ask({ title: `${name} '${n}'을 삭제할까요?`, html: c ? `이 ${name}가 붙어 있는 리뷰 <b>${c}편</b>에서도 빠져요. 리뷰 자체는 지워지지 않아요.` : '목록에서만 지워져요.',
     choices: [{ v: 'del', label: '🗑 삭제', cls: 'solid-danger' }] });
   if (!v) return;
   S[key] = (S[key] || []).filter(x => x !== n);
   S.reviews.forEach(r => { if ((r[RVM] || []).includes(n)) r[RVM] = r[RVM].filter(x => x !== n); });
+  if (RVM === 'keywords' && S.rvKwGroup) delete S.rvKwGroup[n];
   if (RV.kw === n) RV.kw = '';
   store.save(); renderRvMgr();
 });
