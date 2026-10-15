@@ -966,6 +966,16 @@
   .rv-hero { display: flex; gap: 14px; margin-bottom: 6px; }
   .rv-hero-i { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
   .rv-hero-i h3 { font-size: 18px; }
+  .rf-plat { display: flex; flex-wrap: wrap; gap: 4px; }
+  .rf-plat button { border: 1px solid var(--border); background: #fff; border-radius: 99px; padding: 3px 11px; font-size: 11.5px; color: var(--text2); }
+  .rf-plat button.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .rf-plat-etc { margin-top: 6px; width: 100%; border: 1px solid var(--border); border-radius: 99px; padding: 5px 12px; }
+  .rf-plat-etc[hidden] { display: none; }
+  .rf-vpn { display: inline-flex !important; flex-direction: row !important; align-items: center; gap: 6px; margin-top: 7px; font-size: 12px; color: var(--text); cursor: pointer; }
+  .rf-vpn input { width: auto; }
+  .rv-plat { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
+  .rv-plat span { font-size: 10px; font-weight: 700; color: #3a74c4; background: #e8f1fc; border-radius: 99px; padding: 1px 7px; }
+  .rv-plat .vpn { color: #b0603a; background: #fdeee4; }
   .rv-sec { font-size: 11px; font-weight: 700; color: var(--accent-dark); margin: 10px 0 4px; }
   .rv-cast { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 5px; }
   .rv-cast div { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 5px 9px; font-size: 12px; }
@@ -1632,6 +1642,10 @@
         <label>회차 <input id="rfEps" inputmode="numeric" maxlength="4"></label>
         <label>상태 <select id="rfStatus"><option>시청예정</option><option>방영중</option><option>시청중</option><option>완결</option><option>보류</option><option>하차</option></select></label>
       </div>
+      <div class="full"><div class="ev-note">볼 수 있는 곳 (여러 개 고를 수 있어요)</div>
+        <div class="rf-plat" id="rfPlat"></div>
+        <input id="rfPlatEtc" class="rf-plat-etc" placeholder="기타 플랫폼 이름" hidden>
+        <label class="rf-vpn"><input type="checkbox" id="rfVpn"> 🌐 우회 필요 (VPN 등)</label></div>
       <div class="full rf-seq">
         <label class="chk"><input type="checkbox" id="rfSeq"> 원작이 있는 작품이에요 (후속작·스핀오프 등)</label>
         <div class="rf-seq-pick" id="rfSeqWrap" hidden>
@@ -6111,6 +6125,10 @@ const RV_ST_CLS = { 시청예정: 'plan', 방영중: 'air', 시청중: 'watch', 
 const airLabel = r => r.status === '방영중' && (r.airDays || []).length ? ' · ' + [1, 2, 3, 4, 5, 6, 0].filter(i => r.airDays.includes(i)).map(i => DOW[i]).join('') : '';
 const rvStatus = r => r.status ? `<span class="rv-st st-${RV_ST_CLS[r.status] || 'etc'}">${esc(r.status)}${airLabel(r)}</span>` : '';
 const RV = { q: '', status: '', kw: '', sort: 'new' };
+// 볼 수 있는 곳: r.platforms = ['넷플릭스', …] ('기타'는 r.platEtc 이름으로 표시), r.vpn = 우회 필요
+const RV_PLAT = ['유튜브', '아이치이', '헤븐리', '위티비', '넷플릭스', '웨이브', '티빙', '기타'];
+const rvPlatNames = r => (r.platforms || []).map(p => p === '기타' ? (r.platEtc || '기타') : p);
+const rvPlat = r => { const ps = rvPlatNames(r); return ps.length || r.vpn ? `<div class="rv-plat">${ps.map(p => `<span>${esc(p)}</span>`).join('')}${r.vpn ? '<span class="vpn">🌐 우회</span>' : ''}</div>` : ''; };
 // 후속작: r.prev = 이전 작품 리뷰 id. 시리즈 = 맨 처음 작품부터 후속작을 따라간 줄
 const rvById = id => S.reviews.find(x => x.id === id);
 const rvPrev = r => r.prev ? rvById(r.prev) : null;
@@ -6142,7 +6160,7 @@ const allRvKeywords = () => { const m = new Map(); S.reviews.forEach(r => (r.key
 function renderReviews() {
   const q = RV.q.trim().toLowerCase(), hit = s => String(s || '').toLowerCase().includes(q);
   let list = S.reviews.filter(r => (!RV.status || r.status === RV.status) && (!RV.kw || (r.keywords || []).includes(RV.kw))
-    && (!q || hit(r.title) || hit(r.orig) || (r.cast || []).some(c => hit(c.actor) || hit(c.role)) || (r.cps || []).some(hit) || (r.keywords || []).some(hit)));
+    && (!q || hit(r.title) || hit(r.orig) || (r.cast || []).some(c => hit(c.actor) || hit(c.role)) || (r.cps || []).some(hit) || (r.keywords || []).some(hit) || rvPlatNames(r).some(hit)));
   const by = { new: (a, b) => (b.created || 0) - (a.created || 0), rating: (a, b) => (b.rating || 0) - (a.rating || 0) || (b.created || 0) - (a.created || 0),
     title: (a, b) => a.title.localeCompare(b.title, 'ko'), year: (a, b) => String(b.year || '').localeCompare(String(a.year || '')) };
   list = list.sort(by[RV.sort] || by.new);
@@ -6160,6 +6178,7 @@ function renderReviews() {
           <div class="rv-meta">${[r.year, r.eps ? r.eps + '부작' : ''].filter(Boolean).map(esc).join(' · ')}</div>
           <div class="rv-row">${rvStatus(r)}${r.rating ? rvStars(r.rating) : ''}</div>
           ${(r.cps || []).length ? `<div class="rv-cps">${r.cps.slice(0, 2).map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
+          ${rvPlat(r)}
         </div></div>`).join('')}</div>`
       : `<div class="card empty" style="padding:40px 10px">${S.reviews.length ? '조건에 맞는 리뷰가 없어요' : '＋ 리뷰 쓰기로 첫 드라마 리뷰를 남겨 보세요 🎬'}</div>`;
 }
@@ -6192,6 +6211,7 @@ function openRvView(id) {
           return `<div class="rv-series">${sr.map(x => `<button type="button" class="${x.id === r.id ? 'on' : ''}" data-rv-go="${x.id}" title="${esc(rvPrev(x) ? `${x.title} — ${rvRelText(rvPrev(x).title, rvRel(x))}` : x.title)}">${rvRelBadge(x)}${esc(x.title)}</button>`).join('')}</div>`; })()}
         ${(() => { const sch = dramaNext(r); if (!sch.length) return ''; const today = dkey(), nx = sch.find(x => x[0] >= today), last = parseInt(r.eps) ? sch.at(-1) : null;
           return `<div class="rv-air">${nx ? `다음 방영 <b>${mdLabel(nx[0])} EP${nx[1]}</b>` : '방영 끝'}${last ? ` · 마지막화 ${mdLabel(last[0])}` : ''}</div>`; })()}
+        ${rvPlat(r) ? `<div class="rv-sec">볼 수 있는 곳</div>${rvPlat(r)}` : ''}
         ${(r.cps || []).length ? `<div class="rv-sec">CP</div><div class="rv-cps">${r.cps.map(c => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
       </div></div>
     ${(r.cast || []).length ? `<div class="rv-sec">출연진</div><div class="rv-cast">${r.cast.map(c => `<div><b>${esc(c.actor)}</b>${c.role ? `<span>${esc(c.role)} 역</span>` : ''}</div>`).join('')}</div>` : ''}
@@ -6216,7 +6236,8 @@ let RVF = null;            // {edit, cast:[], cps:[], keywords:[], rating}
 function openRvForm(id) {
   const r = id ? S.reviews.find(x => x.id === id) : null;
   RVF = { edit: r, prev: r?.prev || '', rel: RV_REL.includes(r?.rel) ? r.rel : '후속작', air: r ? [...(r.airDays || [])] : [], cast: r ? (r.cast || []).map(c => ({ ...c })) : [{ actor: '', role: '' }, { actor: '', role: '' }],
-    cps: r ? [...(r.cps || [])] : [], keywords: r ? [...(r.keywords || [])] : [], rating: r ? r.rating || 0 : 0 };
+    cps: r ? [...(r.cps || [])] : [], keywords: r ? [...(r.keywords || [])] : [], rating: r ? r.rating || 0 : 0, plat: r ? [...(r.platforms || [])] : [] };
+  $('#rfVpn').checked = !!r?.vpn; $('#rfPlatEtc').value = r?.platEtc || '';
   $('#rvFormTitle').textContent = r ? '✏️ 리뷰 수정' : '＋ 리뷰 쓰기';
   $('#rfPoster').value = r?.poster || ''; $('#rfTitle').value = r?.title || ''; $('#rfOrig').value = r?.orig || '';
   $('#rfYear').value = r?.year || ''; $('#rfEps').value = r?.eps || '';
@@ -6274,6 +6295,8 @@ function renderRvForm() {
   }
   $('#rfAirInfo').innerHTML = info;
   $('#rfAir').innerHTML = [1, 2, 3, 4, 5, 6, 0].map(i => `<button type="button" data-air="${i}" class="${RVF.air.includes(i) ? 'on' : ''}">${DOW[i]}</button>`).join('');
+  $('#rfPlat').innerHTML = RV_PLAT.map(p => `<button type="button" data-plat="${p}" class="${RVF.plat.includes(p) ? 'on' : ''}">${p}</button>`).join('');
+  $('#rfPlatEtc').hidden = !RVF.plat.includes('기타');
   $('#rfStars').innerHTML = [1, 2, 3, 4, 5].map(i => `<span class="rf-star ${starCls(i, RVF.rating)}">★<button type="button" data-star="${i - 0.5}" aria-label="${i - 0.5}점"></button><button type="button" data-star="${i}" aria-label="${i}점"></button></span>`).join('') + `<span class="lbl">${RVF.rating ? RVF.rating + '점' : '별점 없음'}</span>`;
   $('#rfCast').innerHTML = RVF.cast.map((c, i) => `<div class="rf-cast">
     <input data-ci="${i}" data-cf="actor" value="${esc(c.actor)}" placeholder="배우 이름">
@@ -6335,6 +6358,7 @@ $('#rvFormEl').addEventListener('click', e => {
   const cd = t.closest('[data-cdel]'); if (cd) { RVF.cast.splice(+cd.dataset.cdel, 1); return renderRvForm(); }
   const pd_ = t.closest('[data-cpdel]'); if (pd_) { RVF.cps.splice(+pd_.dataset.cpdel, 1); return renderRvForm(); }
   const kd = t.closest('[data-kwdel]'); if (kd) { RVF.keywords.splice(+kd.dataset.kwdel, 1); return renderRvForm(); }
+  const pl = t.closest('[data-plat]'); if (pl) { const v = pl.dataset.plat; RVF.plat = RVF.plat.includes(v) ? RVF.plat.filter(x => x !== v) : [...RVF.plat, v]; renderRvForm(); if (v === '기타' && RVF.plat.includes(v)) $('#rfPlatEtc').focus(); return; }
   const ai = t.closest('[data-air]'); if (ai) { const i = +ai.dataset.air; RVF.air = RVF.air.includes(i) ? RVF.air.filter(x => x !== i) : [...RVF.air, i]; return renderRvForm(); }
   const mg = t.closest('[data-rf-mgr]'); if (mg) return openRvMgr(mg.dataset.rfMgr);
 });
@@ -6354,6 +6378,7 @@ $('#rvFormEl').addEventListener('submit', e => {
     prev: $('#rfSeq').checked ? (RVF.prev || '') : '', rel: $('#rfSeq').checked && RVF.prev ? RVF.rel : '',
     year: $('#rfYear').value.trim(), eps: $('#rfEps').value.trim(), status: $('#rfStatus').value, airDays: $('#rfStatus').value === '방영중' ? [...RVF.air].sort() : [], airStart: $('#rfStatus').value === '방영중' ? $('#rfAirStart').value : '', rating: RVF.rating,
     cast: RVF.cast.map(c => ({ actor: c.actor.trim(), role: c.role.trim() })).filter(c => c.actor || c.role),
+    platforms: RV_PLAT.filter(p => RVF.plat.includes(p)), platEtc: RVF.plat.includes('기타') ? $('#rfPlatEtc').value.trim() : '', vpn: $('#rfVpn').checked,
     cps: RVF.cps, keywords: RVF.keywords, synopsis: $('#rfSyn').value.trim(), review: $('#rfReview').value.trim() };
   let id;
   if (RVF.edit) { Object.assign(RVF.edit, data); id = RVF.edit.id; }
