@@ -6416,9 +6416,9 @@ $('#rvFormEl').addEventListener('submit', e => {
 // ── CP · 키워드 관리: 미리 만들어 둔 목록(S.rvCps / S.rvKeywords, 동기화) + 리뷰에서 쓰고 있는 것 ──
 const RV_LIST_KEY = { cps: 'rvCps', keywords: 'rvKeywords' };
 // 키워드 그룹: S.rvKwGroups = [{id, name}] (순서대로), S.rvKwGroup = {키워드: 그룹 id}. 그룹이 없는 키워드는 '미분류'
-const RV_KG_DEF = ['장르', '관계', '인물(공)', '인물(수)', '소재', '분위기', '기타'];
+// 처음엔 '기타' 하나만 (필요한 그룹은 관리창 '＋ 그룹'으로). id는 예전 기본값과 겹치지 않게 'g6'
 function rvKg() {
-  if (!Array.isArray(S.rvKwGroups)) S.rvKwGroups = RV_KG_DEF.map((name, i) => ({ id: 'g' + i, name }));
+  if (!Array.isArray(S.rvKwGroups)) S.rvKwGroups = [{ id: 'g6', name: '기타' }];
   if (!S.rvKwGroup || typeof S.rvKwGroup !== 'object') S.rvKwGroup = {};
   return S.rvKwGroups;
 }
